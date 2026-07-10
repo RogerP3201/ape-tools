@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UDL×DI×STEP 調整判讀學習工具</title>
+<style>
+  :root{--bg:#eef1f5;--card:#fff;--ink:#1f2933;--muted:#6b7280;--line:#e2e6ea;--band:#0f766e;
+    --sel:#0f766e;--selbg:#e6f5f2;--good:#059669;--goodbg:#ecfdf5;--warn:#b45309;--warnbg:#fff7ea;--bad:#dc2626;--go:#0f9d58;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:900px;margin:0 auto;padding:0 14px 90px}
+  header.top{background:linear-gradient(135deg,#0f766e,#155e63);color:#fff;padding:20px 18px;border-radius:0 0 14px 14px}
+  header.top h1{margin:0;font-size:19px}
+  header.top p{margin:5px 0 0;font-size:12px;opacity:.9}
+  .bar{position:sticky;top:0;z-index:20;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .bar .spacer{flex:1}
+  .bar button{border:1px solid var(--line);background:#f8fafc;border-radius:8px;padding:8px 13px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .bar button.pri{background:var(--band);color:#fff;border-color:var(--band)}
+  .bar button.go{background:var(--go);color:#fff;border-color:var(--go)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+  details.info summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--band)}
+  details.info ol{margin:8px 0 4px;padding-left:20px;font-size:13px;color:#374151}details.info li{margin-bottom:4px}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:640px){.meta{grid-template-columns:1fr}}
+  .meta label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+  .meta label .req{color:var(--bad)}
+  .meta input,.meta select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13.5px;font-family:inherit}
+  .axis{margin:22px 2px 2px;font-size:14px;font-weight:800;color:var(--band);border-left:4px solid var(--band);padding-left:9px}
+  .axis span{font-weight:400;color:var(--muted);font-size:12px}
+  .item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-top:11px}
+  .qhead{display:flex;gap:9px;align-items:flex-start}
+  .num{flex:none;min-width:34px;height:24px;padding:0 6px;border-radius:7px;background:var(--band);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px}
+  .scen{font-size:14.5px;font-weight:500}
+  .qrow{margin:10px 0 0}
+  .qlabel{font-size:11.5px;font-weight:700;color:var(--muted);margin:8px 0 4px}
+  .opts{display:flex;gap:7px;flex-wrap:wrap}
+  .opt{border:1px solid var(--line);border-radius:20px;padding:5px 15px;font-size:12.5px;font-weight:700;cursor:pointer;background:#fff;color:var(--muted)}
+  .opt.on{background:var(--sel);color:#fff;border-color:var(--sel)}
+  .opt.q1.on{background:var(--good);border-color:var(--good)}
+  .opt.q2.on{background:var(--warn);border-color:var(--warn)}
+  .knobrow{display:none}.knobrow.show{display:block}
+  .fb{display:none;margin-top:11px;border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.75}
+  .fb.show{display:block}
+  .fb.hit{background:var(--goodbg);border:1px solid var(--good)}
+  .fb.miss{background:#fdf0f0;border:1px solid var(--bad)}
+  .fb.disc{background:#eef4fb;border:1px solid #1f4e79}
+  .fb b{color:var(--band)}
+  .fb .rf{margin-top:5px;color:#7a4a08}
+  .fb .src{margin-top:5px;color:var(--muted);font-size:11.5px}
+  .score{display:none;background:var(--band);color:#fff;border-radius:14px;padding:16px;margin-top:14px;text-align:center;font-size:16px;font-weight:800}
+  .score.show{display:block}
+  .score .sub{font-size:13px;font-weight:400;margin-top:8px;opacity:.95}
+  .foot{font-size:11.5px;color:var(--muted);margin-top:18px;padding:12px;border-top:1px solid var(--line);line-height:1.7}
+  @media print{.bar{position:static}.opt:not(.on){display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1>UDL×DI×STEP 調整判讀學習工具</h1>
+    <p>師培練習：判讀教學調整的層次與設計品質、辨識語言中的健全主義框架。</p></header>
+
+  <div class="bar">
+    <button class="pri" onclick="grade()">對照專家判定</button>
+    <span class="spacer"></span>
+    <button class="go" onclick="submitToGsheet()">送出並收集</button>
+    <button onclick="window.print()">列印</button>
+    <button onclick="resetAll()">清空</button>
+  </div>
+
+  <div class="card"><details class="info" open><summary>說明（點此展開／收合）</summary><ol id="introList"></ol></details></div>
+
+  <div class="card">
+    <div class="meta">
+      <div><label>填寫者姓名 <span class="req">*</span></label><input id="m_name" placeholder="姓名"></div>
+      <div><label>身分</label><select id="m_role"><option value="">請選擇</option><option>師培生</option><option>體育教師</option><option>研究者／觀察員</option><option>其他</option></select></div>
+    </div>
+  </div>
+
+  <div class="score" id="score"></div>
+  <div id="items"></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const DATA={"title": "UDL×DI×STEP 調整判讀學習工具", "intro": ["兩個練習軸：軸一判斷教學調整落在 UDL／DI／STEP 哪層、設計品質可用或需重構；軸二判斷老師的語言／框架有沒有健全主義。", "每題作答後按『對照專家判定』，僅『共識題』計入與專家一致率；『討論題』不計分，重點在理由。", "專家判定為參考判定、非唯一標準答案；可有理由地不同意。"], "cite": "依據：潘正宸、掌慶維、林靜萍（投稿中）UDL/DI/STEP 層級式整合架構；對齊 CAST UDL Guidelines 3.0 (2024)。", "items": [{"id": "S1", "strand": "A", "scen": "教師在單元規劃階段就設計球員、教練、計分員、裁判等角色，採合作性計分（助攻與得分並列），讓不同能力學生都能對團隊有貢獻。", "level": "UDL", "knob": "", "qual": "可用", "scored": true, "why": "時機在事前規劃、對象為全班、目的在預先建立彈性結構；非上課臨場的反應性調整。全班皆可選擇，不涉隱性排除。", "reframe": "", "src": "CAST (2024) 3.0 多元參與投入；潘正宸等（投稿中）UDL＝課程設計層次；教學案例一。"}, {"id": "S2", "strand": "A", "scen": "投籃練習時，教師依學生準備度當場設不同距離與籃框高度，功能受限較大者以觸及籃板為目標。", "level": "DI", "knob": "", "qual": "可用", "scored": true, "why": "課堂當下、因應個別差異的動態調整＝Tomlinson DI 的準備度差異化。", "reframe": "", "src": "Tomlinson DI；潘正宸等（投稿中）DI＝教學實施層次；教學案例一。"}, {"id": "S3", "strand": "A", "scen": "打擊課提供泡棉打擊棒、羽球拍、板球棒、網球拍與可調籃框供學生選用。", "level": "STEP", "knob": "器材", "qual": "可用", "scored": true, "why": "器材大小／材質的調整＝Equipment，且從屬於 UDL 多元行動與表達、全班可選。", "reframe": "", "src": "STEP 架構；潘正宸等（投稿中）STEP 從屬於 UDL。"}, {"id": "S4", "strand": "A", "scen": "以彩色膠帶標示活動場域，並為輪椅使用者劃定較適中的防守區。", "level": "STEP", "knob": "空間", "qual": "可用", "scored": true, "why": "場地與區域劃分＝Space；劃定是為降低阻礙、非把人隔開。", "reframe": "", "src": "STEP 架構；教學案例一。"}, {"id": "S5", "strand": "A", "scen": "比賽形式由學生依興趣選擇——全場競賽、半場三對三、技巧挑戰站。", "level": "DI", "knob": "", "qual": "可用", "scored": true, "why": "課堂實施層次、依興趣差異化。", "reframe": "", "src": "Tomlinson DI；教學案例一。"}, {"id": "S6", "strand": "A", "scen": "採同儕夥伴制度、裁判角色輪換，教師助理於必要時（非全程）協助。", "level": "STEP", "knob": "人員", "qual": "可用", "scored": true, "why": "分組與同儕支持＝People；助理『必要時』協助保留學生自主，非替代參與。", "reframe": "", "src": "STEP 架構；教學案例一。"}, {"id": "S7", "strand": "A", "scen": "全班玩正式規則的排球，教師只幫某位障礙生準備一套專屬簡化版，讓他在旁單獨進行。", "level": "STEP", "knob": "任務", "qual": "需重構", "scored": true, "why": "做成專屬版＝把學生從全班活動分出去（隱性排除／分隔），違反『所有學生皆可選擇』。", "reframe": "改成全班皆可選的多版本設計——如排球提供不同球種、可落地兩次、發球距離可選，人人都能挑，障礙生不被單獨拉出。", "src": "CAST (2024) 3.0 考量點 8.4 歸屬＋反缺損；潘正宸等（投稿中）CDT 護欄；教學案例一。"}, {"id": "S8", "strand": "A", "scen": "教師助理全程一對一牽著障礙生的手完成每一個動作。", "level": "STEP", "knob": "人員", "qual": "需重構", "scored": true, "why": "全程代替＝剝奪學習與自主，正是『協助參與』被學生經驗為低期望的典型。", "reframe": "助理改為必要時介入、逐步撤除鷹架（提示→示範→部分協助→放手），保留學生的學習機會與自主。", "src": "CAST (2024) 3.0 目標 learner agency＋8.4 歸屬；IEP 判讀 D1『支持參與 vs 替代參與』。"}, {"id": "S9", "strand": "A", "scen": "創造性律動單元，教師導入結構化動作卡片，並降低環境音量、設感官友善區。", "level": "", "knob": "", "qual": "", "scored": false, "why": "可辯——『降低音量／感官友善區』看是 STEP-空間；但整體在 DI 架構下回應 ASD 學生特質。層次取決於焦點放在『決策』（DI）或『落地手段』（STEP）。", "reframe": "", "src": "教學案例二；稿件『STEP 能彈性融入 UDL 或 DI』。"}, {"id": "S10", "strand": "A", "scen": "教師準備影片示範、口語提示、視覺化區域，供學生上課時自由選用。", "level": "", "knob": "", "qual": "", "scored": false, "why": "可辯——事前就設計進單元＝UDL；看到某生聽不懂才臨場補＝DI。同一資源，時機決定層次。", "reframe": "", "src": "van Munster et al. (2019)；潘正宸等（投稿中）。"}, {"id": "S11", "strand": "A", "scen": "使用助行器的學生，因安全考量在球類單元固定擔任計分員。", "level": "", "knob": "", "qual": "", "scored": false, "why": "可辯／傾向需重構——STEP-人員角色安排，但『固定、長期』易滑向替代參與與降低期望；若改為暫時、輪換、本人選擇則疑慮降低。", "reframe": "讓計分成為全班輪流的角色之一，並同時給他真正的動作參與機會與可達成的挑戰。", "src": "CAST (2024) 3.0 8.4 歸屬（在場≠有歸屬）；Holland & Haegele (2021)。"}, {"id": "S12", "strand": "A", "scen": "教師安排學生輪流戴眼罩進行盲人門球。", "level": "", "knob": "", "qual": "", "scored": false, "why": "取決於框架——若框架是『玩盲人門球這項運動，練聽覺定位、技術與策略』＝可用（身障運動＝正當運動傳統／賦權）；若框架是『蒙眼體會失明有多不方便』＝需重構（缺損模擬，反而強化刻板印象）。判別關鍵不在活動，在目的與框架。", "reframe": "若落入模擬框架：把『體驗障礙』改寫成『打一項運動』，聚焦技術與策略；要談處境讓身障者自己發聲，不用模擬換同理。", "src": "CAST (2024) 3.0 反缺損＋7.4＋9.4；Nario-Redmond, Gospodinov, & Cobb (2017), Rehabilitation Psychology, 62(3), 324–333；Pan, Ng & Legg (2026) Beyond adaptation。"}, {"id": "L1", "strand": "B", "scen": "講師對全班說：「你看你們多幸福，身心障礙者練個球要爬山涉水才能打球。」", "level": "", "knob": "", "qual": "需重構", "scored": true, "why": "憐憫／勵志式健全主義框架：把健全＝幸運、障礙＝苦難；以健全者視角為中心；身障者被當成讓學生『知足感恩』的教材、自己沒有聲音。即使出於善意仍複製缺損觀。", "reframe": "拿掉『幸福／幸運／爬山涉水』的比較；把身障運動講成正當的運動追求（技術、策略、傳統）；把『打球的困難』講成環境設計問題而非個人苦難；要談處境就讓身障者自己說。", "src": "CAST (2024) 3.0 7.4 處理偏見／2.4 語言中的偏見／反缺損；身障研究對憐憫與勵志敘事（inspiration porn, Young）之批判。"}, {"id": "L2", "strand": "B", "scen": "教師介紹輪椅籃球選手影片時說：「他坐輪椅都能打成這樣，真的很了不起，你們要向他學習。」", "level": "", "knob": "", "qual": "需重構", "scored": true, "why": "勵志敘事（inspiration porn）：『都能…真了不起』把達成標準降在『有障礙還能做』，而非運動表現本身；讓身障者成為激勵健全者的道具。", "reframe": "具體讚許其技術與戰術（如轉位速度、傳球判讀），跟評論任何運動員一樣；不用『儘管有障礙』當框架。", "src": "CAST (2024) 3.0 7.4；身障研究 inspiration porn 批判。"}, {"id": "L3", "strand": "B", "scen": "分組時老師當眾說：「這組有個特殊生，動作比較慢，大家多包容一下。」", "level": "", "knob": "", "qual": "需重構", "scored": true, "why": "缺損標籤＋公開標記＋施捨式包容：以障礙定義學生、當眾標記；『包容』把他放在被施捨的位置，而非平等的隊友。", "reframe": "不公開標記；用設計讓不同步調變成常態（多版本任務、輪換角色）；需要時私下安排支持，語言談『支持與合作』而非『包容慢的人』。", "src": "CAST (2024) 3.0 8.4 歸屬／反缺損（不以缺損定義學習者）。"}, {"id": "L4", "strand": "B", "scen": "老師對身障生說：「你不用做這個沒關係，你在旁邊幫忙看就好。」", "level": "", "knob": "", "qual": "", "scored": false, "why": "傾向需重構——善意的降低期望／替代參與；但若確實是學生本人當下選擇、且仍保有其他參與與挑戰，則需更多資訊才能定論，故列討論題。", "reframe": "先給一個真正的角色與可達成的挑戰，而非直接免除；把『要不要參與、怎麼參與』的選擇權還給學生。", "src": "CAST (2024) 3.0 learner agency／8.4 歸屬；稿件學生主觀經驗。"}]};
+const aLevel={}, aKnob={}, aQual={};
+const KNOBS=["空間","任務","器材","人員"];
+function el(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+function render(){
+  document.getElementById('introList').innerHTML=DATA.intro.map(x=>`<li>${x}</li>`).join('');
+  document.getElementById('foot').innerHTML=DATA.cite;
+  const box=document.getElementById('items');let strand=null;
+  DATA.items.forEach(it=>{
+    if(it.strand!==strand){strand=it.strand;
+      box.appendChild(el('div','axis', it.strand==='A'
+        ?'軸一・結構調整判讀 <span>判：層次（UDL／DI／STEP）＋設計品質</span>'
+        :'軸二・語言框架判讀 <span>判：老師的說法有沒有健全主義框架</span>'));}
+    const c=el('div','item');c.id='it'+it.id;
+    const head=el('div','qhead');head.appendChild(el('div','num',it.id));
+    head.appendChild(el('div','scen',it.scen));c.appendChild(head);
+    if(it.strand==='A'){
+      const r1=el('div','qrow');r1.appendChild(el('div','qlabel','① 這個調整落在哪一層？'));
+      const o1=el('div','opts');
+      ["UDL","DI","STEP"].forEach(v=>{const b=el('div','opt',v);b.id=`L_${it.id}_${v}`;
+        b.onclick=()=>pickLevel(it.id,v);o1.appendChild(b);});
+      r1.appendChild(o1);c.appendChild(r1);
+      const kr=el('div','qrow knobrow');kr.id='kn'+it.id;
+      kr.appendChild(el('div','qlabel','　哪個旋鈕？'));
+      const ok=el('div','opts');
+      KNOBS.forEach(v=>{const b=el('div','opt',v);b.id=`K_${it.id}_${v}`;
+        b.onclick=()=>pickKnob(it.id,v);ok.appendChild(b);});
+      kr.appendChild(ok);c.appendChild(kr);
+    }
+    const r2=el('div','qrow');
+    r2.appendChild(el('div','qlabel', it.strand==='A'?'② 設計品質？':'這個說法？'));
+    const o2=el('div','opts');
+    const q1=it.strand==='A'?'可用':'可用（無健全主義框架）';
+    [['q1',q1,'可用'],['q2','需重構','需重構']].forEach(o=>{
+      const b=el('div','opt '+o[0],o[1]);b.id=`Q_${it.id}_${o[2]}`;
+      b.onclick=()=>pickQual(it.id,o[2]);o2.appendChild(b);});
+    r2.appendChild(o2);c.appendChild(r2);
+    const fb=el('div','fb');fb.id='fb'+it.id;c.appendChild(fb);
+    box.appendChild(c);
+  });
+}
+function pickLevel(id,v){aLevel[id]=(aLevel[id]===v?null:v);
+  ["UDL","DI","STEP"].forEach(x=>document.getElementById(`L_${id}_${x}`).classList.toggle('on',aLevel[id]===x));
+  document.getElementById('kn'+id).classList.toggle('show',aLevel[id]==='STEP');}
+function pickKnob(id,v){aKnob[id]=(aKnob[id]===v?null:v);
+  KNOBS.forEach(x=>document.getElementById(`K_${id}_${x}`).classList.toggle('on',aKnob[id]===x));}
+function pickQual(id,v){aQual[id]=(aQual[id]===v?null:v);
+  ["可用","需重構"].forEach(x=>document.getElementById(`Q_${id}_${x}`).classList.toggle('on',aQual[id]===x));}
+function calc(){
+  let A=[0,0],B=[0,0];const detail=[];
+  DATA.items.forEach(it=>{
+    const lv=aLevel[it.id]||'', ql=aQual[it.id]||'';
+    if(it.scored){
+      let hit;
+      if(it.strand==='A') hit=(lv===it.level && ql===it.qual);
+      else hit=(ql===it.qual);
+      const tgt=it.strand==='A'?A:B;
+      if(lv||ql){tgt[1]++; if(hit)tgt[0]++;}
+      detail.push(it.id+':'+(it.strand==='A'?(lv||'-')+'/'+(ql||'-'):(ql||'-'))+(hit?'✓':'✗'));
+    }else{
+      detail.push(it.id+'(討論):'+(it.strand==='A'?(lv||'-')+'/'+(ql||'-'):(ql||'-')));
+    }
+  });
+  return {A:A,B:B,detail:detail.join(' | ')};
+}
+function grade(){
+  DATA.items.forEach(it=>{
+    const fb=document.getElementById('fb'+it.id);
+    const lv=aLevel[it.id]||'', ql=aQual[it.id]||'';
+    if(!it.scored){
+      fb.className='fb disc show';
+      fb.innerHTML='<b>討論題（不計分）</b>　'+it.why+(it.reframe?'<div class="rf">↳ 重構：'+it.reframe+'</div>':'')+'<div class="src">出處：'+it.src+'</div>';
+      return;
+    }
+    let hit,exp;
+    if(it.strand==='A'){hit=(lv===it.level && ql===it.qual);
+      exp='層次＝'+it.level+(it.knob?'（'+it.knob+'）':'')+'；品質＝'+it.qual;}
+    else{hit=(ql===it.qual);exp=it.qual;}
+    fb.className='fb '+(hit?'hit':'miss')+' show';
+    fb.innerHTML=(hit?'✔ 與專家一致':'✘ 與專家不同')+'　<b>專家判定：'+exp+'</b>'
+      +'<div>理由：'+it.why+'</div>'+(it.reframe?'<div class="rf">↳ 怎麼重構：'+it.reframe+'</div>':'')
+      +'<div class="src">出處：'+it.src+'</div>';
+  });
+  const c=calc();const at=c.A[1],ah=c.A[0],bt=c.B[1],bh=c.B[0];const tot=at+bt,hit=ah+bh;
+  const s=document.getElementById('score');s.className='score show';
+  s.innerHTML='與專家一致率：'+hit+' / '+tot+(tot?'（'+Math.round(hit/tot*100)+'%）':'')
+   +'<div class="sub">軸一結構 '+ah+'/'+at+'　·　軸二語言 '+bh+'/'+bt+'　（僅計共識題，討論題不計分）</div>';
+  s.scrollIntoView({behavior:'smooth'});
+}
+function v(id){return (document.getElementById(id).value||'').trim();}
+function submitToGsheet(){
+  if(!v('m_name')){alert('請先填「填寫者姓名」');document.getElementById('m_name').focus();return;}
+  let answered=0;DATA.items.forEach(it=>{if(aLevel[it.id]||aQual[it.id])answered++;});
+  if(answered===0){alert('至少判讀一題再送出');return;}
+  const c=calc();const rec={name:v('m_name'),role:v('m_role'),
+    aHit:c.A[0],aTot:c.A[1],bHit:c.B[0],bTot:c.B[1],
+    hit:c.A[0]+c.B[0],tot:c.A[1]+c.B[1],
+    pct:(c.A[1]+c.B[1])?Math.round((c.A[0]+c.B[0])/(c.A[1]+c.B[1])*100):'',detail:c.detail};
+  if(typeof google==='undefined'||!google.script||!google.script.run){alert('離線預覽：部署後的網址才能收集');return;}
+  const btn=event.target;btn.disabled=true;btn.textContent='送出中…';
+  google.script.run.withSuccessHandler(function(id){alert('✅ 已送出（一致率 '+rec.pct+'%），編號 '+id);btn.disabled=false;btn.textContent='送出並收集';})
+   .withFailureHandler(function(e){btn.disabled=false;btn.textContent='送出並收集';alert('送出失敗：'+(e&&e.message?e.message:'請重試'));})
+   .saveResponse(rec);
+}
+function resetAll(){if(!confirm('確定清空所有作答？'))return;
+  for(const k in aLevel)delete aLevel[k];for(const k in aKnob)delete aKnob[k];for(const k in aQual)delete aQual[k];
+  document.getElementById('items').innerHTML='';document.getElementById('score').className='score';render();}
+render();
+</script>
+</body>
+</html>
