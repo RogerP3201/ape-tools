@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>適應體育教學工具箱｜Roger Pan</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root { --green:#0d4d43; --bg:#f4f6f5; --card:#ffffff; --ink:#22312d; --sub:#5a6a64; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Segoe UI","Microsoft JhengHei",system-ui,sans-serif; background:var(--bg); color:var(--ink); padding:24px 16px 60px; }
+  .wrap { max-width:880px; margin:0 auto; }
+  h1 { font-size:1.5rem; color:var(--green); margin-bottom:4px; }
+  .tagline { color:var(--sub); font-size:.92rem; margin-bottom:28px; }
+  h2 { font-size:1.05rem; color:var(--green); margin:28px 0 12px; padding-left:10px; border-left:4px solid var(--green); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; }
+  .card { background:var(--card); border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,.07); display:flex; flex-direction:column; gap:8px; }
+  .card b { font-size:1rem; }
+  .card p { font-size:.85rem; color:var(--sub); flex:1; }
+  .row { display:flex; align-items:center; gap:10px; }
+  a.btn { display:inline-block; background:var(--green); color:#fff; text-decoration:none; padding:8px 14px; border-radius:8px; font-size:.9rem; }
+  a.btn.off { background:#b9c4c0; pointer-events:none; }
+  .qr { width:74px; height:74px; flex:0 0 74px; }
+  .qr img, .qr canvas { width:74px !important; height:74px !important; }
+  .note { margin-top:34px; font-size:.82rem; color:var(--sub); line-height:1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>適應體育教學工具箱</h1>
+  <div class="tagline">融合體育・適應體育師資培育互動工具｜手機、平板、電腦皆可使用</div>
+
+  <h2>學習與評量工具（作答會收集，供課程與研究使用）</h2>
+  <div class="grid" id="appsScriptTools"></div>
+
+  <h2>自學工具</h2>
+  <div class="grid" id="selfStudyTools"></div>
+
+  <h2>課堂互動小工具</h2>
+  <div class="grid" id="classTools"></div>
+
+  <div class="note">
+    行動裝置掃描 QR code 即可直接開啟工具。<br>
+    「學習與評量工具」送出的作答資料僅供教學回饋與學術研究（無記名彙整分析）使用。
+  </div>
+</div>
+
+<script>
+// ===== 工具清單（部署後把 url 填入即可；留空會顯示「即將上線」） =====
+const APPS_SCRIPT_TOOLS = [
+  { name:"調整判讀學習工具", desc:"UDL／DI／STEP 結構調整與語言框架判讀，對照專家判定看一致率。", url:"" },
+  { name:"IEP 適應體育檢核", desc:"IEP 體育課程品質檢核，含分區診斷與判讀線索。", url:"https://script.google.com/macros/s/AKfycbwFDtFkWkYpWK85vuAklieUeyIT6sl5SSFOU9XX8jtYUHPOcdPKyVY6JlpFNzRoKhSMCA/exec" },
+  { name:"LIRSPE 融合式體育評量", desc:"融合式體育課堂觀察評量，資料自動彙整。", url:"https://script.google.com/macros/s/AKfycbyKEOA6GeWbvoyrSAWxP4cfbhCBCVCo7kctAQ52A49cxPHZQXPl1KMfdCrwlCCQoSwRTQ/exec" },
+  { name:"UDL-DI-STEP 三層規劃器", desc:"從課程設計到活動調整的三層教學規劃。", url:"https://script.google.com/macros/s/AKfycbxOK84uc2ph3_2ocjqf0P-EnBrqpnTmigEpw3yX2uVrQ5xFm5eO0kyC3R5CbEhN8RpR/exec" },
+  { name:"UDL-CDT 教學靈感工具", desc:"輸入體育單元，AI 生成全班取向的教學設計與教學目標。", url:"" },
+];
+const SELF_STUDY_TOOLS = [
+  { name:"適應體育個案自學（中文版）", desc:"個案情境自學與判斷練習。", url:"tools/ape-selfstudy-zh.html" },
+  { name:"APE Case Self-Study (EMI)", desc:"English-medium case-based self-study.", url:"tools/ape-selfstudy-emi.html" },
+  { name:"IEP 體育課程品質檢核（師培版）", desc:"演講／課堂用單機版檢核練習。", url:"tools/iep-quality-check.html" },
+];
+const CLASS_TOOLS = [
+  { name:"帕拉演講互動", desc:"分級師與標題翻轉互動。", url:"tools/para-interactive.html" },
+  { name:"平均的謊言", desc:"演講演示：平均值如何誤導設計。", url:"tools/average-lie.html" },
+  { name:"抽案輪盤", desc:"課堂抽案討論輪盤。", url:"tools/case-roulette.html" },
+  { name:"肌力體能選擇板", desc:"肌力體能課選擇板。", url:"tools/strength-choice-board.html" },
+  { name:"體適能紀錄（數位版）", desc:"體適能檢測數位紀錄。", url:"tools/fitness-record.html" },
+];
+
+function render(listId, tools){
+  const box = document.getElementById(listId);
+  tools.forEach((t, i) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const live = !!t.url;
+    card.innerHTML = `<b>${t.name}</b><p>${t.desc}</p>
+      <div class="row">
+        <a class="btn ${live ? "" : "off"}" href="${t.url || "#"}" target="_blank" rel="noopener">${live ? "開啟工具" : "即將上線"}</a>
+        <div class="qr" id="qr-${listId}-${i}"></div>
+      </div>`;
+    box.appendChild(card);
+    if (live) {
+      const abs = new URL(t.url, location.href).href;
+      new QRCode(document.getElementById(`qr-${listId}-${i}`), { text: abs, width: 74, height: 74, correctLevel: QRCode.CorrectLevel.M });
+    }
+  });
+}
+render("appsScriptTools", APPS_SCRIPT_TOOLS);
+render("selfStudyTools", SELF_STUDY_TOOLS);
+render("classTools", CLASS_TOOLS);
+</script>
+</body>
+</html>
