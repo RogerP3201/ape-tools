@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIRSPE 融合式體育課程評量表</title>
+<style>
+  :root{--bg:#eef1f5;--card:#fff;--ink:#1f2933;--muted:#6b7280;--line:#e2e6ea;--accent:#2563eb;--accent2:#1e40af;
+    --sel:#2563eb;--selbg:#eff4ff;--low:#dc2626;--lowbg:#fef2f2;--na:#9ca3af;--band:#0f3d6e;--go:#0f9d58;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:960px;margin:0 auto;padding:0 14px 90px}
+  header.top{background:linear-gradient(135deg,var(--band),#155a9c);color:#fff;padding:20px 18px;border-radius:0 0 14px 14px}
+  header.top h1{margin:0;font-size:19px}
+  .bar{position:sticky;top:0;z-index:20;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:10px 14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .bar .avg{font-size:26px;font-weight:800;color:var(--accent2);line-height:1}
+  .bar .avg small{font-size:12px;color:var(--muted);font-weight:500}
+  .bar .stat{font-size:12.5px;color:var(--muted)}.bar .stat b{color:var(--ink);font-size:15px}
+  .bar .spacer{flex:1}
+  .bar button{border:1px solid var(--line);background:#f8fafc;border-radius:8px;padding:7px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .bar button.pri{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+  details.info summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent2)}
+  details.info ol{margin:8px 0 4px;padding-left:20px;font-size:13px;color:#374151}details.info li{margin-bottom:4px}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:640px){.meta{grid-template-columns:1fr}}
+  .meta label{font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:3px}
+  .meta label .req{color:var(--low)}
+  .meta input,.meta select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:13.5px;font-family:inherit}
+  .cat{margin:22px 2px 2px;font-size:13px;font-weight:800;color:var(--band);letter-spacing:.5px;border-left:4px solid var(--band);padding-left:8px}
+  .item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 15px;margin-top:10px;transition:border-color .15s}
+  .item.done{border-color:#bcd3f0}.item.low{border-color:#f3c0c0;background:var(--lowbg)}.item.na{opacity:.62}
+  .qhead{display:flex;gap:9px;align-items:flex-start}
+  .num{flex:none;width:26px;height:26px;border-radius:7px;background:var(--band);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .qtext{font-size:14.5px;font-weight:600}.qex{font-size:12px;color:var(--muted);margin:3px 0 0;font-weight:400}
+  .anchors{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:11px}
+  @media(max-width:720px){.anchors{grid-template-columns:1fr 1fr}}@media(max-width:420px){.anchors{grid-template-columns:1fr}}
+  .anc{border:1px solid var(--line);border-radius:9px;padding:8px;cursor:pointer;background:#fafbfc;font-size:11.6px;line-height:1.45;color:#374151;transition:.12s;text-align:left}
+  .anc:hover{border-color:#9db8dd;background:#fff}
+  .anc .lv{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:#e5e9ef;color:#475569;font-size:11px;font-weight:800;margin-bottom:4px}
+  .anc.sel{border-color:var(--sel);background:var(--selbg);box-shadow:0 0 0 1.5px var(--sel) inset;color:#132e57}
+  .anc.sel .lv{background:var(--sel);color:#fff}
+  .anc.sel.lowsel{border-color:var(--low);box-shadow:0 0 0 1.5px var(--low) inset;background:var(--lowbg);color:#7a1d1d}
+  .anc.sel.lowsel .lv{background:var(--low)}
+  .narow{margin-top:8px;display:flex;align-items:center;gap:8px}
+  .nabtn{border:1px solid var(--line);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;background:#fff;color:var(--na)}
+  .nabtn.sel{background:var(--na);color:#fff;border-color:var(--na)}
+  .narow .hint{font-size:11.5px;color:var(--muted)}
+  #weak .wtag{display:inline-block;background:var(--lowbg);border:1px solid #f3c0c0;color:#a11;border-radius:6px;padding:2px 8px;font-size:12px;margin:3px 4px 0 0}
+  .submitCard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:16px;text-align:center}
+  .submitCard button{background:var(--go);color:#fff;border:0;border-radius:10px;padding:13px 30px;font-size:16px;font-weight:800;cursor:pointer}
+  .submitCard button:disabled{opacity:.5;cursor:not-allowed}
+  .submitCard .note{font-size:12px;color:var(--muted);margin-top:8px}
+  .foot{font-size:11.5px;color:var(--muted);margin-top:20px;padding:12px;border-top:1px solid var(--line);line-height:1.7}
+  .progress{height:6px;background:#e5e9ef;border-radius:4px;overflow:hidden;flex-basis:100%;margin-top:2px}
+  .progress>i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+  #done{display:none;text-align:center;padding:30px 16px}
+  #done .big{font-size:44px}#done h2{color:var(--go);margin:8px 0}
+  #done .id{font-family:monospace;background:#f1f5f9;padding:4px 10px;border-radius:6px;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><h1>LIRSPE 融合式體育課程評量表</h1></header>
+
+  <div id="app">
+    <div class="bar">
+      <div class="avg" id="avg">–<small> ／5</small></div>
+      <div class="stat">已評 <b id="cDone">0</b>/28　N/A <b id="cNa">0</b>　有效 <b id="cUsed">0</b></div>
+      <div class="spacer"></div>
+      <button class="pri" onclick="copySummary()">複製摘要</button>
+      <button onclick="downloadCSV()">下載 CSV</button>
+      <button onclick="resetAll()">清空</button>
+      <div class="progress"><i id="pbar"></i></div>
+    </div>
+
+    <div class="card">
+      <details class="info" open><summary>施測說明（點此展開／收合）</summary>
+        <ol id="introList"></ol>
+        <p style="font-size:12px;color:#374151;margin:6px 0 0"><b>計分：</b>總平均分數 ＝ 有效題項分數總和 ÷ 有效題數（不含 N/A）。例：11 題有效、總分 47 → 47÷11＝4.27。此數值代表老師為融合所有學生所做的努力。</p>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="meta">
+        <div><label>評量者姓名 <span class="req">*</span></label><input id="m_rater" placeholder="填寫者"></div>
+        <div><label>評量者角色</label><select id="m_role"><option value="">請選擇</option><option>修課學生／師培生</option><option>現場體育教師（自評）</option><option>同儕教師</option><option>家長</option><option>研究者／觀察員</option><option>其他</option></select></div>
+        <div><label>觀課對象／班級</label><input id="m_class" placeholder="如：OO國小 五年X班"></div>
+        <div><label>評量方式</label><select id="m_mode"><option value="">請選擇</option><option>現場觀課</option><option>影片自評</option><option>同儕評量</option><option>家長評量</option><option>教學觀摩</option></select></div>
+        <div><label>觀課日期</label><input id="m_date" type="date"></div>
+        <div><label>單元／活動主題</label><input id="m_unit" placeholder="如：軟式棒球打擊"></div>
+      </div>
+    </div>
+
+    <div id="items"></div>
+
+    <div class="card">
+      <div style="font-weight:700;font-size:14px;color:var(--band)">目前弱項（評 1–2 分的題目）</div>
+      <div id="weak"><span style="font-size:12.5px;color:var(--muted)">尚無。</span></div>
+    </div>
+
+    <div class="submitCard">
+      <button id="submitBtn" onclick="submitToSheet()">送出評分並收集</button>
+      <div class="note">送出後會自動記錄「收集時間」與流水編號，寫入試算表。你也可先「複製摘要／下載 CSV」留底。</div>
+    </div>
+
+    <div class="foot" id="foot"></div>
+  </div>
+
+  <div id="done">
+    <div class="big">✅</div>
+    <h2>評分已送出</h2>
+    <p>你的流水編號：<span class="id" id="doneId"></span></p>
+    <p style="color:#6b7280;font-size:13px">收集時間已一併記錄，可用於區隔每一筆評量。</p>
+    <button onclick="location.reload()" style="margin-top:10px;background:#2563eb;color:#fff;border:0;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer">再評一筆</button>
+  </div>
+</div>
+
+<script>
+const DATA = {"title": "LIRSPE 融合式體育課程評量表", "subtitle": "Lieberman–Brian Inclusion Rating Scale for Physical Education（中文版・量表結合 Rubric）", "intro": ["課程前 15 分鐘應進入課程場域觀察。以下各題可能不全然由體育老師掌控，某些行為若未能觀察到，可勾選 N/A，且不計入總分。", "可透過錄製上課影片自評、同儕評量、家長評量、教學觀摩等方式進行。", "評分含意：1＝很差（學生未融入班上）、2＝比普通差（鮮少融入）、3＝普通（有時可融合）、4＝比普通好（大部分融合）、5＝非常好（整節課皆融入）。點選每題下方的 rubric 描述即完成評分。"], "formula": "總平均分數 ＝ 有效題項分數總和 ÷ 有效題數（不含 N/A）。例：11 題有效、總分 47 → 47÷11＝4.27。此數值代表老師為融合所有學生所做的努力。", "citation": "本表由潘正宸翻譯，修改自 Lieberman, L. & Houston-Wilson, C. (2018). Strategies for Inclusion (3rd ed.). Champaign, IL: Human Kinetics. 量表出處：Lieberman, L., Brian, A., & Grenier, M. (2019). The Lieberman–Brian Inclusion Rating Scale for Physical Education. European Physical Education Review, 25(2), 341–354.", "items": [{"cat": "課程開始", "num": 1, "text": "體育教師歡迎所有同學來到體育館時，所有同學能一起上課，包括身心障礙同學。", "ex": "身心障礙孩子也沒有遲到進入體育館。", "anchors": ["身心障礙同學沒有一起上課（但是有到學校）", "身心障礙同學上課遲到10分鐘，並且坐在場邊。", "身心障礙同學上課遲到6-10分鐘，但是很輕易的就能進入到課程中。", "身心障礙同學上課遲到0-5分鐘，但是很輕易的就能進入到課程中。", "身心障礙同學與其他同班同學一起來上課"]}, {"cat": "課程介紹", "num": 2, "text": "把身心障礙同學與其他同學分在同一組，並讓他們在正式開始上課前所宣布的指示中有參與感。", "ex": "", "anchors": ["身心障礙學生在活動開始前的指示宣布時，並不在體育館內。", "身心障礙學生遲到，在課前指示宣達時，未將身心障礙的同學與班上其他同學分在一組。", "課前指示宣達時，未將身心障礙同學與班上其他同學分在一組。", "身心障礙學生和班上其他同學幾乎同一時間到課，並且參與到課前說明指示的宣達。", "身心障礙學生和班上其他同學一起準時到課，並且參與到課前說明指示的宣達。"]}, {"cat": "暖身", "num": 3, "text": "全班一起做暖身運動，同學們可用各自的速度／方式進行暖身。", "ex": "例：孩子在 X 分鐘內跑自己能力所及的圈數 v.s. 要求孩子在 X 分鐘內跑 X 圈。", "anchors": ["班上的暖身運動時間沒有包括身心障礙同學。", "身心障礙同學在場外參與暖身，自己做自己的。", "全班一起做暖身，暖身動作組數固定。有些學生可能要等待其他同學完成。", "全班一起做暖身，暖身動作組數固定。身心障礙學生在大部分的同學都完成後，可以停下動作不必做完。", "全班一起做暖身，暖身動作改用時間計算，而非組數或距離。故，沒有人會是最後一個完成的。"]}, {"cat": "課程中的遊戲速度", "num": 4, "text": "遊戲速度或步調，會依據所有學生現況能力而不同，包括身心障礙學生，不讓任何一個學生被丟下。", "ex": "例：排球〔用沙灘球降低速度〕、地板曲棍球〔用飛盤代替球或冰球〕、軟式棒球〔自打擊座擊出〕、籃球〔去掉5秒違例〕。", "anchors": ["玩遊戲的時候沒有依照學生的能力去調節遊戲步調或速度。", "遊戲開始後，才把遊戲的步調或速度視學生能力，作微幅的調整。", "玩遊戲時使用適合個人需求的器材。", "遊戲/競賽是透過合適其個別需求而進行，提供課堂任務的這些選擇，可在事後思考而產生。", "遊戲設計一開始就包含符合個人需求的器材，並提供不同任務給學生選擇。"]}, {"cat": "差異化教學指示", "num": 5, "text": "教師提供的課堂指示，能夠容納各種不同的學習風格，讓所有學生在一般課程當中都能成功參與。", "ex": "聽覺、視覺或觸覺學習，或滿足孩子特定學習需求的方法，例如觸覺示範。", "anchors": ["整堂課只有一種表達指示的方式（如：命令式的指示，並只有搭配口語指示）", "提供兩種表達指示的方式，兩種方式分別能用不同感官接收（例如：視覺與口語指示）", "提供至少三種表達指示的方式（視覺、口語與觸覺）", "大部分的課堂中都有提供三到四種不同型態表達指示的方式。", "每種上課所指導的技巧或活動都提供不同種類的教學方法，例如示範、聽覺、動覺學習與心理動作能力等。"]}, {"cat": "差異化教學指示", "num": 6, "text": "課堂上提供不同的技巧，讓學生選擇自己能夠執行的部分。", "ex": "可透過在關卡任務中，或任務到任務間設計中繼站達成。", "anchors": ["課堂教學的方式只著重於一種特定的技巧或能力。", "課堂教學方式，為技能或能力的包容性較少。", "課堂教學方式能夠包容同學在有些能力上的不同。", "課堂教學時輔以多項適應調整的教法，包括：器材、規則、或者調整遊戲調整與教學。", "課堂教學能夠針對所有學生的能力與技巧進行。"]}, {"cat": "幫助自主學習的教學指示", "num": 7, "text": "學生有機會能夠做出驅動自己學習的選擇。", "ex": "", "anchors": ["教學過程中並沒有機會讓學生選擇自己所需的器材、規則或者運動速度。", "教學過程中給予學生有限的機會，以及在器材、技巧或運動上僅給予少數的選擇。", "教學過程中提供少數機會，並且在器材、規則變化以及運動速度變化上給予2到3種選項。", "教學過程中對於器材與規則變化上提供幾種不同的選擇。運動速度也會在上課時有所不同。", "教學過程中提供器材、規則變化上多元的選擇，運動速度也會根據每位學生個人需求不同而調整。"]}, {"cat": "幫助自主學習的教學指示", "num": 8, "text": "針對學生的需求提供合宜的調整與支持。", "ex": "可能需要事前教學，使孩子知道自己有什麼選擇，並對使用這些選擇感到自在。", "anchors": ["遊戲或活動設計時，並沒有安排同儕指導員、或教師助理員。也沒有替代性或其餘教材教具選擇、也無調整規則或科技輔助，無法補足班級中同學間的差異性。", "遊戲或活動設計時，有同儕指導員、教師助理員的角色，也只有少量替代性或其餘教材教具選擇、也鮮少規則調整或科技輔助，幾乎難以補足班級中同學間的差異性。", "遊戲或活動設計時有安排同儕指導、教師助理員的角色，也有充足的替代性或其餘教材教具選擇、及調整規則或科技輔助，能補足一些班級中同學間的差異性。", "遊戲或活動設計時有安排幾位同儕指導員、教師助理員的角色，也有充足的替代性或其餘教材教具選擇，能夠補足大部分班級中同學間的差異性。", "遊戲或活動規劃時就包含到了同儕指導員、教師助理員的角色，也有充足的替代性或其餘教材教具選擇、調整規則或科技輔助，能夠補足班級中同學間的差異性。"]}, {"cat": "示範", "num": 9, "text": "提供多位班上同學，包括身心障礙學生，有示範動作技能給全班的機會。", "ex": "僅在學生已能做出剛教的技巧、且他們喜歡上台示範的情況下進行。", "anchors": ["未提供任何示範機會。", "教師本人提供最低限度的示範。", "除了教師本人示範，同時也請學生示範。", "教師在課堂上選擇一般生與身心障礙學生上台示範數次。", "整堂課程，均邀請一般生與身心障礙學生上台進行演示。"]}, {"cat": "教師助理員的應用", "num": 10, "text": "教師助理員在學生需要時協助學習。", "ex": "", "anchors": ["教師助理員或其他相關的服務提供者並未留在班上或陪伴學生。", "教師助理員或其他相關服務提供者，陪伴學生到班，接著在場邊坐下。", "教師助理員陪伴學生到班，並且偶爾在課堂上協助學生。", "教師助理員在教師指示下於課堂中陪伴並協助學生。", "受過專業訓練的教師助理員在課堂上協助並陪伴學生。"]}, {"cat": "教師助理員的應用", "num": 11, "text": "提供教師助理員在課前接受訓練的機會，以說明在體育課時所扮演的角色。", "ex": "", "anchors": ["課前並未提供教師助理員任何訓練或討論。", "課前提供教師助理員口頭解釋。", "上課時，用具體的指示讓教師助理員了解課程計畫。", "課前提供教師助理員課程計畫。", "上課前，提供教師助理員課程計畫，及特定的後續說明。"]}, {"cat": "同儕指導（情況允許的話）", "num": 12, "text": "在施行同儕指導時，身障同學能在情況允許下和其他同齡同儕一組，而非僅能與同儕指導者同組。", "ex": "", "anchors": ["身心障礙的同學只能與教師助理員配對，且並沒有參與和班上其他同學的互動。", "身心障礙的同學與教師助理員配對，偶而參與和班上其他同學的互動。", "身心障礙的同學和班上其他同學配對至少達上課時間50%。", "身心障礙的同學大部分上課時間都與班上其他同學配對，有時教師助理員會給予協助。", "身心障礙的同學整堂課都與班上其他同學配對，教師助理員會在需要時給予協助。"]}, {"cat": "同儕指導（情況允許的話）", "num": 13, "text": "同儕指導者鼓勵身障同學盡可能在課堂中與同學進行社交互動。", "ex": "", "anchors": ["教師助理員沒有一起來上課。", "教師助理員一起來上課，但是並沒有鼓勵學生與同儕互動。", "教師助理員一起來上課，並且鼓勵身心障礙學生在方便或容易的時候與同儕互動。", "教師助理員一起來上課，但是大部分時間身心障礙學生都鼓勵同儕間與或夥伴間的互動。", "教師助理員一起來上課，但是100%的上課時間都鼓勵身心障礙學生進行同儕間與或夥伴間的互動。"]}, {"cat": "課堂中的活動搭檔", "num": 14, "text": "教師事先規畫並有效地組織／進行需要搭檔進行的活動。", "ex": "", "anchors": ["教師指示班上的學生找尋自己的搭檔，身心障礙學生則被晾在一邊。", "教師指示班上學生找尋自己的搭檔，身心障礙學生被迫與搭檔一起行動，並非按照自己的意願選擇。", "教師指示班上學生找尋自己的搭檔，並確保身心障礙學生一定有搭檔。", "教師指示班上學生找尋自己的搭檔，並為身心障礙學生找一個特定的搭檔。", "教師指示班上學生找尋自己的搭檔，並在課前就對學生間搭檔的配置有明確的計畫。"]}, {"cat": "課堂中的活動搭檔", "num": 15, "text": "教師確保身心障礙學生一定有搭檔。", "ex": "", "anchors": ["教師說「大家開始找自己的夥伴」，卻沒有人要跟身心障礙的同學一組。", "教師說「大家開始找自己的夥伴」，身心障礙的同學被迫要跟本來選擇其他夥伴的同學一組。", "教師說「大家開始找自己的夥伴」，並且確保身心障礙的同學，在班上其他人找尋搭檔時，也能找到夥伴。", "教師在說出「大家開始找自己的夥伴」之前，就已經先規劃好與身心障礙同學一組的夥伴。", "教師對於同學找搭檔這件已經先有明確的計畫，並且使用同樣的方法來讓全班分組。"]}, {"cat": "團體／團隊活動", "num": 16, "text": "避免學生自行分組。", "ex": "", "anchors": ["學生自己挑選組別。", "學生自己挑選隊伍，教師將至少4或5個學生分在同一組。", "教師甚少參考同學的偏好，直接將班級進行分組。", "教師使用編碼或是分組系統來選擇組別。", "教師在上課前事先編排好組別，並且流暢的完成分組作業。"]}, {"cat": "團體／團隊活動", "num": 17, "text": "教師避免使用淘汰制的活動為上課內容。", "ex": "", "anchors": ["同學進行淘汰制的活動。", "同學進行淘汰制的活動，但有些同學在一段時間後能被朋友救回來。", "同學進行淘汰制的活動，但是靠著自己的技術與體能可以重回遊戲。", "同學進行淘汰制的活動，但可以自動回到遊戲裡面。", "不玩任何淘汰制的活動。"]}, {"cat": "團體／團隊活動", "num": 18, "text": "教師避免同學有排隊等待的現象。", "ex": "", "anchors": ["至少5位同學正在排隊等待。", "5位同學排隊等待，但是輪替速度很快。", "4位以下的同學正在等待，輪替速度很快。", "隨時都有3位以下的同學正在排隊等待。", "活動不需排隊，或隊伍排隊的數量很少。"]}, {"cat": "團體／團隊活動", "num": 19, "text": "教師盡可能分配手邊的器材來促進活動的進行。", "ex": "", "anchors": ["全班只有一顆球或一個器材。", "全班共用少量器材，需要同學們輪流排隊使用。", "有很多器材給全班使用，需要兩個同學輪流使用。", "每個同學都有自己的器材。", "每個同學都能從多種器材中挑選自己想要的。"]}, {"cat": "團體／團隊活動", "num": 20, "text": "教師透過調整比賽的形式與規則，來增加所有同學反應與參與的機會。", "ex": "如：安排3人制小型比賽取代11人制，或讓兩邊球隊都可讓排球落地兩次。", "anchors": ["學生於活動中即時參與的機會有限。", "教師提供學生單一種類的參與方法。", "教師提供學生少量選擇，來參與並融入在課程內容中。", "教師提供學生多種選擇來參與，並融入在課程內容中。", "整堂課程中，教師都賦予學生選擇，及參與課程的自由。"]}, {"cat": "器材使用", "num": 21, "text": "有一系列不同的教材教具來因應班上所有學生上課時的學習需求。", "ex": "如：練習打擊時可自選泡棉打擊棒、羽球拍、板球棒或網球拍。", "anchors": ["教師對全班學生只使用一種教具器材，例如傳統排球。", "教師讓學生使用2種不同的器材上課。", "教師讓學生使用3種不同的器材上課。", "教師讓學生使用4種不同的器材上課。", "教師讓學生使用多種（5種以上）不同的器材上課，例如：訓練用躲避球、氣球、海灘球、充氣球或傳統躲避球。"]}, {"cat": "場地", "num": 22, "text": "減少噪音與分散注意的物品以增加上課品質。", "ex": "", "anchors": ["沒有採取任何措施來降低燈光、噪音以及安全問題所引發可能風險。", "課堂上超過一半的時間有噪音及分心因素干擾，但這些問題是可以避免的。", "教師透過處理噪音問題來減少學生分心的可能。教師透過降低分心因素，來彌補噪音問題。", "課堂上，不超過一半的時間有噪音及分心因素干擾，但這些問題是能避免的。", "場地隔音效果佳、炫光現象減低，教師也能夠確保同學放心、安全的在場地上課。"]}, {"cat": "評量", "num": 23, "text": "教師讓身心障礙同學與其他同學一起接受評量，需要時並提供適度調整。", "ex": "例：身障孩子可改做靠牆伏地挺身或在楔型軟墊上做捲腹，但仍和同儕一起接受評量。", "anchors": ["身心障礙同學於評量時並未出現在體育館裡。", "身心障礙同學於評量時出席，但並未參與評量。", "身心障礙的同學參與評量，但並未因身心障礙獲得相應的替代方法。", "身心障礙同學參與評量，且教師會視身障同學需求在方法上做一些調整。", "身心障礙同學參與評量，且教師會視同學需求給予完整的替代方案。"]}, {"cat": "評量分數", "num": 24, "text": "身心障礙學生的受測成績，至少可視為運動表現的基準點（如前測）；應進行後測，以衡量進步的幅度。", "ex": "例：坐輪椅學生打擊時，可用 TGMD 評估揮棒／打擊能力，其表現同樣被記錄並算分，作為現況能力表現。", "anchors": ["身心障礙學生一起接受評量，但是分數沒有被記錄下來。", "身心障礙學生一起接受評量，分數被記錄下來但是沒有被使用。", "身心障礙學生一起接受評量，分數被記錄下來，使用在記錄運動表現上，但是並沒有後續的進步報告。", "身心障礙學生一起接受評量，分數被被記錄下來，成為他們運動表現的基準點。", "身心障礙學生一起接受評量，分數被記錄下來，成為他們運動表現的基準點。在這之後，學生會再次受測以評估進步幅度。"]}, {"cat": "技能相關的回饋", "num": 25, "text": "若可能，課堂中教師應給予班上所有同學在運動技能表現上的回饋。", "ex": "", "anchors": ["沒有任何同學得到回饋。", "偶爾的給予某些學生一般性的回饋。", "整節課都給予某些學生一般性的回饋。", "整堂課都會給予大部分同學一般性與個別特定的回饋。", "整堂課都會給予所有同學在運動技巧表現上的回饋。"]}, {"cat": "技能相關的回饋", "num": 26, "text": "在給予學生運動技能表現的回饋時，會以名字稱呼同學，並給予一般與特定表現的正面建議。", "ex": "孩子受到高標準檢視，不僅在動作表現上；老師也讓孩子知道，在意的不只是參與度，更是成就與學習。", "anchors": ["未給予班上同學一班或個別的建議。", "偶爾給予正面的一般建議。", "給予正面一般建議，以及一些個別建議；給予建議時偶爾稱呼同學名字", "大部分時間都能給予同學一般性與特定技巧建議，而且會用名字稱呼同學。", "整堂課中都能夠給所有同學正面的一般建議，與特定技巧上的建議。"]}, {"cat": "結束課程", "num": 27, "text": "在老師宣布下課前的時候，全班同學都在一起且沒人離場。", "ex": "", "anchors": ["身心障礙學生在課堂結束前就離開了。", "身心障礙學生只參與到一小部分的結束課程就離開了。", "身心障礙學生有參與到結束課程的時候，但相較於班上的其他同學仍然像個外人。", "身心障礙學生參與完整的結束課程，大部分的時候都感覺像是班級團體的一分子。", "身心障礙學生作為班級團體的一部分，參與完整的結束課程過程。"]}, {"cat": "結束課程", "num": 28, "text": "老師在結束課程時，確認全班對於課程內容的吸收程度。", "ex": "", "anchors": ["教師在結束課程時，未向全班確認對於課程內容的吸收程度。", "教師在結束課程，向全班確認過一次對於課程內容的吸收程度。", "教師在結束課程時，確認過數次對於課程內容的吸收程度，但只對一般同學。", "教師在結束課程時，確認過數次對於課程內容的吸收程度，但只對於身心障礙同學確認次數非常有限。", "教師在結束課程時，經常向班上所有同學確認對於課程內容的吸收程度。"]}]};
+const answers = {};
+function el(t,c,h){const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;}
+function render(){
+  document.getElementById('introList').innerHTML=DATA.intro.map(x=>`<li>${x}</li>`).join('');
+  const box=document.getElementById('items');let lastCat=null;
+  DATA.items.forEach(it=>{
+    if(it.cat!==lastCat){box.appendChild(el('div','cat',it.cat));lastCat=it.cat;}
+    const item=el('div','item');item.id='item'+it.num;
+    const head=el('div','qhead');head.appendChild(el('div','num',it.num));
+    const qt=el('div');qt.appendChild(el('div','qtext',it.text));
+    if(it.ex)qt.appendChild(el('div','qex','（'+it.ex+'）'));
+    head.appendChild(qt);item.appendChild(head);
+    const anc=el('div','anchors');
+    it.anchors.forEach((txt,i)=>{const lv=i+1;const c=el('div','anc',`<span class="lv">${lv}</span>${txt||''}`);
+      c.onclick=()=>select(it.num,lv);c.id=`a${it.num}_${lv}`;anc.appendChild(c);});
+    item.appendChild(anc);
+    const na=el('div','narow');const nb=el('div','nabtn','N/A（未觀察到／不適用）');nb.id='na'+it.num;
+    nb.onclick=()=>select(it.num,'NA');na.appendChild(nb);na.appendChild(el('span','hint','勾選 N/A 不計入平均。'));
+    item.appendChild(na);box.appendChild(item);});
+  document.getElementById('foot').innerHTML=DATA.citation;
+}
+function select(num,val){if(answers[num]===val){delete answers[num];}else{answers[num]=val;}paint(num);recompute();}
+function paint(num){const it=document.getElementById('item'+num);const v=answers[num];
+  for(let lv=1;lv<=5;lv++){const a=document.getElementById(`a${num}_${lv}`);
+    a.classList.toggle('sel',v===lv);a.classList.toggle('lowsel',v===lv&&lv<=2);}
+  document.getElementById('na'+num).classList.toggle('sel',v==='NA');
+  it.classList.toggle('na',v==='NA');it.classList.toggle('done',v!=null&&v!=='NA');
+  it.classList.toggle('low',typeof v==='number'&&v<=2);}
+function recompute(){let sum=0,used=0,na=0,done=0;const weak=[];
+  DATA.items.forEach(it=>{const v=answers[it.num];if(v==null)return;done++;
+    if(v==='NA'){na++;return;}used++;sum+=v;if(v<=2)weak.push(it.num);});
+  document.getElementById('cDone').textContent=done;document.getElementById('cNa').textContent=na;
+  document.getElementById('cUsed').textContent=used;
+  const avg=used?(sum/used):null;
+  document.getElementById('avg').innerHTML=(avg!=null?avg.toFixed(2):'–')+'<small> ／5</small>';
+  document.getElementById('pbar').style.width=(done/28*100)+'%';
+  const w=document.getElementById('weak');
+  w.innerHTML=weak.length?weak.map(n=>`<span class="wtag">第 ${n} 題（${DATA.items[n-1].cat}）</span>`).join(''):'<span style="font-size:12.5px;color:var(--muted)">尚無。</span>';}
+function meta(){return{rater:val('m_rater'),role:val('m_role'),cls:val('m_class'),mode:val('m_mode'),date:val('m_date'),unit:val('m_unit')};}
+function val(id){return document.getElementById(id).value.trim();}
+function calc(){let sum=0,used=0,na=0;DATA.items.forEach(it=>{const v=answers[it.num];
+  if(typeof v==='number'){sum+=v;used++;}if(v==='NA')na++;});
+  return{avg:used?+(sum/used).toFixed(2):'',used:used,na:na};}
+function summaryText(){const m=meta();const c=calc();const lines=[];
+  DATA.items.forEach(it=>{const v=answers[it.num];const s=v==null?'—':(v==='NA'?'N/A':v);lines.push(`${it.num}. ${it.text}  →  ${s}`);});
+  return `LIRSPE 融合式體育課程評量表 — 評量結果\n評量者：${m.rater||'—'}（${m.role||'—'}）\n觀課對象：${m.cls||'—'}　方式：${m.mode||'—'}　日期：${m.date||'—'}　單元：${m.unit||'—'}\n━━━━━━━━━━━━━━━\n總平均分數：${c.avg||'—'} ／5　（有效題數 ${c.used}、N/A ${c.na}）\n━━━━━━━━━━━━━━━\n`+lines.join('\n')+`\n\n${DATA.citation}`;}
+function copySummary(){navigator.clipboard.writeText(summaryText()).then(()=>toast('已複製評量摘要')).catch(()=>{
+  const t=document.createElement('textarea');t.value=summaryText();document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('已複製評量摘要');});}
+function downloadCSV(){const m=meta();const c=calc();const rows=[['題號','類別','題目','分數']];
+  DATA.items.forEach(it=>{const v=answers[it.num];const s=v==null?'':(v==='NA'?'N/A':v);rows.push([it.num,it.cat,it.text,s]);});
+  rows.push([]);rows.push(['總平均分數',c.avg]);rows.push(['有效題數',c.used]);
+  rows.push(['評量者',m.rater],['角色',m.role],['觀課對象',m.cls],['方式',m.mode],['日期',m.date],['單元',m.unit]);
+  const csv='﻿'+rows.map(r=>r.map(x=>`"${(x==null?'':(''+x)).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const b=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=`LIRSPE_${m.cls||'評量'}_${m.date||''}.csv`;a.click();}
+function resetAll(){if(!confirm('確定清空所有作答？'))return;for(const k in answers)delete answers[k];DATA.items.forEach(it=>paint(it.num));recompute();toast('已清空');}
+function submitToSheet(){
+  const m=meta();
+  if(!m.rater){toast('請先填「評量者姓名」');document.getElementById('m_rater').focus();return;}
+  const c=calc();
+  if(c.used===0){toast('至少評一題再送出');return;}
+  const scores={};DATA.items.forEach(it=>{const v=answers[it.num];scores[it.num]=(v==null?'':v);});
+  const rec={rater:m.rater,role:m.role,cls:m.cls,mode:m.mode,date:m.date,unit:m.unit,avg:c.avg,used:c.used,na:c.na,scores:scores};
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent='送出中…';
+  if(typeof google==='undefined'||!google.script||!google.script.run){
+    toast('此為離線預覽，請用部署後的網址才能收集資料');btn.disabled=false;btn.textContent='送出評分並收集';return;}
+  google.script.run.withSuccessHandler(function(id){
+    document.getElementById('app').style.display='none';
+    document.getElementById('doneId').textContent=id;
+    document.getElementById('done').style.display='block';
+    window.scrollTo(0,0);
+  }).withFailureHandler(function(e){
+    btn.disabled=false;btn.textContent='送出評分並收集';toast('送出失敗：'+(e&&e.message?e.message:'請重試'));
+  }).saveResponse(rec);
+}
+let tt;function toast(msg){clearTimeout(tt);let t=document.getElementById('toast');
+  if(!t){t=el('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:22px;font-size:13px;z-index:99;box-shadow:0 4px 16px rgba(0,0,0,.25)';document.body.appendChild(t);}
+  t.textContent=msg;t.style.opacity='1';tt=setTimeout(()=>t.style.opacity='0',1800);}
+render();recompute();
+</script>
+</body>
+</html>
