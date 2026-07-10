@@ -1,0 +1,173 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>肌力體能選擇板</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f2f4f7;color:#16202b;min-height:100vh;padding-bottom:90px}
+header{background:linear-gradient(135deg,#173F63,#0F766E);color:#fff;padding:20px 18px;text-align:center}
+h1{font-size:1.35rem;font-weight:900;letter-spacing:.05em}
+header p{font-size:.8rem;opacity:.85;margin-top:4px}
+.wrap{max-width:980px;margin:0 auto;padding:14px}
+.filters{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.frow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.flabel{font-size:.8rem;font-weight:900;color:#5b6773;min-width:38px}
+.chip{border:1.5px solid #e0e4e9;background:#fff;border-radius:999px;padding:7px 18px;font-size:.9rem;font-weight:700;cursor:pointer;color:#5b6773}
+.chip.on{background:#1F4E79;border-color:#1F4E79;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #e5e9ee;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card .pic{height:120px;display:flex;align-items:center;justify-content:center;font-size:3.4rem;background:#eef2f6}
+.card .pic img{width:100%;height:100%;object-fit:cover}
+.card .b{padding:12px 14px}
+.card h3{font-size:1rem;font-weight:900}
+.tags{display:flex;gap:6px;margin:6px 0}
+.tag{font-size:.68rem;font-weight:900;border-radius:6px;padding:2px 8px;color:#fff}
+.t-下肢{background:#1F4E79}.t-上肢{background:#B45309}.t-核心{background:#7E22CE}
+.t-坐姿{background:#0F766E}.t-躺姿{background:#15803D}.t-站姿{background:#B91C1C}
+.dose{font-size:.95rem;font-weight:900;color:#0F766E}
+.cue{font-size:.78rem;color:#5b6773;line-height:1.6;margin:4px 0 8px}
+.add{width:100%;font:inherit;font-weight:900;padding:9px;border-radius:10px;border:none;cursor:pointer;background:#eef2f6;color:#1F4E79}
+.add.in{background:#1F4E79;color:#fff}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e5e9ee;box-shadow:0 -4px 16px rgba(0,0,0,.08);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;z-index:10}
+.bar .cnt{font-weight:900;color:#1F4E79}
+.bar button{font:inherit;font-weight:900;font-size:1rem;padding:12px 26px;border-radius:12px;border:none;cursor:pointer}
+.go{background:#0F766E;color:#fff}
+.ghost{background:#fff;color:#5b6773;border:1.5px solid #e0e4e9!important}
+/* workout mode */
+#work{display:none;position:fixed;inset:0;background:#0e1621;color:#fff;z-index:20;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+#work.on{display:flex}
+#work .pic{font-size:6rem;margin-bottom:10px}
+#work .pic img{max-height:34vh;border-radius:16px}
+#work h2{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:900;margin-bottom:8px}
+#work .dose{font-size:clamp(1.4rem,4vw,2rem);color:#4ade80}
+#work .cue{font-size:1.05rem;color:#9fb0c1;max-width:560px;margin:10px auto}
+#work .prog{color:#7d8b99;font-size:.95rem;margin-bottom:6px}
+#work .setrow{display:flex;gap:10px;justify-content:center;margin:14px 0}
+.setdot{width:16px;height:16px;border-radius:50%;background:#24344a}
+.setdot.done{background:#4ade80}
+#work button{font:inherit;font-weight:900;font-size:1.15rem;padding:16px 40px;border-radius:16px;border:none;cursor:pointer;background:#0F766E;color:#fff;margin:6px}
+#work .exit{position:absolute;top:16px;right:16px;background:#24344a;padding:10px 18px;font-size:.9rem}
+#rest{font-size:4rem;font-weight:900;color:#fbbf24;display:none}
+.speak{position:absolute;top:16px;left:16px;background:#24344a!important;font-size:.9rem!important;padding:10px 18px!important}
+@media print{header,.filters,.bar,.add{display:none}.grid{grid-template-columns:repeat(3,1fr)}body{background:#fff;padding:0}}
+</style></head><body>
+<header><h1>💪 肌力體能選擇板</h1><p>選你今天的姿勢與部位 → 組成菜單 → 跟著做。每個動作都有坐、躺、站的選擇。</p></header>
+<div class="wrap">
+<div class="filters">
+  <div class="frow"><span class="flabel">姿勢</span><span id="fpos"></span></div>
+  <div class="frow"><span class="flabel">部位</span><span id="fpart"></span></div>
+</div>
+<div class="grid" id="grid"></div>
+</div>
+<div class="bar">
+  <span class="cnt" id="cnt">已選 0 個動作</span>
+  <span>
+    <button class="ghost" onclick="window.print()">🖨 列印</button>
+    <button class="ghost" onclick="clearMenu()">清空</button>
+    <button class="go" onclick="startWork()">▶ 開始運動</button>
+  </span>
+</div>
+
+<div id="work">
+  <button class="exit" onclick="exitWork()">✕ 結束</button>
+  <button class="speak" id="spk" onclick="toggleSpeak()">🔊 語音開</button>
+  <div class="prog" id="wprog"></div>
+  <div class="pic" id="wpic"></div>
+  <h2 id="wname"></h2>
+  <div class="dose" id="wdose"></div>
+  <div class="setrow" id="wsets"></div>
+  <div class="cue" id="wcue"></div>
+  <div id="rest"></div>
+  <div><button onclick="doneSet()" id="donebtn">✔ 完成一回合</button></div>
+</div>
+<script>
+const EX=[{"id": "sit_knee_lift", "n": "坐姿輪流抬膝", "p": "下肢", "pos": "坐姿", "reps": "10 次", "sets": "2 回合", "cue": "背貼椅背，輪流將膝蓋抬向胸口，慢起慢放", "ico": "🪑"}, {"id": "sit_knee_ext", "n": "坐姿伸膝", "p": "下肢", "pos": "坐姿", "reps": "10 次", "sets": "2 回合", "cue": "膝蓋伸直後停兩秒再放下，左右輪流", "ico": "🦵"}, {"id": "sit_calf", "n": "坐姿提踵", "p": "下肢", "pos": "坐姿", "reps": "15 次", "sets": "2 回合", "cue": "腳跟離地踮起，感覺小腿收緊", "ico": "👣"}, {"id": "sit_row", "n": "坐姿彈力帶划船", "p": "上肢", "pos": "坐姿", "reps": "12 次", "sets": "2 回合", "cue": "彈力帶固定於前方，手肘往後拉、肩胛夾緊", "ico": "💪"}, {"id": "sit_press", "n": "坐姿肩上推（水瓶）", "p": "上肢", "pos": "坐姿", "reps": "10 次", "sets": "2 回合", "cue": "雙手持水瓶推向天花板，不聳肩", "ico": "🙌"}, {"id": "sit_chest", "n": "坐姿彈力帶胸推", "p": "上肢", "pos": "坐姿", "reps": "10 次", "sets": "2 回合", "cue": "彈力帶繞過椅背，雙手向前推直", "ico": "🫸"}, {"id": "sit_twist", "n": "坐姿軀幹旋轉", "p": "核心", "pos": "坐姿", "reps": "左右各 8 次", "sets": "2 回合", "cue": "雙手抱胸，肚子出力帶動上半身轉向側邊", "ico": "🌀"}, {"id": "sit_lean", "n": "坐姿後傾收腹", "p": "核心", "pos": "坐姿", "reps": "8 次", "sets": "2 回合", "cue": "上半身微微後傾停三秒，用肚子把自己拉回來", "ico": "🎯"}, {"id": "lie_bridge", "n": "橋式", "p": "下肢", "pos": "躺姿", "reps": "10 次", "sets": "2 回合", "cue": "屈膝仰躺，臀部抬起讓身體成一直線，停兩秒", "ico": "🌉"}, {"id": "lie_deadbug", "n": "死蟲式", "p": "核心", "pos": "躺姿", "reps": "左右各 6 次", "sets": "2 回合", "cue": "仰躺手腳朝天，對側手腳同時慢慢放下，腰貼地", "ico": "🪲"}, {"id": "lie_leglift", "n": "仰臥抬腿", "p": "核心", "pos": "躺姿", "reps": "10 次", "sets": "2 回合", "cue": "單腳伸直抬至 45 度，慢慢放下不落地", "ico": "📐"}, {"id": "lie_clam", "n": "側躺蚌殼開合", "p": "下肢", "pos": "躺姿", "reps": "12 次", "sets": "2 回合", "cue": "側躺屈膝，腳跟相貼，上側膝蓋像貝殼打開", "ico": "🦪"}, {"id": "lie_press", "n": "仰臥胸推（水瓶）", "p": "上肢", "pos": "躺姿", "reps": "10 次", "sets": "2 回合", "cue": "仰躺雙手持水瓶向上推直，慢慢下放", "ico": "🏋️"}, {"id": "lie_sideplank", "n": "側棒式（膝著地）", "p": "核心", "pos": "躺姿", "reps": "20 秒", "sets": "2 回合", "cue": "側身以前臂與膝蓋支撐，身體成一直線", "ico": "📏"}, {"id": "st_squat", "n": "扶椅深蹲", "p": "下肢", "pos": "站姿", "reps": "10 次", "sets": "2 回合", "cue": "雙手扶椅背，臀部向後坐再站起，膝蓋對齊腳尖", "ico": "🪑"}, {"id": "st_calf", "n": "站姿提踵", "p": "下肢", "pos": "站姿", "reps": "15 次", "sets": "2 回合", "cue": "扶穩後踮腳尖，停一秒慢慢下", "ico": "🩰"}, {"id": "st_sideleg", "n": "站姿側抬腿", "p": "下肢", "pos": "站姿", "reps": "左右各 10 次", "sets": "2 回合", "cue": "扶椅站立，腿向側面抬起，上身保持直立", "ico": "🚩"}, {"id": "st_wallpush", "n": "牆壁伏地挺身", "p": "上肢", "pos": "站姿", "reps": "10 次", "sets": "2 回合", "cue": "距牆一步，身體傾向牆再推回，全身一直線", "ico": "🧱"}, {"id": "st_bandrow", "n": "站姿彈力帶划船", "p": "上肢", "pos": "站姿", "reps": "12 次", "sets": "2 回合", "cue": "彈力帶固定於門把，後拉時肩胛夾緊", "ico": "🎽"}, {"id": "st_farmer", "n": "農夫走路（提水瓶）", "p": "上肢", "pos": "站姿", "reps": "20 步", "sets": "2 回合", "cue": "雙手提水瓶走直線，肩膀放鬆不歪斜", "ico": "🚶"}, {"id": "st_sidebend", "n": "站姿軀幹側彎", "p": "核心", "pos": "站姿", "reps": "左右各 8 次", "sets": "2 回合", "cue": "單手沿大腿外側下滑，用腰把自己拉回", "ico": "🌴"}, {"id": "st_wallplank", "n": "靠牆斜棒式", "p": "核心", "pos": "站姿", "reps": "20 秒", "sets": "2 回合", "cue": "前臂靠牆身體斜直線，肚子收緊不塌腰", "ico": "📐"}];
+const POS=["全部","坐姿","躺姿","站姿"], PART=["全部","下肢","上肢","核心"];
+let fpos="全部", fpart="全部";
+let menu=JSON.parse(localStorage.getItem("fit_menu")||"[]");
+let speakOn=true;
+function say(t){ if(!speakOn)return; try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang="zh-TW"; u.rate=.95; speechSynthesis.speak(u);}catch(e){} }
+function chips(id,list,cur,fn){ document.getElementById(id).innerHTML=list.map(v=>'<button class="chip'+(v===cur?' on':'')+'" onclick="'+fn+'(\''+v+'\')">'+v+'</button>').join(' '); }
+function setPos(v){fpos=v;render();} function setPart(v){fpart=v;render();}
+function render(){
+  chips("fpos",POS,fpos,"setPos"); chips("fpart",PART,fpart,"setPart");
+  const g=document.getElementById("grid"); g.innerHTML="";
+  EX.forEach(e=>{
+    if(fpos!=="全部"&&e.pos!==fpos)return;
+    if(fpart!=="全部"&&e.p!==fpart)return;
+    const inm=menu.includes(e.id);
+    const d=document.createElement("div"); d.className="card";
+    d.innerHTML='<div class="pic"><img src="images/'+e.id+'.jpg" onerror="this.outerHTML=\''+e.ico+'\'"></div>'
+     +'<div class="b"><h3>'+e.n+'</h3><div class="tags"><span class="tag t-'+e.p+'">'+e.p+'</span><span class="tag t-'+e.pos+'">'+e.pos+'</span></div>'
+     +'<div class="dose">'+e.reps+' × '+e.sets+'</div><div class="cue">'+e.cue+'</div>'
+     +'<button class="add'+(inm?' in':'')+'" onclick="toggle(\''+e.id+'\',this)">'+(inm?'✔ 已加入菜單':'＋ 加入我的菜單')+'</button></div>';
+    g.appendChild(d);
+  });
+  document.getElementById("cnt").textContent="已選 "+menu.length+" 個動作";
+}
+function toggle(id,btn){
+  if(menu.includes(id)) menu=menu.filter(x=>x!==id); else menu.push(id);
+  localStorage.setItem("fit_menu",JSON.stringify(menu)); render();
+}
+function clearMenu(){ menu=[]; localStorage.setItem("fit_menu","[]"); render(); }
+// workout
+let wi=0, setDone=0, resting=null;
+function startWork(){
+  if(menu.length===0){ alert("先從卡片加入至少一個動作！"); return; }
+  wi=0; setDone=0;
+  document.getElementById("work").classList.add("on");
+  showEx();
+}
+function curEx(){ return EX.find(e=>e.id===menu[wi]); }
+function showEx(){
+  const e=curEx(); setDone=0;
+  document.getElementById("wprog").textContent="動作 "+(wi+1)+" / "+menu.length+"　·　"+e.p+"・"+e.pos;
+  document.getElementById("wpic").innerHTML='<img src="images/'+e.id+'.jpg" onerror="this.outerHTML=\''+e.ico+'\'">';
+  document.getElementById("wname").textContent=e.n;
+  document.getElementById("wdose").textContent=e.reps+" × "+e.sets;
+  document.getElementById("wcue").textContent=e.cue;
+  document.getElementById("rest").style.display="none";
+  document.getElementById("donebtn").style.display="";
+  renderSets();
+  say(e.n+"，"+e.reps+"，"+e.sets+"。"+e.cue);
+}
+function nsets(e){ const m=e.sets.match(/\d+/); return m?parseInt(m[0]):2; }
+function renderSets(){
+  const e=curEx();
+  document.getElementById("wsets").innerHTML=Array.from({length:nsets(e)},(_,i)=>'<span class="setdot'+(i<setDone?' done':'')+'"></span>').join('');
+}
+function doneSet(){
+  const e=curEx(); setDone++;
+  renderSets();
+  if(setDone>=nsets(e)){
+    say("做得好！");
+    if(wi>=menu.length-1){ finish(); return; }
+    wi++; rest(30, showEx);
+  } else {
+    rest(30, ()=>{ say("繼續，"+e.n); document.getElementById("rest").style.display="none"; document.getElementById("donebtn").style.display=""; });
+  }
+}
+function rest(sec, then){
+  let s=sec;
+  const r=document.getElementById("rest");
+  r.style.display="block"; document.getElementById("donebtn").style.display="none";
+  say("休息"+sec+"秒");
+  r.textContent="休息 "+s;
+  clearInterval(resting);
+  resting=setInterval(()=>{ s--; r.textContent="休息 "+s;
+    if(s<=0){ clearInterval(resting); r.style.display="none"; then(); } },1000);
+}
+function finish(){
+  const log=JSON.parse(localStorage.getItem("fit_log")||"[]");
+  log.push({d:new Date().toLocaleDateString("zh-TW"), n:menu.length});
+  localStorage.setItem("fit_log",JSON.stringify(log));
+  document.getElementById("wname").textContent="🎉 全部完成！";
+  document.getElementById("wdose").textContent="今天完成 "+menu.length+" 個動作";
+  document.getElementById("wcue").textContent="這是你第 "+log.length+" 次打卡。";
+  document.getElementById("wpic").innerHTML="🏆";
+  document.getElementById("wsets").innerHTML="";
+  document.getElementById("donebtn").style.display="none";
+  say("恭喜，全部完成！");
+}
+function exitWork(){ clearInterval(resting); speechSynthesis.cancel(); document.getElementById("work").classList.remove("on"); }
+function toggleSpeak(){ speakOn=!speakOn; document.getElementById("spk").textContent=speakOn?"🔊 語音開":"🔇 語音關"; if(!speakOn)speechSynthesis.cancel(); }
+render();
+</script></body></html>

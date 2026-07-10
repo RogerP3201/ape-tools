@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>平均的謊言｜互動演示</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#0e1621;color:#eef2f6;min-height:100vh;display:flex;flex-direction:column}
+header{padding:22px 30px 6px;display:flex;justify-content:space-between;align-items:baseline}
+h1{font-size:1.5rem;font-weight:900;letter-spacing:.06em}
+.hint{color:#7d8b99;font-size:.85rem}
+#stage{flex:1;display:flex;gap:26px;padding:10px 30px 16px;align-items:stretch}
+#left{flex:1.6;position:relative}
+svg{width:100%;height:100%}
+#right{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px}
+.big{font-size:1.35rem;line-height:1.8;font-weight:700}
+.huge{font-size:3.2rem;font-weight:900;line-height:1.2}
+.up{color:#4ade80}.red{color:#f87171}.gold{color:#fbbf24}.dim{color:#7d8b99}
+.panel{background:#16212e;border:1px solid #24344a;border-radius:16px;padding:22px 26px;opacity:0;transform:translateY(10px);transition:all .5s}
+.panel.show{opacity:1;transform:none}
+footer{display:flex;justify-content:center;gap:12px;padding:0 0 22px}
+button{font:inherit;font-weight:900;font-size:1rem;padding:12px 30px;border-radius:12px;border:none;cursor:pointer;background:#2563eb;color:#fff}
+button.ghost{background:#16212e;color:#9fb0c1;border:1.5px solid #24344a}
+.stepdots{display:flex;gap:6px;align-items:center;justify-content:center;padding-bottom:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:#24344a}.dot.on{background:#fbbf24}
+</style></head><body>
+<header><h1>平均的謊言　<span class="dim" style="font-size:.9rem;font-weight:400">一場「成功」的失能模擬體驗（n = 89）</span></h1><span class="hint">按「空白鍵」或「→」推進</span></header>
+<div id="stage">
+<div id="left"><svg id="svg" viewBox="0 0 760 560" preserveAspectRatio="xMidYMid meet"></svg></div>
+<div id="right">
+  <div class="panel" id="p0"><div class="big">大學生輪椅體驗活動<br>態度量表前測、後測</div><div class="dim" style="margin-top:8px">分數 &gt; 20 為正向態度（虛線）</div></div>
+  <div class="panel" id="p1"><div class="dim">全班平均</div><div class="huge up" id="means"></div><div class="big up">顯著提升，p &lt; .05 ✓</div><div class="dim" style="margin-top:6px">成果報告：活動列為本學期亮點。</div></div>
+  <div class="panel" id="p2"><div class="big">但，平均是 89 個人。<br>每一條線，是一個學生。</div></div>
+  <div class="panel" id="p3"><div class="huge red">21 人 ↓</div><div class="big">態度不升反降（23.6%）<br><span class="gold">其中 5 人由正向轉為負向</span></div></div>
+  <div class="panel" id="p4"><div class="big gold">平均值上升 ≠ 每個人都受益。</div><div class="big" style="margin-top:10px">是什麼讓同一場活動，<br>把一些人往反方向推？</div><div class="dim" style="margin-top:10px">——反思引導的品質，決定模擬是同理還是憐憫。</div></div>
+</div></div>
+<div class="stepdots" id="dots"></div>
+<footer><button class="ghost" onclick="go(-1)">← 上一步</button><button onclick="go(1)">下一步 →</button></footer>
+<script>
+const P=[[19, 20, "up"], [22, 24, "up"], [21, 23, "up"], [19, 25, "up"], [26, 27, "up"], [27, 31, "up"], [18, 19, "up"], [19, 21, "up"], [21, 26, "up"], [27, 28, "up"], [26, 28, "up"], [26, 30, "up"], [21, 25, "up"], [27, 30, "up"], [18, 20, "up"], [24, 27, "up"], [22, 24, "up"], [21, 24, "up"], [19, 20, "up"], [24, 25, "up"], [23, 26, "up"], [27, 30, "up"], [18, 24, "up"], [25, 30, "up"], [19, 23, "up"], [19, 24, "up"], [22, 28, "up"], [27, 30, "up"], [27, 29, "up"], [19, 20, "up"], [21, 24, "up"], [19, 21, "up"], [19, 23, "up"], [22, 26, "up"], [23, 25, "up"], [23, 26, "up"], [21, 27, "up"], [22, 28, "up"], [19, 24, "up"], [20, 25, "up"], [21, 23, "up"], [25, 29, "up"], [22, 28, "up"], [26, 28, "up"], [23, 24, "up"], [19, 19, "same"], [29, 29, "same"], [16, 16, "same"], [28, 28, "same"], [21, 21, "same"], [22, 22, "same"], [20, 20, "same"], [17, 17, "same"], [19, 19, "same"], [30, 30, "same"], [25, 25, "same"], [30, 30, "same"], [27, 27, "same"], [21, 21, "same"], [19, 19, "same"], [26, 26, "same"], [23, 23, "same"], [22, 22, "same"], [30, 30, "same"], [30, 30, "same"], [26, 26, "same"], [23, 23, "same"], [18, 18, "same"], [26, 25, "down"], [25, 22, "down"], [28, 25, "down"], [26, 23, "down"], [28, 26, "down"], [28, 26, "down"], [26, 25, "down"], [25, 22, "down"], [27, 26, "down"], [30, 29, "down"], [30, 29, "down"], [25, 22, "down"], [25, 22, "down"], [27, 24, "down"], [24, 22, "down"], [18, 15, "down"], [24, 19, "cross"], [23, 20, "cross"], [21, 17, "cross"], [23, 20, "cross"], [23, 18, "cross"]];
+const NS="http://www.w3.org/2000/svg";
+const svg=document.getElementById("svg");
+const X0=140,X1=620,Y=v=>520-(v-6)/(34-6)*470;
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e;}
+function txt(x,y,s,fill,size,anchor,w){const e=el("text",{x:x,y:y,fill:fill||"#7d8b99","font-size":size||16,"text-anchor":anchor||"middle","font-weight":w||400});e.textContent=s;return e;}
+// axes
+el("line",{x1:X0,y1:30,x2:X0,y2:530,stroke:"#24344a","stroke-width":2});
+el("line",{x1:X1,y1:30,x2:X1,y2:530,stroke:"#24344a","stroke-width":2});
+txt(X0,555,"前測");txt(X1,555,"後測");
+const th=el("line",{x1:X0-40,y1:Y(20),x2:X1+40,y2:Y(20),stroke:"#fbbf24","stroke-width":1.5,"stroke-dasharray":"6 6",opacity:.55});
+txt(X0-70,Y(20)+5,"20","#fbbf24",15,"middle",700);
+txt(X0-70,Y(20)-14,"正向 ↑","#fbbf24",12);
+const lines=P.map(p=>{
+  const c=p[2]==="cross"?"#f87171":(p[2]==="down"?"#f87171":"#5b6b7c");
+  const l=el("line",{x1:X0,y1:Y(p[0]),x2:X1,y2:Y(p[1]),stroke:c,"stroke-width":p[2]==="cross"?3:1.6,opacity:0});
+  return {l:l,t:p[2]};
+});
+const preM=P.reduce((s,p)=>s+p[0],0)/P.length, postM=P.reduce((s,p)=>s+p[1],0)/P.length;
+const mline=el("line",{x1:X0,y1:Y(preM),x2:X1,y2:Y(postM),stroke:"#4ade80","stroke-width":6,opacity:0,"stroke-linecap":"round"});
+const mdot1=el("circle",{cx:X0,cy:Y(preM),r:9,fill:"#4ade80",opacity:0});
+const mdot2=el("circle",{cx:X1,cy:Y(postM),r:9,fill:"#4ade80",opacity:0});
+document.getElementById("means").textContent=preM.toFixed(1)+" → "+postM.toFixed(1);
+let S=0; const MAX=4;
+function go(d){ S=Math.max(0,Math.min(MAX,S+d)); render(); }
+function render(){
+  for(let i=0;i<=MAX;i++) document.getElementById("p"+i).classList.toggle("show",i===S||(S===MAX&&i===MAX));
+  document.getElementById("dots").innerHTML=Array.from({length:MAX+1},(_,i)=>'<span class="dot'+(i<=S?' on':'')+'"></span>').join('');
+  const showMean=S>=1, showAll=S>=2, showRed=S>=3;
+  mline.setAttribute("opacity",showMean?1:0); mdot1.setAttribute("opacity",showMean?1:0); mdot2.setAttribute("opacity",showMean?1:0);
+  lines.forEach(o=>{
+    const isDown=(o.t==="down"||o.t==="cross");
+    let op=0;
+    if(showAll) op = isDown&&showRed? .95 : (showRed? .18 : .45);
+    o.l.setAttribute("opacity",op);
+    if(isDown&&!showRed) o.l.setAttribute("stroke","#5b6b7c"); 
+    if(isDown&&showRed) o.l.setAttribute("stroke","#f87171");
+  });
+}
+document.addEventListener("keydown",e=>{ if(e.key===" "||e.key==="ArrowRight"){e.preventDefault();go(1);} if(e.key==="ArrowLeft")go(-1); });
+render();
+</script></body></html>

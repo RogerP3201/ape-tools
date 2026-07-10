@@ -1,0 +1,189 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>IEP 體育課程品質檢核</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f2f4f7;color:#16202b;padding-bottom:60px}
+header{background:linear-gradient(135deg,#173F63,#7E22CE);color:#fff;padding:20px 16px;text-align:center}
+h1{font-size:1.3rem;font-weight:900}
+header p{font-size:.78rem;opacity:.88;margin-top:4px;line-height:1.7}
+.tabs{display:flex;gap:10px;justify-content:center;margin:16px}
+.tab{font:inherit;font-weight:900;font-size:.95rem;padding:11px 26px;border-radius:12px;border:1.5px solid #dde2e8;background:#fff;color:#5b6773;cursor:pointer}
+.tab.on{background:#173F63;border-color:#173F63;color:#fff}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px}
+.view{display:none}.view.on{display:block}
+.sec{background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.sec h2{font-size:.98rem;font-weight:900;color:#173F63;margin-bottom:12px;border-left:5px solid #7E22CE;padding-left:10px}
+.item{border-bottom:1px dashed #e7ebef;padding:12px 2px}
+.item:last-child{border-bottom:none}
+.qt{font-weight:700;line-height:1.8;font-size:.93rem}
+.plain{font-size:.8rem;color:#5b6773;background:#f6f8fa;border-radius:9px;padding:8px 12px;margin:7px 0;line-height:1.8}
+.opts{display:flex;gap:8px;margin-top:6px}
+.opt{font:inherit;font-size:.85rem;font-weight:700;padding:6px 20px;border-radius:999px;border:1.5px solid #dde2e8;background:#fff;color:#5b6773;cursor:pointer}
+.opt.yes.on{background:#15803D;border-color:#15803D;color:#fff}
+.opt.no.on{background:#B91C1C;border-color:#B91C1C;color:#fff}
+.opt.uns.on{background:#B45309;border-color:#B45309;color:#fff}
+.bar{position:sticky;bottom:0;background:#fff;border-top:1px solid #e5e9ee;padding:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;box-shadow:0 -3px 12px rgba(0,0,0,.07)}
+button.big{font:inherit;font-weight:900;font-size:.95rem;padding:12px 26px;border-radius:12px;border:none;cursor:pointer;background:#173F63;color:#fff}
+button.ghost{background:#fff;color:#173F63;border:1.5px solid #173F63}
+.doc{background:#FFFBEF;border:1.5px solid #F0DFAE;border-radius:12px;padding:16px;font-size:.92rem;line-height:2;margin-bottom:14px}
+.samplebtns{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.sbtn{font:inherit;font-weight:700;font-size:.88rem;padding:9px 18px;border-radius:10px;border:1.5px solid #dde2e8;background:#fff;cursor:pointer}
+.sbtn.on{background:#7E22CE;border-color:#7E22CE;color:#fff}
+.fb{display:none;font-size:.82rem;border-radius:9px;padding:8px 12px;margin-top:7px;line-height:1.8}
+.fb.hit{background:#F2FBF4;border:1px solid #15803D;color:#14532d}
+.fb.miss{background:#FDF0F0;border:1px solid #B91C1C;color:#7f1d1d}
+.score{background:#173F63;color:#fff;border-radius:14px;padding:18px;text-align:center;font-size:1.05rem;font-weight:900;margin-bottom:14px;display:none}
+.note{font-size:.75rem;color:#8b97a3;text-align:center;margin:16px 0}
+@media print{header,.tabs,.bar,.samplebtns,button{display:none!important}body{background:#fff}}
+</style></head><body>
+<header><h1>IEP 體育課程品質檢核</h1>
+<p>依據：潘正宸（2020）。談家長參與個別化教育計畫會議的適應體育課程品質檢核。身心障礙研究，18(1)，19-28。<br>檢核表修改自 McNamara et al. (2019)，經原作者同意。<br>本工具於原表基礎上增修臺灣在地項目：體育教師出席、學生本人參與、優勢與興趣描述、全校性檢測調整、轉銜之運動休閒規劃。</p></header>
+<div class="tabs">
+  <button class="tab on" onclick="tab(0)">✅ 檢核模式（會議／實習用）</button>
+  <button class="tab" onclick="tab(1)">🎓 師培練習（評析虛構 IEP）</button>
+</div>
+<div class="wrap">
+<div class="view on" id="v0">
+  <div class="note">每一題勾「是／否／不確定」。「否」與「不確定」不是失敗——它們就是你要帶進會議的問題。</div>
+  <div id="cklist"></div>
+  <div class="bar">
+    <button class="big" onclick="genQ()">📝 產生我的會議提問單</button>
+    <button class="ghost" onclick="window.print()">🖨 列印</button>
+    <button class="ghost" onclick="resetCk()">清空重來</button>
+  </div>
+  <div class="sec" id="qout" style="display:none"><h2>帶去 IEP 會議的提問單</h2><div id="qbody" style="line-height:2;font-size:.9rem"></div></div>
+</div>
+<div class="view" id="v1">
+  <div class="note">閱讀虛構的 IEP 體育課程摘要，用檢核表（會議期間五區塊，18 題）逐項評析，再對照專家評定。</div>
+  <div class="sec"><h2>評析前先認識：學校現場的評估工具現實</h2>
+    <div style="font-size:.88rem;line-height:2">
+    <b>普通班的預設工具（全校性檢測）：</b>體重控制（BMI）、仰臥捲腹、坐姿體前彎、立定跳遠、800 及 1600 公尺跑走、三分鐘登階測驗、漸速耐力跑（PACER）。基本上全校統一施測、對照全國常模——鮮少有額外工具，除非教師自備。<br>
+    <b>用在身心障礙學生之前，先問三件事：</b>① 安全性——這個項目對這位學生有無風險（如癲癇與登階、心肺狀況與 1600 公尺）？② 適用性——動作型態做得出來嗎？需不需要調整方式（如改距離、改姿勢）？③ 常模意義——全國常模的百分等級對這位學生代表什麼？個人參照（跟自己比）是否更合理？<br>
+    <b>可補充的工具：</b>TGMD-3（基本動作技能）、Brockport 體適能測驗（身障學生效標參照）、目標伸展測驗（TST）、課程本位觀察與動作技能檢核表。<br>
+    <span style="color:#7E22CE;font-weight:700">評析下方樣本時，「多元評量」「最近評估紀錄」等項目，請用這個現實作為判準：只有全校性檢測算不算足夠？什麼時候必須補充？</span>
+    </div></div>
+  <div class="samplebtns" id="sbtns"></div>
+  <div class="doc" id="sdoc"></div>
+  <div id="pr"></div>
+  <div class="score" id="psc"></div>
+  <div class="bar">
+    <button class="big" onclick="grade()">對照專家評定</button>
+    <button class="ghost" onclick="loadSample(SI)">重做本樣本</button>
+  </div>
+</div>
+</div>
+<script>
+const D={"sec": [{"t": "一、會議前", "code": "", "items": [["您是否已透過書面和口頭方式，向校方要求實施孩子在體育課程需要的評估？", "開會前就可以主動要求評估——不必等學校提。書面留下紀錄很重要。"], ["您知道學校提供的體育課程與服務內容（已擬定體育目標的 IEP、進度與成績單的關聯）？", "IEP 裡應該「已經有」體育的學年／學期目標，且學習進度要反映在成績單上，不是體育自成一國。"]]}, {"t": "二、會議期間（評估與人員）", "code": "", "items": [["教師具備動作發展和體育知識的專業背景，能評估孩子的運動技能和能力？", "問清楚：是誰評估孩子的動作能力？他受過什麼訓練？"], ["專業團隊（如適應體育教師、物理治療師）針對身體技能與其他領域（認知、社交）做評估？", "動作之外，認知理解與社交參與也要有人看——體育課的困難常不只出在身體。"], ["使用多元評量方法並獲得結果資料（如 TGMD-3、Brockport 體適能、真實性評量、動作技能檢核表）？", "只有一種測驗（或只有目測）不算多元評量。可以請校方說出用了哪些工具。"], ["若建議接受適應體育服務，校方相關人員有出席會議提供評估結果與課程內容？", "建議服務的人應該到場說明；無人出席時，校方應先與您聯繫並取得同意。"], ["實際任教的體育教師（或授課教師）是否受邀出席本次 IEP 會議？", "臺灣實務中，體育教師常未被邀請出席、甚至沒看過孩子的 IEP——但他是每週實際執行體育課程的人。可以直接問：體育老師今天為什麼不在？"], ["孩子本人（尤其國中以上）是否被邀請出席會議，或以其他方式表達自己的意見？", "體育課喜歡什麼、害怕什麼，孩子自己最清楚。特殊教育法規定應視需要邀請學生本人參與——實務上常落空。"], ["若學校實施全校性體適能檢測，其對孩子的適用性（安全、施測調整、成績解讀）是否被討論並記載？", "全校統一的檢測項目（跑走、捲腹、體前彎等）套在孩子身上，可能需要調整方式或改用個人參照——這件事應該在 IEP 裡留下紀錄，而不是檢測當天現場發揮。"]]}, {"t": "（一）能力現況及功能性表現", "code": "A", "items": [["描述現況能力與其年級學業能力基準的狀況？", "現況要跟「同年級一般標準」對照著寫，才知道差距在哪、支持要多少。"], ["具備最近一次體育課程評估及結果的紀錄？", "「最近一次」是關鍵——三年前的評估撐不起今年的目標。"], ["描述現況能力、需求及其他有關體育表現的面向？", "不只寫弱點，也要寫需求與影響表現的因素（動機、器材、環境）。"], ["描述體育課程中社交參與及與同儕互動的情況？", "體育課是社交最密集的課——現況裡沒有同儕互動描述，就是漏了一大塊。"], ["描述孩子對體育課程內容的認知理解程度？", "規則聽不聽得懂、指令需不需要視覺提示——這決定教學怎麼調。"], ["現況描述除困難外，也記載孩子的優勢與興趣（擅長或喜愛的活動），並作為課程設計的起點？", "整份文件都是「無法、低於、缺乏」的話，長不出好目標。優勢與興趣不是客套話——它是課程切入點。"]]}, {"t": "（二）學年及學期目標", "code": "B", "items": [["目標與「能力現況與功能性表現」的內容相互呼應？", "現況寫接球困難、目標卻是跑步耐力——目標必須從現況長出來。"], ["目標符合孩子就讀年級的體育課程綱要？", "適應體育不是另一套課程，是通往同一課綱的另一條路。"], ["目標符合孩子的能力及興趣，且具體明確？", "孩子喜歡什麼很重要——興趣是參與的引擎，目標裡應該看得到。"], ["目標是有意義、可衡量、可觀察且實際的？", "「提升體適能」不可衡量；「連續拍球 10 下、三次中兩次達成」才是。"], ["教師有與您溝通目標進展情形？", "目標寫完不是結束——多久回報一次進度？用什麼方式？"]]}, {"t": "（三）課程與支持服務", "code": "C", "items": [["您瞭解孩子接受體育課程的環境（融合班、集中式特教班等）？", "孩子實際上在哪裡、跟誰一起上體育課——這常是家長最不清楚的一項。"], ["安置選項符合「最少限制環境」原則？", "原則是：能在融合環境就不隔離；隔離安置需要說明理由。"], ["IEP 記錄了適應體育服務的頻率與持續時間？", "「每週 2 節、每節 40 分鐘、一學年」——沒有數字的服務等於沒有承諾。"], ["任課體育教師為合格體育教師，並曾修習適應體育課程或參加相關研習？", "臺灣目前沒有「適應體育教師證」，因此問的不是證照，而是增能背景：老師修過適應體育學分嗎？參加過相關研習嗎？"]]}, {"t": "（四）支持策略", "code": "D", "items": [["提供合宜的教學支持（如結構化圖片行事曆、教師助理員）？", "教學支持是「怎麼教」的調整——視覺提示、助理員的角色都算。"], ["提供合宜的課程調整（如內容調整、分數調整）？", "課程調整是「教什麼、怎麼評」的調整——包含評量方式與計分。"], ["提供合宜的社會／行為支持（如行為契約、增強系統）？", "行為支持要寫進 IEP，不是出狀況時臨場發揮。"], ["提供合宜的物理／環境支持（如調整設備、輔具）？", "器材與環境的調整（輕量球、加大目標、無障礙動線）也要留下紀錄。"]]}, {"t": "（五）中學後的轉銜規劃（14–16 歲啟動）", "code": "E", "items": [["討論鄰近社區有哪些體育及休閒活動可加入課程？", "體育課的終點是社區——課程裡就該連結孩子畢業後用得到的活動。"], ["考量社區活動中孩子喜歡與不喜歡的參與機會？", "轉銜不是安排，是配對——先知道孩子喜歡什麼。"], ["擬定具體可衡量的目標，使孩子成功參與社區體育休閒活動？", "「參與社區活動」也要寫成可衡量的目標，不是一句祝福。"], ["與孩子討論喜歡的活動、可預見的困難與排除方法？", "孩子本人的聲音要在轉銜討論裡——困難由他說，解方一起想。"], ["轉銜計畫中除升學、就業、生活自理外，是否包含運動與休閒參與的具體規劃（銜接社區據點、社團、俱樂部）？", "「培養終身運動習慣」若沒有寫成轉銜的具體規劃（去哪裡、跟誰、怎麼開始），畢業那天就結束了。"]]}, {"t": "三、會議結束時", "code": "", "items": [["普通體育教師和適應體育教師都各有一份孩子的 IEP 影本？", "最常見的落空：IEP 寫完，體育老師根本沒看過。"], ["充分討論是否需要延續全學年適應體育課程，避免技能流失？", "長假與學期空窗會讓學過的技能退回去——要不要延續服務，應該被討論。"], ["充分討論是否需要體育課的功能性行為評量與行為介入計畫？", "體育課的行為問題需要自己的功能分析——教室的行為計畫不會自動適用於球場。"], ["充分討論孩子如何參加課外體育及休閒活動（校隊、社團）？", "課外活動（籃球隊、游泳隊）的參與管道，也屬於 IEP 團隊該討論的範圍。"]]}], "samples": [{"n": "小安（自閉症，三年級）", "stage": "國小", "level": "待改善", "doc": "【現況描述】該生體能不佳，動作協調差，常不參與活動。【學年目標】提升體適能，培養運動興趣。【學期目標】增進動作能力。【服務】隨班上體育課。【支持策略】（未記載）【教師】由代課老師任課。【評估資料】無附。", "key": {"A1": ["否", "沒有與年級基準對照，只有印象式描述"], "A2": ["否", "未附任何評估紀錄"], "A3": ["否", "只寫弱點，沒有需求與影響因素"], "A4": ["否", "完全沒有同儕互動描述"], "A5": ["否", "未提及認知理解"], "B1": ["否", "現況空泛，目標無從呼應"], "B2": ["否", "看不出與課綱的關聯"], "B3": ["否", "未提及能力與興趣"], "B4": ["否", "「提升」「培養」皆不可衡量"], "B5": ["否", "無進展溝通機制"], "C1": ["不確定", "「隨班上課」未說明環境樣態"], "C2": ["否", "無安置選項與 LRE 討論"], "C3": ["否", "無頻率與時間"], "C4": ["否", "代課教師且未說明適應體育知能"], "D1": ["否", "支持策略整欄未記載"], "D2": ["否", "同上"], "D3": ["否", "同上"], "D4": ["否", "同上"], "A6": ["否", "通篇無優勢與興趣記載"]}, "teach": "入門樣本：幾乎每題都缺——練習「找得出缺什麼」。注意「體能不佳」這種印象式語言為何撐不起任何目標。", "case": ""}, {"n": "柏翰（唐氏症，五年級）", "stage": "國小", "level": "良好", "doc": "【現況描述】TGMD-3 總分百分等級 8（附報告）；喜歡水中活動與音樂律動；規則理解需示範＋圖示；下課願意加入同儕遊戲但常等待邀請。【學年目標】游泳單元中能連續打水前進 10 公尺（對應課綱，3 次中 2 次達成）。【學期目標】持浮板打水 5 公尺。【服務】融合班體育課每週 2 節＋適應體育小組每週 1 節（一學年）；安置經 LRE 討論並記錄。【支持策略】圖示行事曆與示範（教學）、評量以個人進步計分（課程）、同儕夥伴輪替制（社會）、輕量浮具（環境）。【教師】合格體育教師，修畢適應體育學分；每月以聯絡簿回報目標進展。", "key": {"A1": ["是", "TGMD-3 百分等級與常模對照"], "A2": ["是", "附最近評估報告"], "A3": ["是", "含興趣與影響因素"], "A4": ["是", "有同儕互動描述"], "A5": ["是", "規則理解方式有描述"], "B1": ["是", "目標由現況與興趣（水中活動）長出"], "B2": ["是", "有對應課綱"], "B3": ["是", "結合興趣且具體"], "B4": ["是", "可衡量、有精熟標準"], "B5": ["是", "每月聯絡簿回報"], "C1": ["是", "環境清楚：融合＋小組"], "C2": ["是", "LRE 討論有記錄"], "C3": ["是", "頻率與期程完整"], "C4": ["是", "合格且修畢適應體育學分"], "D1": ["是", "圖示行事曆與示範"], "D2": ["是", "個人進步計分"], "D3": ["是", "同儕夥伴輪替"], "D4": ["是", "輕量浮具"], "A6": ["是", "水中活動與音樂律動的興趣明確，且直接成為游泳目標的起點"]}, "teach": "正例樣本：對照小安，看見「好」長什麼樣——每個檢核項目在文件裡都找得到對應句子。", "case": ""}, {"n": "雅雯（腦性麻痺 GMFCS II，一年級）", "stage": "國中", "level": "中等", "doc": "【現況描述】TGMD-3 移動性技能百分等級 5，操作性技能百分等級 12；行走可自理，跑步耐力弱。【學年目標】能連續拍球 10 下（3 次測驗中 2 次達成）。【學期目標】能單手拍球 5 下。【服務】融合班體育課，每週 2 節。【支持策略】提供圖卡提示、口令簡化。【教師】合格體育教師（未受適應體育培訓）。", "key": {"A1": ["是", "TGMD-3 百分等級即是與常模對照"], "A2": ["是", "附有 TGMD-3 結果"], "A3": ["不確定", "有能力描述但需求面向少"], "A4": ["否", "無社交參與描述"], "A5": ["否", "無認知理解描述"], "B1": ["不確定", "拍球目標與操作性弱勢相關，但跑步耐力弱未被處理"], "B2": ["不確定", "未說明與課綱的對應"], "B3": ["否", "未提及興趣"], "B4": ["是", "具體、可衡量、有精熟標準"], "B5": ["否", "無進展溝通機制"], "C1": ["是", "明確寫出融合班"], "C2": ["否", "未討論安置選項與 LRE"], "C3": ["是", "每週 2 節有記載"], "C4": ["不確定", "合格但無適應體育培訓"], "D1": ["是", "圖卡提示、口令簡化屬教學支持"], "D2": ["否", "無課程與評量調整記載"], "D3": ["否", "無行為支持記載"], "D4": ["否", "無器材環境調整記載"], "A6": ["否", "未記載優勢與興趣"]}, "teach": "鑑別力樣本：「有數據」不等於「有品質」——TGMD-3 分數俱在，但社交、興趣、進展機制全缺。中等樣本才是評析訓練的主戰場。", "case": ""}, {"n": "承恩（ADHD＋學習障礙，二年級）", "stage": "國中", "level": "待改善", "doc": "【現況描述】上課不專心，常干擾同學，體育課參與意願低落。【學年目標】改善上課秩序，遵守規則。【學期目標】能聽從指令完成活動。【服務】融合班體育課每週 2 節。【支持策略】違規時暫停參與（罰坐反省）。【教師】合格體育教師。【評估資料】無動作評估。", "key": {"A1": ["否", "沒有任何動作能力描述，只有行為印象"], "A2": ["否", "無動作評估資料"], "A3": ["否", "「意願低落」背後的需求未被探究"], "A4": ["不確定", "有提到同儕但只是負面標籤，不是互動描述"], "A5": ["否", "未提及規則理解"], "B1": ["否", "目標與動作學習無關"], "B2": ["否", "「秩序」不在體育課綱的學習內容"], "B3": ["否", "未提及能力與興趣"], "B4": ["不確定", "「聽從指令」勉強可觀察，但這是管理目標不是學習目標"], "B5": ["否", "無進展溝通"], "C1": ["是", "融合班有記載"], "C2": ["否", "無 LRE 討論"], "C3": ["是", "每週 2 節"], "C4": ["是", "合格教師"], "D1": ["否", "無教學支持"], "D2": ["否", "無課程調整"], "D3": ["否", "罰坐是處罰，不是行為支持——行為支持是預防與教導"], "D4": ["否", "無環境調整"], "A6": ["否", "只有負面行為描述"]}, "teach": "陷阱樣本：整份 IEP 把情緒行為需求寫成了紀律問題——體育目標被行為管理目標偷換。D3 是本樣本的核心考點：處罰不等於行為支持。", "case": ""}, {"n": "佩瑜（視覺障礙・全盲，一年級）", "stage": "高中", "level": "中等", "doc": "【現況描述】全盲，定向行動能力佳；個人體適能紀錄：健走 1600 公尺 14 分鐘（個人參照，附紀錄）；喜歡音樂與節奏活動。【學年目標】能以跳繩連續跳 30 下（3 次中 2 次達成）。【學期目標】持繩單搖 10 下。【服務】融合班每週 2 節；導引員支持。【支持策略】聲響定位器材（環境）、口語描述示範（教學）、同儕導引輪替（社會）。【教師】合格體育教師（校內無適應體育專長教師）。【轉銜】未討論。", "key": {"A1": ["不確定", "有個人參照紀錄，但未與年級基準對照"], "A2": ["是", "附體適能紀錄"], "A3": ["是", "含定向行動能力與興趣"], "A4": ["不確定", "導引輪替暗示互動，但無實際描述"], "A5": ["否", "規則理解方式未描述"], "B1": ["是", "節奏興趣與跳繩目標相互呼應"], "B2": ["否", "未對應課綱"], "B3": ["是", "結合興趣且具體"], "B4": ["是", "可衡量、有精熟標準"], "B5": ["否", "無進展溝通機制"], "C1": ["是", "融合班明確"], "C2": ["否", "無安置選項討論"], "C3": ["是", "頻率有記載"], "C4": ["不確定", "合格但校內無適應體育專長"], "D1": ["是", "口語描述示範"], "D2": ["否", "無評量調整記載"], "D3": ["是", "同儕導引輪替"], "D4": ["是", "聲響定位器材"], "E1": ["否", "高中階段轉銜應已啟動，卻完全未討論"], "E2": ["否", "未探究社區活動偏好"], "E3": ["否", "無轉銜目標"], "E4": ["否", "未與本人討論"], "A6": ["是", "定向行動能力與節奏興趣有記載，並連結跳繩目標"], "E5": ["否", "轉銜整區未討論，遑論運動休閒"]}, "teach": "高中重點：本樣本課堂部分做得不差，卻整區漏掉轉銜——高中 IEP 的轉銜是必檢區，課堂品質好不能抵轉銜缺席。", "case": ""}, {"n": "詩涵（聽覺障礙，一年級）", "stage": "高中", "level": "良好", "doc": "【現況描述】重度聽障配戴電子耳；國中畢業前 TGMD-3 百分等級 35（附）；口語搭配手語與視覺提示可完全理解規則；羽球社成員，喜歡球類。【學年目標】羽球發球 10 次中 6 次入界（對應課綱第五學習階段），每月記錄。【學期目標】高遠球 10 次中 5 次過中線。【服務】融合班每週 2 節（一學年），安置經特推會討論並記錄。【支持策略】視覺哨號與手勢裁判（教學）、規則圖卡（課程）、夥伴確認制（社會）、FM 調頻系統（環境）。【教師】合格體育教師，修畢適應體育學分；每月群組回報進展。【轉銜】與家長及本人討論社區羽球俱樂部，目標：畢業前完成俱樂部試訓一次。", "key": {"A1": ["是", "TGMD-3 與常模對照"], "A2": ["是", "附評估"], "A3": ["是", "含溝通方式與興趣"], "A4": ["不確定", "社團身分有寫，課堂同儕互動未具體描述"], "A5": ["是", "規則理解方式清楚"], "B1": ["是", "由興趣與現況長出"], "B2": ["是", "標注課綱學習階段"], "B3": ["是", "具體且符合興趣"], "B4": ["是", "可衡量"], "B5": ["是", "每月回報"], "C1": ["是", "環境明確"], "C2": ["是", "特推會討論有紀錄"], "C3": ["是", "頻率期程完整"], "C4": ["是", "合格且修畢學分"], "D1": ["是", "視覺哨號"], "D2": ["是", "規則圖卡"], "D3": ["是", "夥伴確認制"], "D4": ["是", "FM 系統"], "E1": ["是", "連結社區俱樂部"], "E2": ["是", "依本人興趣（羽球）"], "E3": ["是", "試訓一次是可衡量目標"], "E4": ["不確定", "可預見困難與排除方法未見記載"], "A6": ["是", "羽球社與球類興趣明確"], "E5": ["是", "俱樂部試訓目標就是運動休閒的具體規劃"]}, "teach": "高中正例：轉銜四項幾乎齊備——注意 E4 這種「差最後一哩」的項目，好的 IEP 也有可追問處。", "case": ""}, {"n": "樂樂（自閉症）※對照手冊個案 12", "stage": "國小", "level": "語言警示", "doc": "【現況描述】無法參與團體活動；動作能力低於同齡兩個標準差（附評估報告）；有旋轉物品之固著行為，建議逐步消除；缺乏危險意識。【學年目標】減少固著行為至每節課 3 次以下。【學期目標】能在協助下完成暖身操。【服務】集中式特教班體育每週 2 節。【支持策略】助理員一對一跟隨（教學）、行為紀錄表。【教師】特教教師兼任（無體育背景）。", "key": {"A1": ["是", "有標準差對照——形式合格"], "A2": ["是", "附評估報告——形式合格"], "A3": ["否", "通篇缺陷語言：平衡優勢、旋轉興趣、水中協調完全未被看見"], "A4": ["否", "「無法參與」是結論不是描述"], "A5": ["否", "未提及"], "B1": ["不確定", "目標從「消除行為」出發，與動作學習無關"], "B2": ["否", "減少固著行為不是體育課綱內容"], "B3": ["否", "興趣被當成待消除的問題行為"], "B4": ["是", "可測——但測的是行為次數，不是學習"], "B5": ["否", "無溝通機制"], "C1": ["是", "集中式特教班有記載"], "C2": ["否", "無 LRE 討論"], "C3": ["是", "頻率有"], "C4": ["否", "無體育背景"], "D1": ["是", "一對一跟隨有記載"], "D2": ["否", "無課程調整"], "D3": ["不確定", "有紀錄表但無支持設計——記錄不等於支持"], "D4": ["否", "無"], "A6": ["否", "本樣本的核心：平衡優勢與旋轉興趣完全缺席，興趣甚至被寫成待消除的行為"]}, "teach": "檢核表的盲點樣本：A1、A2、B4 形式上全過，文件卻是純缺陷語言寫成的。討論：檢核表抓得到程序，抓得到「語言的取向」嗎？（對照手冊個案 12「他的檔案裡沒有一句好話」）", "case": "12"}, {"n": "小宇（腦性麻痺）※對照手冊個案 14", "stage": "國中", "level": "形式融合", "doc": "【現況描述】腦性麻痺，使用助行器；因安全考量，球類單元擔任計分員；情緒穩定，與同學相處融洽。【學年目標】能參與團體活動。【學期目標】能完成計分任務。【服務】融合班體育每週 2 節；每週 1 節抽離適應體育小組。【支持策略】提供計分板（教學）。【教師】合格體育教師。", "key": {"A1": ["否", "無任何動作能力對照"], "A2": ["否", "無評估資料"], "A3": ["否", "「因安全考量」是決定不是評估"], "A4": ["不確定", "「相處融洽」與長期計分員角色相互矛盾——融洽的證據是什麼？"], "A5": ["否", "未提及"], "B1": ["否", "現況空白，目標無從呼應"], "B2": ["否", "計分不是課綱學習內容"], "B3": ["否", "未提及興趣（他真正想要的是有人傳球給他）"], "B4": ["否", "「參與」不可測——在場算參與嗎？"], "B5": ["否", "無"], "C1": ["是", "融合＋抽離皆有記載"], "C2": ["不確定", "形式上是融合安置，但 LRE 的「品質」從未被討論"], "C3": ["是", "頻率完整"], "C4": ["是", "合格教師"], "D1": ["不確定", "計分板是支持工具，還是把排除制度化的工具？"], "D2": ["否", "無"], "D3": ["否", "無"], "D4": ["否", "無"], "A6": ["否", "他想要什麼（有人傳球給他）從未被記載"]}, "teach": "經驗品質樣本：程序欄位大多合格，但「在場不等於參與」——B4 與 D1 是核心考點：檢核表能抓到安置形式，抓不到參與經驗。（對照手冊個案 14）", "case": "14"}, {"n": "定宇（腦性麻痺，三年級）※對照手冊個案 27", "stage": "高中", "level": "轉銜斷點", "doc": "【現況描述】痙攣型腦性麻痺；羽球社固定成員，校內賽八強；體適能個人紀錄逐年進步（附）。【學年目標】培養終身運動習慣。【學期目標】維持每週運動三次。【服務】融合班每週 2 節。【支持策略】規則調整（課程）、夥伴制（社會）。【教師】合格教師，修畢適應體育學分。【轉銜計畫】升學、就業、生活自理均已載明；運動休閒欄位：無。", "key": {"A1": ["是", "有紀錄對照"], "A2": ["是", "附逐年紀錄"], "A3": ["是", "含興趣與表現"], "A4": ["是", "社團與賽事參與具體"], "A5": ["不確定", "未描述"], "B1": ["不確定", "「終身習慣」方向對，但與具體現況銜接空泛"], "B2": ["不確定", "未對應課綱"], "B3": ["是", "羽球興趣明確"], "B4": ["否", "「培養習慣」不可測；「每週三次」畢業後由誰確認？"], "B5": ["不確定", "未載明"], "C1": ["是", "明確"], "C2": ["不確定", "無討論紀錄"], "C3": ["是", "完整"], "C4": ["是", "合格"], "D1": ["是", "規則調整"], "D2": ["是", "夥伴制"], "D3": ["是", "有社會支持"], "D4": ["不確定", "器材調整未載明"], "E1": ["否", "社區羽球資源明明存在，完全未連結"], "E2": ["否", "他喜歡什麼大家都知道，卻沒寫進轉銜"], "E3": ["否", "運動休閒欄空白"], "E4": ["否", "從未與本人討論畢業後去哪打球"], "A6": ["是", "羽球社身分與賽事表現記載完整"], "E5": ["否", "本樣本的核心：運動休閒欄空白，社區資源明明存在"]}, "teach": "轉銜斷點樣本：課堂做得很好、E 區全軍覆沒——高三的 IEP 若沒有運動轉銜，「終身運動習慣」在畢業那天就結束。（對照手冊個案 27「畢業那天，運動就結束了」）", "case": "27"}]};
+const PRACTICE_CODES=["A","B","C","D","E"];
+const GUIDE={"A1": "判讀線索：找「百分等級、標準差、與同齡／年級基準相比」這類對照字眼。常見誤判：把「體能不佳」這種印象式形容當成對照——形容詞不是基準。", "A2": "判讀線索：找工具名稱＋結果＋時間點（附報告、附紀錄）。常見誤判：只寫了工具名稱、沒附結果或年代久遠，仍勾「是」。", "A3": "判讀線索：現況除了弱點，還寫了「需要什麼支持、什麼因素影響表現」嗎？常見誤判：把診斷標籤（自閉症、腦麻）當成需求描述。", "A4": "判讀線索：找有場景的互動描述（跟誰、在什麼活動、什麼樣子）。常見誤判：「相處融洽」「人緣好」是結論不是描述——並留意它是否與文件其他資訊矛盾。", "A5": "判讀線索：找「規則理解、指令接收方式、需要示範或圖示」。常見誤判：用障礙類別推論理解程度——類別不等於理解方式。", "A6": "判讀線索：找「喜歡、擅長」且有連到課程設計的句子。常見誤判：「個性開朗」這類客套話不是課程可用的優勢；更要警覺興趣被寫成待消除的問題行為。", "B1": "判讀線索：把目標和現況並排看——目標處理的是現況寫到的困難或優勢嗎？常見誤判：目標本身漂亮，但現況根本沒提供它的依據。", "B2": "判讀線索：找課綱代碼或學習階段字眼。常見誤判：內容「看起來像體育」就算對應——秩序、服從、行為目標不屬於課綱的學習內容。", "B3": "判讀線索：目標裡看得到「這個孩子」嗎（能力起點、喜好）？常見誤判：可測但放諸四海皆準的目標——任何學生都能套用的目標，通常沒有個人化。", "B4": "判讀線索：找數字、精熟標準（幾次中幾次）、可觀察的動詞。常見誤判之一：「提升、培養、增進、參與」開頭幾乎都不可測；之二：可測但測錯對象——行為次數不是動作學習。", "B5": "判讀線索：找「多久回報一次、用什麼方式」。常見誤判：「親師溝通良好」是氣氛，不是機制。", "C1": "判讀線索：找融合班、集中式特教班、抽離小組等明確字眼。常見誤判：「隨班上課」四個字沒有回答跟誰上、怎麼上。", "C2": "判讀線索：找「討論過安置選項並記錄理由」的痕跡。常見誤判：安置寫得清楚≠討論過選項——形式上的融合安置，照樣可能從未討論品質。", "C3": "判讀線索：找數字——節／週、每節時間、期程。常見誤判：「提供適應體育服務」沒有量，等於沒有承諾。", "C4": "判讀線索：合格教師＋增能背景（學分、研習）。常見誤判：臺灣沒有適應體育教師證，所以「沒證照」不自動等於否——要看的是增能紀錄。", "D1": "判讀線索：屬於「怎麼教」的調整——提示層次、示範方式、助理員的角色。常見誤判：助理員「一對一跟隨」要多想一步：這是支持參與，還是替代參與？", "D2": "判讀線索：屬於「教什麼、怎麼評」的調整——內容替代、個人進步計分。常見誤判：與教學支持混淆——圖卡是教學支持，改計分方式才是課程調整。", "D3": "判讀線索：預防與教導取向——行為契約、增強系統、視覺提示。常見誤判：處罰（罰坐）與純記錄（行為紀錄表）都不是行為支持。", "D4": "判讀線索：器材、場地、輔具、聲響與視覺環境的調整。常見誤判：現場有做但沒寫進 IEP——口頭善意不算文件品質。", "E1": "判讀線索：找具體的社區資源名稱或類型（據點、社團、俱樂部）。常見誤判：「鼓勵參與社區活動」是祝福，不是規劃。", "E2": "判讀線索：有沒有「問過孩子」喜歡什麼的痕跡。常見誤判：大人替孩子選好了，不算探究喜好。", "E3": "判讀線索：找可驗收的轉銜行動——完成試訓一次、完成報名、每月參與一次。常見誤判：方向正確但永遠無法驗收的敘述。", "E4": "判讀線索：找孩子本人的聲音（討論紀錄、他說過的話）。常見誤判：家長的意見不等於本人的意見。", "E5": "判讀線索：轉銜計畫的「欄位」裡有沒有運動休閒的具體規劃。常見誤判：課堂目標寫了「終身運動」，不等於轉銜計畫有規劃——欄位空白就是空白。"};
+let ck={};    // checklist answers
+let ckN={};   // section qualitative notes
+let SI=0, pans={};
+function tab(i){document.querySelectorAll(".tab").forEach((t,j)=>t.classList.toggle("on",i===j));
+ document.querySelectorAll(".view").forEach((v,j)=>v.classList.toggle("on",i===j));}
+function optRow(idPrefix, cur, fn){
+  const mk=(v,cls,label)=>'<button class="opt '+cls+(cur===v?' on':'')+'" onclick="'+fn+'(\''+idPrefix+'\',\''+v+'\')">'+label+'</button>';
+  return '<div class="opts">'+mk("是","yes","是")+mk("否","no","否")+mk("不確定","uns","不確定")+'</div>';
+}
+// checklist mode
+function renderCk(){
+  let out='';
+  D.sec.forEach((s,si)=>{
+    out+='<div class="sec"><h2>'+s.t+'</h2>';
+    s.items.forEach((it,ii)=>{
+      const id='s'+si+'i'+ii;
+      out+='<div class="item"><div class="qt">'+(ii+1)+'. '+it[0]+'</div><div class="plain">💡 '+it[1]+'</div>'+optRow(id,ck[id],'setCk')+'</div>';
+    });
+    if(["A","B","C","D"].includes(s.code)){
+      out+='<div class="item"><div class="qt" style="color:#7E22CE">✎ 質性備註（此區塊的補充觀察）</div>'
+        +'<div class="plain">寫下塞不進「是／否」的訊息：口頭承諾但未入文件的事、孩子回家說過的話、您觀察到的細節、想追問卻還沒問的事。</div>'
+        +'<textarea rows="3" style="width:100%;font:inherit;font-size:.88rem;padding:10px;border:1.5px solid #dde2e8;border-radius:10px" '
+        +'oninput="setNote(\''+s.code+'\',this.value)">'+((ckN[s.code]||"").replace(/&/g,"&amp;").replace(/</g,"&lt;"))+'</textarea></div>';
+    }
+    out+='</div>';
+  });
+  document.getElementById("cklist").innerHTML=out;
+}
+function setCk(id,v){ ck[id]=v; localStorage.setItem("iep_ck",JSON.stringify(ck)); renderCk(); }
+function setNote(code,v){ ckN[code]=v; localStorage.setItem("iep_ckN",JSON.stringify(ckN)); }
+function resetCk(){ ck={}; ckN={}; localStorage.setItem("iep_ck","{}"); localStorage.setItem("iep_ckN","{}"); renderCk(); document.getElementById("qout").style.display="none"; }
+function genQ(){
+  let qs=[];
+  D.sec.forEach((s,si)=>s.items.forEach((it,ii)=>{
+    const v=ck['s'+si+'i'+ii];
+    if(v==="否"||v==="不確定") qs.push({s:s.t,q:it[0],v:v});
+  }));
+  const el=document.getElementById("qout"), b=document.getElementById("qbody");
+  el.style.display="block";
+  if(!qs.length){ b.innerHTML="目前沒有「否」或「不確定」的項目——若已全部逐項討論過，代表溝通相當完整。"; return; }
+  let out=qs.map((x,i)=>(i+1)+". 【"+x.s.replace(/（.*）/,"")+"】關於「"+x.q.replace(/？$/,"")+"」——"+(x.v==="否"?"目前 IEP 尚未處理，想請團隊說明將如何補上。":"我還不夠清楚，想請團隊具體說明。")).join("<br>");
+  const noteMap={"A":"能力現況","B":"學年學期目標","C":"課程與支持服務","D":"支持策略"};
+  const notes=Object.entries(ckN).filter(([k,v])=>v&&v.trim()).map(([k,v])=>"【"+(noteMap[k]||k)+"・補充觀察】"+v.trim());
+  if(notes.length) out+="<br><br><b>我的補充觀察（會議中可提出）：</b><br>"+notes.join("<br>");
+  b.innerHTML=out;
+  el.scrollIntoView({behavior:"smooth"});
+}
+// practice mode
+function pItems(){
+  const arr=[];
+  D.sec.forEach(s=>{ if(PRACTICE_CODES.includes(s.code)) s.items.forEach((it,ii)=>arr.push({code:s.code+(ii+1), sec:s.t, q:it[0], plain:it[1]})); });
+  return arr;
+}
+function renderSbtns(){
+  document.getElementById("sbtns").innerHTML=D.samples.map((s,i)=>
+   '<button class="sbtn'+(i===SI?' on':'')+'" onclick="loadSample('+i+')">【'+s.stage+'】'+s.n+'</button>').join('');
+}
+function loadSample(i){
+  SI=i; pans={}; renderSbtns();
+  document.getElementById("sdoc").innerHTML='<b>'+D.samples[i].n+'</b><br>'+D.samples[i].doc;
+  document.getElementById("psc").style.display="none";
+  renderPr(false);
+}
+function renderPr(showFb){
+  const key=D.samples[SI].key;
+  let out=''; let curSec='';
+  pItems().forEach(it=>{
+    if(!key[it.code]) return;
+    if(it.sec!==curSec){ if(curSec) out+='</div>'; curSec=it.sec; out+='<div class="sec"><h2>'+it.sec+'</h2>'; }
+    const mine=pans[it.code];
+    out+='<div class="item"><div class="qt">'+it.code+'. '+it.q+'</div>'+optRow(it.code,mine,'setP');
+    if(showFb && key[it.code]){
+      const exp=key[it.code][0], why=key[it.code][1];
+      const hit = mine===exp;
+      out+='<div class="fb '+(hit?'hit':'miss')+'" style="display:block">'+(hit?'✔ 與專家一致（'+exp+'）':'✘ 專家評定：'+exp)+'（你的評定：'+(mine||'未作答')+'）<br><b>本樣本理由：</b>'+why+'</div>';
+      if(GUIDE[it.code]) out+='<div class="fb" style="display:block;background:#EFF4FB;border:1px solid #1F4E79;color:#173F63">🧭 '+GUIDE[it.code]+'</div>';
+    }
+    out+='</div>';
+  });
+  if(curSec) out+='</div>';
+  document.getElementById("pr").innerHTML=out;
+}
+function setP(code,v){ pans[code]=v; renderPr(false); }
+function grade(){
+  const key=D.samples[SI].key;
+  let hit=0, tot=0;
+  pItems().forEach(it=>{ if(key[it.code]){ tot++; if(pans[it.code]===key[it.code][0]) hit++; } });
+  const secStat={};
+  pItems().forEach(it=>{ if(key[it.code]){ const g=it.code[0];
+    secStat[g]=secStat[g]||[0,0]; secStat[g][1]++;
+    if(pans[it.code]===key[it.code][0]) secStat[g][0]++; } });
+  const secName={"A":"（一）現況","B":"（二）目標","C":"（三）課程服務","D":"（四）支持策略","E":"（五）轉銜"};
+  let weakest=null;
+  const secLine=Object.entries(secStat).map(([g,v])=>{
+    const rate=v[0]/v[1];
+    if(weakest===null||rate<weakest[1]) weakest=[g,rate];
+    return secName[g]+" "+v[0]+"/"+v[1];
+  }).join("　·　");
+  const sc=document.getElementById("psc");
+  sc.style.display="block";
+  sc.innerHTML="與專家評定一致率："+hit+" / "+tot+"（"+Math.round(hit/tot*100)+"%）　樣本定位："+D.samples[SI].level
+   +'<div style="font-size:.85rem;font-weight:400;margin-top:8px;text-align:left;line-height:1.9;opacity:.95">分區一致率：'+secLine
+   +(weakest&&weakest[1]<1?'<br>🔍 你的分歧集中在 <b>'+secName[weakest[0]]+'</b>——往下捲動，逐題閱讀該區的「🧭 判讀線索」，再想一次你當時是根據什麼下判斷的。':'')
+   +'<br>📌 '+D.samples[SI].teach+"</div>";
+  renderPr(true);
+  sc.scrollIntoView({behavior:"smooth"});
+}
+try{ ck=JSON.parse(localStorage.getItem("iep_ck")||"{}"); }catch(e){ck={};}
+try{ ckN=JSON.parse(localStorage.getItem("iep_ckN")||"{}"); }catch(e){ckN={};}
+renderCk(); renderSbtns(); loadSample(0);
+</script></body></html>
