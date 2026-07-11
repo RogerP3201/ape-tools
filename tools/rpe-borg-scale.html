@@ -53,7 +53,7 @@ header p{font-size:.82rem;opacity:.9;margin-top:5px}
   </div>
 </div>
 <div class="hist">
-  <h2>我的紀錄 <button onclick="clearHist()">清空</button></h2>
+  <h2>我的紀錄 <span><button onclick="exportRpeCSV()">⬇ 匯出 CSV</button> <button onclick="clearHist()">清空</button></span></h2>
   <div id="hist"></div>
 </div>
 </div>
@@ -116,5 +116,12 @@ function renderHist(){
     <span class="d">${x.d} ${x.t}</span></div>`).join("");
 }
 function clearHist(){ if(confirm("確定清空所有紀錄？")){log=[];localStorage.setItem("rpe_log","[]");renderHist();} }
+function exportRpeCSV(){
+  if(!log.length){ alert("還沒有紀錄可以匯出"); return; }
+  const head=["日期","時間","分數","描述","活動"];
+  const rows=[head.join(",")].concat(log.map(x=>[x.d,x.t,x.n,x.w,x.act||""].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")));
+  const blob=new Blob(["﻿"+rows.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="自覺用力量表_紀錄.csv"; a.click();
+}
 buildScale(); renderHist();
 </script></body></html>
