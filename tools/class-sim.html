@@ -1,0 +1,513 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>帶好這一班｜融合式體育學期模擬</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#173F63;--indigo:#4338CA;--amber:#fbbf24;
+  --good:#34d399;--warn:#fbbf24;--bad:#f87171;
+  --ink:#eef0f8;--dim:rgba(238,240,248,.72);
+  --card:rgba(255,255,255,.10);--edge:rgba(255,255,255,.22);
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(150deg,var(--navy) 0%,#2c3a80 55%,var(--indigo) 100%) fixed;
+  color:var(--ink);min-height:100vh;display:flex;justify-content:center;padding:14px 12px 48px;
+}
+.app{width:100%;max-width:560px}
+.screen{display:none}.screen.on{display:block;animation:rise .35s ease}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen.on{animation:none}.fill{transition:none!important}}
+
+/* ── 開始畫面 ── */
+.hero{text-align:center;padding:34px 10px 10px}
+.hero .kicker{font-size:.78rem;letter-spacing:.35em;color:var(--amber);font-weight:900}
+.hero h1{font-size:2.05rem;font-weight:900;letter-spacing:.06em;margin:10px 0 8px;text-wrap:balance}
+.hero p{color:var(--dim);font-size:.92rem;line-height:1.8;max-width:30em;margin:0 auto}
+.panel{background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:18px 20px;margin-top:18px;backdrop-filter:blur(8px)}
+.panel h2{font-size:.85rem;font-weight:900;letter-spacing:.12em;color:var(--amber);margin-bottom:10px}
+.panel .sub{font-size:.84rem;color:var(--dim);line-height:1.7;margin-bottom:10px}
+.invs{display:flex;flex-direction:column;gap:10px}
+.inv{font:inherit;text-align:left;padding:13px 15px;border-radius:14px;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1.5px solid var(--edge);color:var(--ink)}
+.inv b{font-size:.96rem}
+.inv p{font-size:.82rem;color:var(--dim);line-height:1.65;margin-top:3px}
+.inv .cost{float:right;font-size:.78rem;font-weight:900;color:var(--warn)}
+.inv.sel{background:rgba(251,191,36,.16);border-color:var(--amber)}
+.cta{display:block;width:100%;margin-top:16px;font:inherit;font-weight:900;font-size:1.1rem;
+  padding:15px;border:none;border-radius:14px;cursor:pointer;background:var(--amber);color:var(--navy)}
+.cta:disabled{opacity:.35;cursor:not-allowed}
+.cta:focus-visible,.opt:focus-visible,.inv:focus-visible,.ghost:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.foot{margin-top:14px;text-align:center;font-size:.72rem;color:rgba(238,240,248,.5);line-height:1.7}
+
+/* ── HUD ── */
+.hud{position:sticky;top:0;z-index:5;background:rgba(23,32,70,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--edge);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.hud .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.hud .rd{font-size:.8rem;font-weight:900;letter-spacing:.08em;color:var(--amber)}
+.hud .sc{font-size:.94rem;font-weight:900;font-variant-numeric:tabular-nums}
+.meter{display:grid;grid-template-columns:5.4em 1fr 2.4em;gap:8px;align-items:center;margin:4px 0}
+.meter .lb{font-size:.74rem;font-weight:700;color:var(--dim)}
+.meter .val{font-size:.74rem;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
+.track{height:9px;border-radius:99px;background:rgba(0,0,0,.35);overflow:hidden}
+.fill{height:100%;border-radius:99px;transition:width .6s ease,background .6s ease}
+
+/* ── 回合 ── */
+.scene{background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:16px 18px;margin-bottom:12px}
+.scene .tag{display:inline-block;font-size:.72rem;font-weight:900;padding:3px 10px;border-radius:99px;
+  background:rgba(251,191,36,.18);color:var(--amber);border:1px solid rgba(251,191,36,.4);margin-bottom:8px}
+.scene p{font-size:.95rem;line-height:1.9}
+.paycard{border-radius:13px;padding:11px 14px;font-size:.86rem;line-height:1.7;margin-bottom:10px;
+  background:rgba(52,211,153,.1);border:1.5px dashed rgba(52,211,153,.5)}
+.paycard b{color:var(--good)}
+.paycard .pt{float:right;font-weight:900;color:var(--good);font-variant-numeric:tabular-nums}
+.ask{margin:12px 2px 8px;font-size:.86rem;font-weight:900}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{font:inherit;text-align:left;font-size:.9rem;line-height:1.7;padding:12px 14px;border-radius:13px;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1.5px solid var(--edge);color:var(--ink)}
+
+/* ── 單回合回饋 ── */
+.fbcard{border-radius:13px;padding:13px 15px;font-size:.88rem;line-height:1.75;border:1.5px solid;background:rgba(0,0,0,.28);margin-bottom:12px}
+.fbcard .h{font-weight:900;display:flex;gap:8px;align-items:baseline;font-size:.95rem}
+.fbcard .pt{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:900}
+.fbcard.g{border-color:rgba(52,211,153,.55)}.fbcard.g .h{color:var(--good)}
+.fbcard.w{border-color:rgba(251,191,36,.55)}.fbcard.w .h{color:var(--warn)}
+.fbcard.b{border-color:rgba(248,113,113,.6)}.fbcard.b .h{color:var(--bad)}
+.fbcard .note{color:var(--dim);margin-top:6px}
+
+/* ── 結算 ── */
+.final{text-align:center;padding-top:26px}
+.final .big{font-size:3.2rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--amber);line-height:1.1}
+.final .rank{font-size:1.25rem;font-weight:900;margin:6px 0 2px}
+.final .sub{color:var(--dim);font-size:.88rem;line-height:1.7}
+.report{text-align:left;background:rgba(0,0,0,.25);border:1px solid;border-radius:14px;padding:13px 16px;margin-top:10px;font-size:.87rem;line-height:1.8}
+.report.g{border-color:rgba(52,211,153,.5)}
+.report.b{border-color:rgba(248,113,113,.55)}
+.report .t{font-weight:900;margin-bottom:3px}
+.report.g .t{color:var(--good)}.report.b .t{color:var(--bad)}
+.report .d{color:var(--dim)}
+.row{display:flex;gap:10px;margin-top:16px}
+.row .cta{margin-top:0}
+.ghost{flex:1;font:inherit;font-weight:900;font-size:1rem;padding:14px;border-radius:14px;cursor:pointer;
+  background:rgba(255,255,255,.12);border:1.5px solid var(--edge);color:var(--ink)}
+.lbrow{display:flex;gap:8px}
+.lbrow input{flex:1;font:inherit;font-size:.95rem;padding:11px 13px;border-radius:12px;border:1.5px solid var(--edge);
+  background:rgba(0,0,0,.25);color:var(--ink)}
+.lbrow input::placeholder{color:rgba(238,240,248,.45)}
+.lbrow .ghost{flex:0 0 auto;padding:11px 18px;font-size:.92rem}
+.lbList{margin-top:12px;font-size:.9rem}
+.lbItem{display:grid;grid-template-columns:2.2em 1fr auto;gap:10px;padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.12);
+  font-variant-numeric:tabular-nums}
+.lbItem .no{font-weight:900;color:var(--amber)}
+.lbItem .pts{font-weight:900}
+
+/* ── 兩難與想一想 ── */
+.fbcard.d{border-color:rgba(251,191,36,.6)}.fbcard.d .h{color:var(--amber)}
+details.think{margin-top:9px;font-size:.85rem;background:rgba(255,255,255,.05);border-radius:9px;padding:8px 12px}
+details.think summary{cursor:pointer;font-weight:900;color:var(--amber);font-size:.84rem}
+details.think .q{color:var(--dim);margin-top:6px;line-height:1.75}
+.trow{border-bottom:1px solid rgba(255,255,255,.12);padding:2px 0}
+.trow:last-child{border-bottom:none}
+.trow summary{cursor:pointer;padding:8px 2px;font-size:.85rem;font-weight:700;line-height:1.6;list-style-position:outside}
+.trow .body{font-size:.83rem;color:var(--dim);line-height:1.7;padding:2px 2px 10px 22px}
+.trow .body b{color:var(--ink)}
+</style></head><body>
+
+<div class="app">
+
+<!-- 開始＋設計投資 -->
+<section class="screen on" id="sStart">
+  <div class="hero">
+    <div class="kicker">融 合 式 體 育 學 期 模 擬</div>
+    <h1>帶好這一班</h1>
+    <p>26 個學生，18 週，其中三位你可能認識：阿澤（自閉症）、芸芸（肌肉萎縮症）、大牛（智能障礙）。你的體力和心力有限，事件不會等你。開學前，先決定哪兩件事要先準備好。</p>
+  </div>
+  <div class="panel">
+    <h2>畫面上的三條量表是什麼？</h2>
+    <div class="sub"><b style="color:var(--ink)">全班學習</b>：全班 26 人學得好不好。這條掉太低，體育課就只剩下集合、發球、解散。<br>
+    <b style="color:var(--ink)">三位學生</b>：阿澤、芸芸、大牛有沒有真的下場參與。這條掉太低，代表他們只是坐在旁邊看，期末成績單會反映出來。<br>
+    <b style="color:var(--ink)">教師能量</b>：你的體力和心力。開學準備會先用掉一些；準備派上用場時會補回來。撐到見底，這學期會有另一種結局。</div>
+  </div>
+  <div class="panel">
+    <h2>開學準備：先把哪兩件事做起來？（每件先花 15 點教師能量）</h2>
+    <div class="sub">這就是 UDL 說的「事先設計」：開學先把課準備好，學期中就少掉很多臨時補救。現在多花的力氣，之後會在某些時刻幫你省力氣、避開麻煩。選哪兩件，決定你的學期怎麼過。</div>
+    <div class="invs">
+      <button class="inv" data-k="signals" onclick="pickInv(this)"><span class="cost">−15 能量</span><b>🚩 視覺提示系統</b>
+        <p>集合、換活動不再只靠哨音和喊話：手勢卡、舉牌、視覺計時器，用看的就懂，全班統一使用。<br><span style="color:var(--amber);font-size:.78rem">派上用場的時機：有學生聽不到或聽不懂口令的時候，還有你請假、換人代課的那天。</span></p></button>
+      <button class="inv" data-k="stations" onclick="pickInv(this)"><span class="cost">−15 能量</span><b>🎯 分層挑戰站</b>
+        <p>每個單元都先設好三種難度的關卡，學生自己挑做得到的版本，不用等你逐一調整。<br><span style="color:var(--amber);font-size:.78rem">派上用場的時機：班上程度差很多的單元，還有你生病、沒力氣示範的那天。</span></p></button>
+      <button class="inv" data-k="peers" onclick="pickInv(this)"><span class="cost">−15 能量</span><b>🤝 同儕小老師制度</b>
+        <p>公開招募、訓練與考核小老師，安排輪替、講清楚界線，不是隨便抓一個熱心同學。<br><span style="color:var(--amber);font-size:.78rem">派上用場的時機：有學生學不會、被隊友抱怨的時候，還有你不在學校的那天。</span></p></button>
+      <button class="inv" data-k="assess" onclick="pickInv(this)"><span class="cost">−15 能量</span><b>📋 多元評量與替代測驗</b>
+        <p>成績看個人進步，不是只看全班排名；體適能檢測先備好替代方案，開學就跟行政講好。<br><span style="color:var(--amber);font-size:.78rem">派上用場的時機：體適能檢測週，還有期末打成績的那天。</span></p></button>
+    </div>
+    <button class="cta" id="btnStart" disabled onclick="startGame()">▶ 開學（已選 <span id="nInv">0</span>／2）</button>
+  </div>
+  <div class="foot">概念依據：UDL-DI-STEP 三層架構。開學時在課程設計做的準備，會減少學期中教學與臨場調整的負擔。<br>本遊戲僅供教學討論與師資培育，非正式評量工具，人物情境為虛構。</div>
+</section>
+
+<!-- 回合 -->
+<section class="screen" id="sGame">
+  <div class="hud">
+    <div class="top"><span class="rd" id="hudRound"></span><span class="sc">分數 <span id="hudScore">0</span></span></div>
+    <div class="meter"><span class="lb">全班學習</span><div class="track"><div class="fill" id="mC"></div></div><span class="val" id="vC">50</span></div>
+    <div class="meter"><span class="lb">三位學生</span><div class="track"><div class="fill" id="mF"></div></div><span class="val" id="vF">50</span></div>
+    <div class="meter"><span class="lb">教師能量</span><div class="track"><div class="fill" id="mE"></div></div><span class="val" id="vE">70</span></div>
+  </div>
+  <div id="payBox"></div>
+  <div class="scene">
+    <span class="tag" id="cTag"></span>
+    <p id="cText"></p>
+  </div>
+  <div class="ask">你的決定？</div>
+  <div class="opts" id="cOpts"></div>
+</section>
+
+<!-- 單回合回饋 -->
+<section class="screen" id="sFb">
+  <div class="hud">
+    <div class="top"><span class="rd" id="fbRound"></span><span class="sc">分數 <span id="fbScore">0</span></span></div>
+    <div class="meter"><span class="lb">全班學習</span><div class="track"><div class="fill" id="fC"></div></div><span class="val" id="wC"></span></div>
+    <div class="meter"><span class="lb">三位學生</span><div class="track"><div class="fill" id="fF"></div></div><span class="val" id="wF"></span></div>
+    <div class="meter"><span class="lb">教師能量</span><div class="track"><div class="fill" id="fE"></div></div><span class="val" id="wE"></span></div>
+  </div>
+  <div id="fbBox"></div>
+  <button class="cta" id="btnNext" onclick="nextRound()">下一週 →</button>
+</section>
+
+<!-- 結算 -->
+<section class="screen" id="sEnd">
+  <div class="final">
+    <div class="big" id="endScore">0</div>
+    <div class="rank" id="endRank"></div>
+    <div class="sub" id="endSub"></div>
+  </div>
+  <div class="panel">
+    <h2>學期成績單（依你這學期的決定結算）</h2>
+    <div id="endReport"></div>
+  </div>
+  <div class="panel">
+    <h2>學期軌跡（研習 debrief 用，點開看你沒走的路）</h2>
+    <div id="endTraj"></div>
+  </div>
+  <div class="panel" id="lbPanel" style="display:none">
+    <h2>🏆 跨裝置排行榜</h2>
+    <div class="lbrow">
+      <input id="lbName" maxlength="12" placeholder="暱稱（最多 12 字，勿用真名）">
+      <button class="ghost" id="lbSend" onclick="sendScore()">上傳成績</button>
+    </div>
+    <div class="lbList" id="lbList">載入中…</div>
+  </div>
+  <div class="row">
+    <button class="ghost" onclick="copyScore()">⧉ 複製成績</button>
+    <button class="cta" style="flex:1" onclick="location.reload()">再帶一班</button>
+  </div>
+  <div class="foot">你在開學第一週做的每一項準備，都會在第十七週的某個時刻幫上忙。UDL 不是多做一件事，是先做該做的事。<br>本遊戲僅供教學討論，非正式評量工具。排行榜只儲存暱稱與分數。</div>
+</section>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+const LB_URL="https://script.google.com/macros/s/AKfycbxCCp-Mflzy6Enazv-FH4Bt9xhyzGECv3WJacyOv-MWjiy20k9ahVrhoHXZZ82lna18/exec";
+const GAME_ID="class-sim";
+// 回合結構：7 個核心回合（開學準備派上用場的載體，固定出現）＋事件池 5 抽 2＋兩難池 4 抽 2，共 11 回合。
+// q: best=+15 ok=+8 trap=-12 dil=+8（兩難回合沒有正解）。fx: [全班學習, 三位學生的參與, 教師能量]，每點乘 5。
+// alt: 量表條件觸發的劇情變化（B 的牙齒）。payoffs: 有做該項開學準備時自動派上用場。
+// ══════════════════════════════════════════════════
+const PTS={best:15,ok:8,trap:-12,dil:8};
+const INV_COST=15, PAY_PTS=10;
+
+const CORE=[
+{id:"open",w:1,title:"開學",text:"第一次整隊，哨音一響，阿澤搗住耳朵蹲在場邊，隊伍亂成一團。全班都在看你怎麼處理。",
+ think:"如果班上沒有阿澤，視覺提示還值得做嗎？為什麼？",
+ payoffs:[{inv:"signals",text:"你開學建置的視覺訊號派上用場：阿澤盯著倒數手勢卡，自己跟上了隊伍。",fx:[0,1,3]}],
+ opts:[
+  {t:"當天課後把集合口令改成手勢卡加舉牌，全班統一",q:"best",fx:[1,1,-1],flag:"r1best",n:"把口令改成看得到的，受益的是全班。這一小時的課後工，一整個學期都會受益。"},
+  {t:"安排一位同學負責提醒阿澤集合",q:"ok",fx:[0,1,0],n:"有用，但你把結構問題交給了一位熱心的同學。熱心會累。"},
+  {t:"請助理員把他帶到隊伍最後面站好",q:"trap",fx:[0,-2,1],n:"隔離式解法。省了今天五分鐘，賠掉他一學期的歸屬感。"}]},
+
+{id:"volley",w:3,title:"排球單元",text:"排球單元開跑，程度落差攤在眼前：有人已經會扣球，有人連球飛過來都閉眼睛。",
+ think:"「分層挑戰站」和「分強弱組」差在哪一個關鍵字？",
+ payoffs:[{inv:"stations",text:"分層挑戰站直接開張：氣球、軟排、正式球三種強度，每個人在挑自己的版本。",fx:[1,1,3]}],
+ opts:[
+  {t:"花一個晚上把單元改成三層挑戰站",q:"best",fx:[2,1,-2],n:"最累的一晚，換來最省力的一個單元。設計做在前面，調整就少在後面。"},
+  {t:"全班同一進度，落後的個別指導",q:"ok",fx:[0,0,-1],n:"你會追著五個人跑一整個單元，而且他們知道自己是「被追的那群」。"},
+  {t:"分強弱兩組，阿澤他們三位固定在弱組",q:"trap",fx:[-1,-2,1],n:"標籤貼上去就撕不下來。弱組會變成一種身分。"}]},
+
+{id:"danio",w:5,title:"大牛卡關",text:"大牛的低手發球一直學不會，比賽連輸三場之後，隊友的抱怨浮上檯面：「他害我們輸的。」",
+ think:"「他害我們輸」下一次出現在別的班，你會先改什麼：那個學生，還是那個計分方式？",
+ payoffs:[{inv:"peers",text:"受訓的小老師用 First-Then 圖卡陪大牛拆解動作，抱怨聲小了很多。",fx:[0,1,3]}],
+ opts:[
+  {t:"改合作計分（全隊都觸球才得分），並用圖卡拆解發球動作",q:"best",fx:[1,2,-1],flag:"r3best",n:"「他害我們輸」是計分結構餵養的。改結構，隊友就會開始研究怎麼讓他得分。"},
+  {t:"下課留大牛個別加練",q:"ok",fx:[0,1,-1],n:"會進步，但有社會代價（全班都看見誰被留下），也燒你的午休。"},
+  {t:"比賽時讓大牛「先在旁邊休息」",q:"trap",fx:[0,-2,0],n:"抱怨消失了，因為他消失了。這不是解決，是移除。"}]},
+
+{id:"fitest",w:7,title:"體適能檢測",text:"檢測週到了。行政按慣例送來芸芸的免測單，順手放在你桌上，等你簽名。",
+ think:"免測單為什麼是「一支筆」就能決定的事？制度該不該讓它這麼容易？",
+ payoffs:[{inv:"assess",text:"你的彈性評量架構早有預案：替代測驗與個人參照，開學就跟行政談好了。",fx:[0,1,3]}],
+ opts:[
+  {t:"跟行政溝通：改跑走組合或替代測驗，採個人參照記錄",q:"best",fx:[1,1,-1],flag:"r4best",n:"多一趟行政溝通，換來她「認識自己身體」的權利。這正是檢測的目的。"},
+  {t:"照常模施測，私下不看名次",q:"ok",fx:[0,0,0],n:"你不看，但她還是要在全班面前跑完那一圈。壓力沒有變少。"},
+  {t:"簽了免測單，省事",q:"trap",fx:[0,-2,1],flag:"r4trap",n:"一支筆劃掉的不是一次檢測，是她參與的預設值。"}]},
+
+{id:"sick",w:11,title:"你自己出狀況",text:"你重感冒，喉嚨啞到說不出完整的句子。明天有兩節課，還有一場教學觀摩排在第三節。",
+ think:"你的課少了你還能運轉幾成？那個百分比，其實是什麼的指標？",
+ alt:{m:"E",lt:25,text:"你不只是感冒。連續幾週的硬撐讓你在辦公室量血壓被護理師攔下來。明天有兩節課，還有一場教學觀摩，而你的手在抖。"},
+ payoffs:[{inv:"stations",text:"分站流程學生早就跑熟了，站牌和輪替表比你的嗓子可靠。",fx:[1,0,3]}],
+ opts:[
+  {t:"啟動學生自主的分站流程，你坐鎮指揮，少示範少喊話",q:"best",fx:[0,0,1],n:"課程結構替你上課。這就是設計的意義：老師倒下的那天，課還能是好課。"},
+  {t:"硬撐著照常上",q:"ok",fx:[1,0,-2],altFx:[0,0,-4],n:"撐得過明天，倒在下週。你的能量也是這個班的資源。"},
+  {t:"放自由活動",q:"trap",fx:[-2,-1,1],n:"自由活動最先被犧牲的，永遠是最需要結構的那幾位學生。"}]},
+
+{id:"subday",w:17,title:"你不在的那天",text:"你被派去全縣研習一整天。代課老師完全不認識這個班，更不認識阿澤、芸芸和大牛。",
+ think:"給代課老師的那一頁說明，平常還可以給誰用？",
+ alt:{m:"F",lt:30,text:"你被派去全縣研習一整天。想到阿澤最近連你在都常常掛在隊伍外，芸芸已經一個月沒下場，你在研習會場坐立難安。"},
+ payoffs:[
+  {inv:"signals",text:"牆上的手勢卡與視覺流程表還在運作，代課老師照著帶就順了。",fx:[1,1,3]},
+  {inv:"peers",text:"小老師們把各站帶得有模有樣，代課老師只需要看著全場。",fx:[0,1,3]}],
+ opts:[
+  {t:"留一頁「班級運作說明」：訊號怎麼用、分站怎麼跑、三位學生的支持重點",q:"best",fx:[1,1,-1],n:"一頁 A4，是你不在場時的分身。支持寫得下來，才留得下來。"},
+  {t:"拜託隔壁班老師幫忙看著",q:"ok",fx:[0,0,0],n:"看得住秩序，看不住學習。沒有說明，好意也使不上力。"},
+  {t:"交代「讓他們自由活動就好」",q:"trap",fx:[-1,-2,1],n:"對代課老師最輕鬆的一天，是對最需要結構的學生最漫長的一天。"}]},
+
+{id:"final",w:18,title:"期末評量",text:"學期要結束了。體育成績怎麼給？教學組提醒你成績下週一要交。",
+ think:"成績單上的分數，學生自己讀得出「我學會了什麼」嗎？",
+ payoffs:[{inv:"assess",text:"彈性評量架構收尾：每個人都有自己能展示的版本，成績單自己會說話。",fx:[1,1,3]}],
+ opts:[
+  {t:"多元表現任務加個人進步紀錄，人人有可達成的評量版本",q:"best",fx:[1,2,-1],n:"評量的樣子，就是你這學期教學的樣子。多元的課配多元的評量，剛好。"},
+  {t:"同一套測驗，阿澤他們三位「酌量給分」",q:"ok",fx:[0,0,0],n:"憐憫分數騙不過學生自己。他們知道那個分數不是自己掙來的。"},
+  {t:"三位學生免評",q:"trap",fx:[0,-2,1],n:"不被評量，等於不被期待。免評是最安靜的放棄。"}]}
+];
+
+const EVENTS=[
+{id:"aide",w:4,title:"隱形的助理員",text:"阿澤的助理員每節課都站在場邊滑手機。你委婉提過一次，她笑笑說：「體育課就是讓他們放風啊。」",
+ think:"助理員的角色是誰定義的？如果沒有人定義，會被什麼定義？",
+ opts:[
+  {t:"跟她坐下來，用任務清單約定每節課的角色與位置",q:"best",fx:[0,2,-1],n:"助理員不是天生會支持，是被說明和被期待出來的。清單是對事不對人。"},
+  {t:"向特教組反映，請他們處理",q:"ok",fx:[0,1,0],n:"程序正確，但轉一手之後，她只知道被投訴，不知道該怎麼做。"},
+  {t:"算了，阿澤的事上課你自己來",q:"trap",fx:[0,0,-2],n:"你默默接收了她的工作。她更確定體育課不關她的事，你更累。"}]},
+{id:"mock",w:8,title:"笑聲",text:"自由練習時，兩個學生誇張地模仿大牛的發球動作，半個班都在笑。大牛也跟著笑，但笑得很小聲。",
+ think:"大牛「跟著笑」，是覺得好笑，還是他能想到的最安全的反應？",
+ opts:[
+  {t:"當場停下活動，把尊重當成全班的課題談，課後再個別關心大牛",q:"best",fx:[0,2,-1],n:"嘲笑是全班的課題，不是大牛的問題。當下的處理，全班都在看。"},
+  {t:"課後個別找那兩位學生談",q:"ok",fx:[0,1,0],n:"有處理，但全班看到的版本是「老師當下沒說話」。文化是在當下建立的。"},
+  {t:"孩子之間開玩笑而已，不用小題大作",q:"trap",fx:[0,-2,1],n:"你的沉默替全班翻譯成「這樣可以」。下次的笑聲會更大。"}]},
+{id:"parent",w:9,title:"家長來電",text:"芸芸媽媽打來：「上次她回家累到吐。老師，體育課可不可以讓她見習就好？我不想她勉強。」",
+ think:"家長的擔心裡，哪一部分是資訊落差、哪一部分是價值差異？兩種要用不同的方法回應。",
+ alt:{m:"F",lt:30,text:"芸芸媽媽的電話直接打到學務處。學務主任把你找去：「家長說孩子在體育課一直被晾在旁邊，回家越來越不想動。你們課上發生什麼事？」"},
+ opts:[
+  {t:"邀媽媽來看一堂課，展示分層設計與 RPE 自我監控怎麼保護她",q:"best",fx:[0,2,-1],n:"家長要的不是承諾，是親眼看到安全長什麼樣子。一堂課勝過十通電話。"},
+  {t:"口頭保證會多注意她的狀況",q:"ok",fx:[0,0,0],n:"安撫了今天，沒有回答問題。這通電話還會再來。"},
+  {t:"答應改見習，皆大歡喜",q:"trap",fx:[0,-2,1],flag:"r5trap",n:"用她的參與換你的清靜。三個月後她會連想動的念頭都沒有了。"}]},
+{id:"sports",w:13,title:"運動會",text:"大隊接力名單討論中，班上有聲音：「讓他們三個跑會輸啦。」有人提議讓他們三個當「器材管理員」。",
+ think:"「公平的比賽」和「人人都上場的比賽」真的衝突嗎？誰定義的公平？",
+ opts:[
+  {t:"提案改混合接力制：每人自選距離段，全員上場",q:"best",fx:[1,2,-1],flag:"r7best",n:"改規則，不改人。距離自選之後，「會拖累」這個詞就失去了意義。"},
+  {t:"讓他們三位跑最短的一棒，規則不動",q:"ok",fx:[0,1,0],n:"上場了，但規則仍把他們定義為需要被安排的風險。"},
+  {t:"讓阿澤、芸芸、大牛三個人當器材管理員",q:"trap",fx:[0,-2,0],flag:"r7trap",n:"運動會那天，人人都在跑，他們在搬東西。這個畫面全班會記得。"}]},
+{id:"iep",w:15,title:"IEP 會議",text:"阿澤的 IEP 會議排在你的課堂時間。特教組長問：「體育老師要出席嗎？不方便的話交書面意見也可以。」",
+ think:"體育教師在 IEP 會議長期缺席，最後付出代價的是誰？",
+ opts:[
+  {t:"調課出席，帶著課堂觀察紀錄與體育目標建議",q:"best",fx:[0,2,-1],n:"你是每週實際帶他動起來的人。體育教師出席 IEP，本來就該是常態而不是客串。"},
+  {t:"交一頁書面意見",q:"ok",fx:[0,1,0],n:"聊勝於無，但會議裡沒有人能回答「體育課的他」的問題。"},
+  {t:"「體育應該不用參加吧。」",q:"trap",fx:[0,-1,1],n:"你缺席的那一格，IEP 的體育目標就繼續空白或抄去年的。"}]}
+];
+
+const DILEMMAS=[
+{id:"budget",w:6,dil:1,title:"一份預算，兩種正義",text:"期中請購只夠買一批器材。特教組建議買三位學生的個別輔具（擺位帶、抓握輔助、鈴鐺球）；你草擬的另一份清單是全班可用的分層器材（不同重量的球、加大拍面、慢速球）。錢只有一份。",
+ think:["「個別化」與「通用設計」在資源有限時，是真衝突還是假衝突？","如果明年預算翻倍，你的答案會變嗎？那今年的決定是原則，還是妥協？","誰應該參與這個決定？三位學生本人的意見在哪裡？"],
+ opts:[
+  {t:"買個別輔具：三位學生的參與立刻到位",q:"dil",fx:[0,2,0],flag:"d1a",n:"三個人的門檻立刻降低。代價：輔具只有他們用，「特殊器材」的標籤跟著來，明年新需求又要從零請購。"},
+  {t:"買分層器材：全班每個人都多了選項",q:"dil",fx:[1,1,0],flag:"d1b",n:"通用設計的路。代價：對重度需求來說，分層器材可能還是不夠精準，最需要的人分到的支持最薄。"},
+  {t:"各買一半",q:"dil",fx:[1,1,-1],flag:"d1c",n:"折衷的代價是兩邊都只做半套，而且你要花雙倍的力氣管理兩套器材。"}]},
+{id:"herchoice",w:10,dil:1,title:"她說她想上場",text:"芸芸媽媽上個月才表達過擔心。今天芸芸下課後留下來，小聲說：「老師，其實我想跟大家一起測。我媽那邊……可以先不要跟她說嗎？」",
+ think:["她對自己身體的決定權有多少？法律上、倫理上、實務上的答案一樣嗎？","「先不告訴家長」和「隱瞞家長」的界線在哪裡？","這件事有沒有第四條路？"],
+ opts:[
+  {t:"尊重芸芸：安排她參與並用 RPE 監控，先不主動告訴媽媽",q:"dil",fx:[0,2,0],flag:"d2a",n:"你站在她的自主這邊。代價：家長若事後知道，信任可能一次歸零，之後每件事都更難談。"},
+  {t:"「想上場很好。我們一起打電話跟媽媽談，我幫你說。」",q:"dil",fx:[0,1,-1],flag:"d2b",n:"程序最正的路。代價：芸芸可能在電話接通前就退縮，而且母女的張力被你搬上了檯面。"},
+  {t:"維持見習，先穩住家長",q:"dil",fx:[0,-1,1],flag:"d2c",n:"你選擇了大人之間的和平。代價：芸芸學到的是，說出自己想要的，沒有用。"}]},
+{id:"showcase",w:12,dil:1,title:"觀課那一天",text:"下週有校外委員來觀課，主任暗示你排一堂「流暢好看」的課。但你的分層課堂真實的樣子是：有點吵、有人失敗重來、阿澤中途去了兩次緩衝角。",
+ think:["「好看的課」和「好的課」重疊多少？觀課制度在鼓勵哪一種？","阿澤去緩衝角，是課堂的瑕疵還是課堂的成就？你希望委員怎麼讀它？","如果你是委員，你想看到哪一種課？"],
+ opts:[
+  {t:"排一堂修飾過的展示課：流程順、動作齊、三位學生安排最不會出錯的任務",q:"dil",fx:[1,-1,1],flag:"d3a",n:"考評安全下莊。代價：你對外展示的教學，跟你相信的教學，是兩回事。學生也看得出來今天「不太一樣」。"},
+  {t:"照常上真實的課，附一頁說明讓委員讀懂他們將看到什麼",q:"dil",fx:[0,1,-1],flag:"d3b",n:"你賭委員讀得懂真實。代價：吵雜和失敗畫面可能被誤讀，考評分數承擔風險。"},
+  {t:"折衷：真實的課，但把最不可控的環節換掉",q:"dil",fx:[0,0,0],flag:"d3c",n:"務實的中間路線。代價：被換掉的那個環節，恰好就是最需要被看見的那群學生的環節。"}]},
+{id:"align",w:14,dil:1,title:"進度一致",text:"教學組轉達學年決議：體育科各班進度與評量「原則上一致」，你的分層挑戰站被點名「跟別班差太多，家長會比較」。組長私下說：「配合一下，別讓我難做。」",
+ think:["「一致」保護的是誰？家長比較的焦慮，該由誰用什麼方式承擔？","課程自主權的邊界在哪裡？你願意為它付出多少政治成本？","如果你是組長，你要怎麼同時接住上面的要求和你這樣的老師？"],
+ opts:[
+  {t:"配合：收起分層，回到統一進度",q:"dil",fx:[1,-2,1],flag:"d4a",n:"行政和平了。代價：教室裡那些剛開始敢選挑戰的學生，看著站牌被收走。"},
+  {t:"對外用同一份進度表，課堂裡照跑分層",q:"dil",fx:[0,1,-1],flag:"d4b",n:"學生的課保住了。代價：你開始過雙面人生，每一次被觀課都是風險。"},
+  {t:"帶著學生的進步數據上學年會議，正面說服",q:"dil",fx:[0,1,-2],flag:"d4c",n:"最累的路。可能改變整個學年，也可能讓你被貼上「難搞」的標籤，之後處處受阻。"}]}
+];
+
+let ROUNDS=[],inv=new Set(),ri=0,score=0,M={C:50,F:50,E:70},flags={},bestCount=0,payCount=0;
+let journal=[],drawn=new Set(),maxScore=0;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function clamp(v){return Math.max(0,Math.min(100,v));}
+function mcolor(v){return v>=55?"var(--good)":v>=30?"var(--warn)":"var(--bad)";}
+function paint(pfx){["C","F","E"].forEach(k=>{const f=$(pfx+k);f.style.width=M[k]+"%";f.style.background=mcolor(M[k]);});
+  $(pfx==="m"?"vC":"wC").textContent=M.C;$(pfx==="m"?"vF":"wF").textContent=M.F;$(pfx==="m"?"vE":"wE").textContent=M.E;}
+function draw(pool,n){
+  const a=pool.slice();
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a.slice(0,n);
+}
+function pickInv(btn){
+  const k=btn.dataset.k;
+  if(inv.has(k)){inv.delete(k);btn.classList.remove("sel");}
+  else if(inv.size<2){inv.add(k);btn.classList.add("sel");}
+  $("nInv").textContent=inv.size;
+  $("btnStart").disabled=inv.size!==2;
+}
+function startGame(){
+  M.E=clamp(M.E-INV_COST*inv.size);
+  ROUNDS=CORE.concat(draw(EVENTS,2),draw(DILEMMAS,2)).sort((a,b)=>a.w-b.w);
+  ROUNDS.forEach(r=>drawn.add(r.id));
+  maxScore=ROUNDS.reduce((s,r)=>s+(r.dil?PTS.dil:PTS.best),0)+4*PAY_PTS;
+  show("sGame");loadRound();
+}
+function altActive(R){
+  return !!(R.alt && M[R.alt.m] < R.alt.lt);
+}
+function loadRound(){
+  const R=ROUNDS[ri];
+  const useAlt=altActive(R);
+  R._alt=useAlt;
+  const tag="第 "+R.w+" 週・"+R.title+(useAlt?"（情況變糟了）":"");
+  R._tag=tag;
+  $("hudRound").textContent=tag+"（"+(ri+1)+"／"+ROUNDS.length+"）";
+  $("hudScore").textContent=score;
+  $("cTag").textContent=tag;
+  $("cText").textContent=useAlt?R.alt.text:R.text;
+  const pay=$("payBox");pay.innerHTML="";
+  (R.payoffs||[]).forEach(p=>{
+    if(!inv.has(p.inv))return;
+    payCount++;score+=PAY_PTS;
+    M.C=clamp(M.C+p.fx[0]*5);M.F=clamp(M.F+p.fx[1]*5);M.E=clamp(M.E+p.fx[2]*5);
+    const pTxt=[["全班學習",p.fx[0]],["三位學生的參與",p.fx[1]],["教師能量",p.fx[2]]]
+      .filter(x=>x[1]!==0).map(x=>x[0]+" +"+x[1]*5).join("・");
+    pay.innerHTML+='<div class="paycard"><span class="pt">+'+PAY_PTS+'</span><b>💡 開學的準備派上用場了</b>　'+esc(p.text)+(pTxt?'<br><span style="font-size:.8rem">📊 '+pTxt+"</span>":"")+"</div>";
+  });
+  $("hudScore").textContent=score;
+  const box=$("cOpts");box.innerHTML="";
+  const order=R.opts.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  order.forEach(i=>{
+    const o=R.opts[i],b=document.createElement("button");
+    b.className="opt";b.textContent=o.t;
+    b.onclick=()=>choose(i);
+    box.appendChild(b);});
+  paint("m");
+}
+function thinkHtml(R){
+  const qs=Array.isArray(R.think)?R.think:(R.think?[R.think]:[]);
+  if(!qs.length)return "";
+  return '<details class="think"><summary>🤔 想一想（課堂討論用）</summary>'
+    +qs.map(q=>'<div class="q">・'+esc(q)+"</div>").join("")+"</details>";
+}
+function choose(i){
+  const R=ROUNDS[ri],o=R.opts[i];
+  const fx=(R._alt&&o.altFx)?o.altFx:o.fx;
+  const gain=PTS[o.q];score+=gain;
+  if(o.q==="best")bestCount++;
+  if(o.flag)flags[o.flag]=1;
+  M.C=clamp(M.C+fx[0]*5);M.F=clamp(M.F+fx[1]*5);M.E=clamp(M.E+fx[2]*5);
+  journal.push({tag:R._tag,dil:!!R.dil,q:o.q,chosen:o.t,others:R.opts.filter((x,j)=>j!==i).map(x=>x.t)});
+  const isDil=o.q==="dil";
+  const cls=isDil?"d":o.q==="best"?"g":o.q==="ok"?"w":"b";
+  const ic=isDil?"⚖️":o.q==="best"?"⭐":o.q==="ok"?"⚖️":"❌";
+  const head=isDil?"沒有正解的一題":o.q==="best"?"就是這個":o.q==="ok"?"可以，但有更好的":"踩到陷阱";
+  const dTxt=[["全班學習",fx[0]],["三位學生的參與",fx[1]],["教師能量",fx[2]]]
+    .filter(x=>x[1]!==0).map(x=>x[0]+(x[1]>0?" +":" −")+Math.abs(x[1]*5)).join("・");
+  let html='<div class="fbcard '+cls+'"><div class="h"><span>'+ic+'</span><span>'+head+'</span><span class="pt">'+(gain>0?"+":"")+gain+'</span></div>'
+    +'<div class="note">你的決定：「'+esc(o.t)+'」</div><div class="note">'+esc(o.n)+"</div>"
+    +(dTxt?'<div class="note">📊 '+dTxt+"</div>":"");
+  if(isDil){
+    html+='<div class="note">你沒走的路，各有各的代價。往下想一想，或跟旁邊的人吵一架。</div>';
+  }else if(o.q!=="best"){
+    const b=R.opts.find(x=>x.q==="best");html+='<div class="note">💡 更好的做法：「'+esc(b.t)+"」</div>";
+  }
+  html+=thinkHtml(R)+"</div>";
+  if(M.E<=10)html+='<div class="fbcard b"><div class="h"><span>🪫</span><span>教師能量見底</span></div><div class="note">你已經在用意志力上課了。接下來的選擇，先想想哪個能讓結構替你分擔。</div></div>';
+  $("fbBox").innerHTML=html;
+  $("fbRound").textContent=R._tag+"・"+(gain>=0?"+":"")+gain+" 分";
+  $("fbScore").textContent=score;
+  $("btnNext").textContent=ri===ROUNDS.length-1?"放暑假，看成績單 →":"下一週 →";
+  paint("f");show("sFb");
+}
+function nextRound(){ri++; if(ri>=ROUNDS.length) return endGame(); show("sGame"); loadRound();}
+
+function rep(good,title,goodTxt,badTxt){
+  return '<div class="report '+(good?"g":"b")+'"><div class="t">'+title+'</div><div class="d">'+(good?goodTxt:badTxt)+"</div></div>";
+}
+function endGame(){
+  $("endScore").textContent=score;
+  const burned=M.E<=5;
+  const bestable=ROUNDS.filter(r=>!r.dil).length;
+  const r=burned?["🪫 期中就燒完了","學期是撐完的，不是帶完的。下一輪開局，把投資想成替未來的自己請幫手。"]
+        :score>=maxScore*0.85?["🏗️ 三層設計師","課程設計層扛住了大部分的事，教學與調整只是微調。這就是三層架構要教的事。"]
+        :score>=maxScore*0.6?["💪 穩住學期的老師","大方向都對。回頭看看：哪幾件事如果開學就設計好，期中就不用救火？"]
+        :score>=maxScore*0.3?["🚒 救火隊員","每件事都親手處理，你把自己燒掉了一半。設計不是多做一件事，是少做十件事。"]
+        :["🔁 重新開學","把「為一個人補救」換成「為全班設計」，再帶一次這個班。"];
+  $("endRank").textContent=r[0];
+  $("endSub").textContent=r[1]+"（關鍵決定 "+bestCount+"／"+bestable+"・準備派上用場 "+payCount+" 次・兩難 2 題沒有標準答案）";
+  const az=inv.has("signals")||flags.r1best;
+  const dn=inv.has("peers")||flags.r3best;
+  const yy=(inv.has("assess")||flags.r4best)&&!flags.r4trap&&!flags.r5trap&&!flags.d2c;
+  let html=
+    rep(az,"阿澤（自閉症）",
+      "集合時他看著手勢卡自己歸隊，上週還提醒隔壁同學看倒數。訊號對了，他一直都做得到。",
+      "集合仍是他每天的關卡。他不是不想跟上，是訊號從來沒有為他改過。")
+   +rep(dn,"大牛（智能障礙）",
+      "合作計分之後，隊友開始研究怎麼讓他得分。期末那球發過網時，全隊喊得比他還大聲。",
+      "他在隊伍裡越站越後面。沒有人再抱怨他，因為大家已經當他不存在。")
+   +rep(yy,"芸芸（肌肉萎縮症）",
+      "她用 RPE 自己配速，媽媽期末真的來看了一堂課，回家路上跟她說「你在課堂上的樣子很好看」。",
+      "她的體育課越來越安靜。免測、見習、旁觀，每一步都有理由，加起來是整學期的缺席。");
+  if(drawn.has("sports"))html+=rep(flags.r7best,"運動會那天",
+      "混合接力制讓全班都上了場。名次不是第一，但大隊接力第一次是「大隊」的。",
+      "相簿裡那天的照片，三位焦點學生都站在跑道外面。");
+  html+=rep(M.E>=40,"你自己",
+      "你把設計當隊友，學期末還有力氣笑。能量剩 "+M.E+" 點，暑假是拿來玩的，不是拿來復健的。",
+      "能量剩 "+M.E+" 點。你用肝換了這個學期。下學期，讓事先做好的準備替你分擔。");
+  $("endReport").innerHTML=html;
+  const traj=journal.map(j=>{
+    const ic=j.dil?"⚖️":j.q==="best"?"⭐":j.q==="ok"?"⚖️":"❌";
+    return '<details class="trow"><summary>'+ic+"　"+esc(j.tag)+"：「"+esc(j.chosen)+'」</summary>'
+      +'<div class="body"><b>你沒走的路：</b><br>・'+j.others.map(esc).join("<br>・")+"</div></details>";
+  }).join("");
+  $("endTraj").innerHTML=traj;
+  if(LB_URL){$("lbPanel").style.display="block";loadBoard();}
+  show("sEnd");
+}
+function copyScore(){
+  const t="🏫 帶好這一班｜我拿到 "+score+" 分・"+$("endRank").textContent+"（關鍵決定 "+bestCount+"・準備派上用場 "+payCount+" 次）你能不燒完能量帶完一學期嗎？";
+  navigator.clipboard.writeText(t).then(()=>alert("已複製，可貼到留言區或群組。")).catch(()=>alert("複製失敗，請手動選取。"));
+}
+
+/* ── 排行榜 ── */
+let sent_=false;
+async function loadBoard(){
+  try{
+    const r=await fetch(LB_URL+"?game="+encodeURIComponent(GAME_ID));const d=await r.json();
+    const top=(d.top||[]).slice(0,10),box=$("lbList");box.innerHTML="";
+    if(!top.length){box.textContent="還沒有人上榜，搶頭香！";return;}
+    top.forEach((e,i)=>{const el=document.createElement("div");el.className="lbItem";
+      el.innerHTML='<span class="no">'+(i+1)+'</span><span>'+esc(String(e.n||"匿名"))+'</span><span class="pts">'+Number(e.s||0)+"</span>";
+      box.appendChild(el);});
+  }catch(err){$("lbList").textContent="排行榜暫時連不上，稍後再試。";}
+}
+async function sendScore(){
+  if(sent_)return;
+  const name=($("lbName").value||"").trim().slice(0,12)||"匿名";
+  $("lbSend").disabled=true;$("lbSend").textContent="上傳中…";
+  try{
+    await fetch(LB_URL,{method:"POST",body:JSON.stringify({game:GAME_ID,name:name,score:score,rank:$("endRank").textContent})});
+    sent_=true;$("lbSend").textContent="已上傳 ✓";loadBoard();
+  }catch(err){$("lbSend").disabled=false;$("lbSend").textContent="上傳成績";alert("上傳失敗，請再試一次。");}
+}
+</script></body></html>
