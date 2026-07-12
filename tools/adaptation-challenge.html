@@ -43,7 +43,7 @@ body{
 .hud .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
 .hud .rd{font-size:.8rem;font-weight:900;letter-spacing:.08em;color:var(--amber)}
 .hud .sc{font-size:.94rem;font-weight:900;font-variant-numeric:tabular-nums}
-.meter{display:grid;grid-template-columns:4.6em 1fr 2.4em;gap:8px;align-items:center;margin:4px 0}
+.meter{display:grid;grid-template-columns:6.8em 1fr 2.4em;gap:8px;align-items:center;margin:4px 0}
 .meter .lb{font-size:.74rem;font-weight:700;color:var(--dim)}
 .meter .val{font-size:.74rem;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
 .track{height:9px;border-radius:99px;background:rgba(0,0,0,.35);overflow:hidden}
@@ -118,7 +118,7 @@ body{
   <div class="hero">
     <div class="kicker">融 合 式 體 育 決 策 遊 戲</div>
     <h1>調整判讀挑戰</h1>
-    <p>六個真實改編的體育課現場。每一案，從七個做法中選出你會先做的三個支持：守住「參與度」與「安全」，別讓「歸屬感」掉下去。</p>
+    <p>六個真實改編的體育課現場。每一案，從七個做法中選出你會先做的三個支持：守住「有意義的參與」與「安全」，別讓「歸屬感」掉下去。</p>
   </div>
   <div class="panel">
     <h2>怎麼玩</h2>
@@ -132,14 +132,14 @@ body{
     </div>
     <button class="cta" onclick="startGame()">▶ 開始挑戰</button>
   </div>
-  <div class="foot">案例改編自「抽案輪盤」27 案、策略取自「STEP 調整卡產生器」<br>本遊戲僅供教學討論與師資培育，非正式評量工具，不對應任何真實學生。</div>
+  <div class="foot">題庫共 12 案，每次隨機抽 6 案。案例改編自「抽案輪盤」、策略取自「STEP 調整卡產生器」<br>本遊戲僅供教學討論與師資培育，非正式評量工具，不對應任何真實學生。</div>
 </section>
 
 <!-- 遊戲 -->
 <section class="screen" id="sGame">
   <div class="hud">
     <div class="top"><span class="rd" id="hudRound">第 1 案／共 6 案</span><span class="sc">分數 <span id="hudScore">0</span></span></div>
-    <div class="meter"><span class="lb">參與度</span><div class="track"><div class="fill" id="mP"></div></div><span class="val" id="vP">50</span></div>
+    <div class="meter"><span class="lb">有意義的參與</span><div class="track"><div class="fill" id="mP"></div></div><span class="val" id="vP">50</span></div>
     <div class="meter"><span class="lb">安全</span><div class="track"><div class="fill" id="mS"></div></div><span class="val" id="vS">50</span></div>
     <div class="meter"><span class="lb">歸屬感</span><div class="track"><div class="fill" id="mB"></div></div><span class="val" id="vB">50</span></div>
   </div>
@@ -157,7 +157,7 @@ body{
 <section class="screen" id="sFb">
   <div class="hud">
     <div class="top"><span class="rd" id="fbRound"></span><span class="sc">分數 <span id="fbScore">0</span></span></div>
-    <div class="meter"><span class="lb">參與度</span><div class="track"><div class="fill" id="fP"></div></div><span class="val" id="wP"></span></div>
+    <div class="meter"><span class="lb">有意義的參與</span><div class="track"><div class="fill" id="fP"></div></div><span class="val" id="wP"></span></div>
     <div class="meter"><span class="lb">安全</span><div class="track"><div class="fill" id="fS"></div></div><span class="val" id="wS"></span></div>
     <div class="meter"><span class="lb">歸屬感</span><div class="track"><div class="fill" id="fB"></div></div><span class="val" id="wB"></span></div>
   </div>
@@ -204,7 +204,8 @@ const GAME_ID="adaptation-challenge"; // 後端用這個字串區分不同遊戲
 
 // q: 2=關鍵支持 1=好支持 0=有代價的取捨 -1=踩線 -2=陷阱
 // fx: [參與, 安全, 歸屬]  trap: 陷阱類別
-const CASES=[
+// 題庫共 12 案，每次遊玩隨機抽 6 案
+const BANK=[
 {who:"小捷・脊髓損傷 T10・輪椅使用者",what:"羽球單元",title:"第一次上羽球課的小捷",
  body:"小捷上學期才受傷返校，這是他坐輪椅後第一堂球類課。他球感不錯，但場地是站立者的尺寸，網子對坐姿揮拍太高。全班 28 人，你只有一個人。",
  opts:[
@@ -269,7 +270,73 @@ const CASES=[
   {t:"直接處理模仿嘲笑：把它當班級文化問題，全班談尊重",q:1,fx:[0,0,2],n:"嘲笑是全班的課題，不是書涵的問題。就算她選擇不說明，這件事也要處理。"},
   {t:"未問過她，先向全班說明她的診斷，請大家「多讓她」",q:-2,fx:[0,0,-2],trap:"label",n:"善意的揭露仍是揭露。隱私一旦公開就收不回來，而承擔後果的人是她。"},
   {t:"安排她固定守球門，「這樣就不用跑了」",q:-1,fx:[-1,1,-1],trap:"exclude",n:"用固定位置交換安全，也交換掉了這個單元的學習。她可以練她的版本的運球。"},
-  {t:"請她下課留下來個別加強平衡訓練",q:0,fx:[1,1,-1],n:"個別練習有它的位置，但也有社會代價（同學都看見誰被留下）。先問她願不願意。"}]}
+  {t:"請她下課留下來個別加強平衡訓練",q:0,fx:[1,1,-1],n:"個別練習有它的位置，但也有社會代價（同學都看見誰被留下）。先問她願不願意。"}]},
+
+{who:"佑佑・聽覺障礙・配戴電子耳",what:"游泳課",title:"下水之後，世界安靜了",
+ body:"游泳課電子耳必須拿下來，佑佑幾乎聽不到任何指令。教練習慣用哨音和口令帶全班，第一堂課他總是慢半拍，跟不上換動作的節奏。",
+ opts:[
+  {t:"改用視覺訊號帶全班：手勢、旗號，下水前先約定好",q:2,fx:[1,2,1],n:"把口令轉成看得到的訊號。泳池本來就吵，受益的是全班每一個人。"},
+  {t:"下水前先跟佑佑核對今天的流程與手勢",q:2,fx:[1,1,1],n:"可預期性是他的安全網。先給地圖，再下水。"},
+  {t:"安排固定泳道位置，讓他看得到示範者、不背光",q:1,fx:[1,1,0],n:"位置就是資訊。看得到示範，指令就進得來。"},
+  {t:"約定一個「看我」的拍肩訊號，經他同意後使用",q:1,fx:[0,1,1],n:"碰觸前先約定，訊號才是尊重，不是打擾。"},
+  {t:"請隊友游在他旁邊隨時提醒他",q:0,fx:[1,0,-1],n:"短期可行，但固定的提醒者容易變成他的專屬翻譯，關係會傾斜。"},
+  {t:"讓他先在池邊看，等大家學會了再說",q:-2,fx:[-2,0,-2],trap:"exclude",n:"在池邊看不會學會游泳。他缺的是訊息管道，不是能力。"},
+  {t:"對他喊大聲一點、講慢一點，總聽得到吧",q:-1,fx:[-1,0,-1],trap:"read",n:"電子耳拿下來就是幾乎聽不到。音量解決不了訊息管道的問題。"}]},
+
+{who:"小威・ADHD",what:"體適能分站訓練",title:"第二站就開始插隊的小威",
+ body:"分站訓練才進行到第二站，小威已經插隊兩次、搶了三次器材。上一位老師的規矩是「再吵就去旁邊罰站，這節課不用玩了」。",
+ opts:[
+  {t:"每站掛視覺計時器與輪替表，「還要等多久」看得見",q:2,fx:[2,1,0],n:"等待變得可預期，衝動就少一半。結構是最好的行為支持。"},
+  {t:"和他約定自我暫停訊號與緩衝角，全班都能使用",q:2,fx:[1,1,1],n:"自我調節工具，不是隔離角。全班可用，就沒有標記。"},
+  {t:"站與站的轉換前先預告、倒數",q:1,fx:[1,1,0],n:"轉換是衝動最容易爆發的時刻，預告把它接住。"},
+  {t:"設「器材檢查員」輪值角色，把能量導向責任",q:1,fx:[1,0,1],n:"有明確任務就不搶。注意是輪值，不是他的專屬職務。"},
+  {t:"排他跟最有耐心的同學同一組",q:0,fx:[1,0,-1],n:"可以做，但那位同學不是他的管理員。劑量與輪替要顧到。"},
+  {t:"沿用舊規矩：再吵就罰站，這節課不用玩了",q:-2,fx:[-2,0,-1],trap:"exclude",n:"用剝奪運動當處罰。體育課的參與是學習權，不是行為良好的獎品。"},
+  {t:"向全班宣布「小威有過動症，大家多包容他」",q:-1,fx:[0,0,-2],trap:"label",n:"未經本人同意的公開揭露。他需要的是結構，不是同情。"}]},
+
+{who:"阿哲・體重過重、心肺耐力弱",what:"體適能檢測週・800 公尺",title:"從終點傳來的「加油」聲",
+ body:"檢測週到了，阿哲最怕 800 公尺。去年他跑最後一名，全班聚在終點對他喊加油，他覺得那是全世界最漫長的一圈。今年他開始找理由躲檢測課。",
+ opts:[
+  {t:"分散施測、自選時段，不再全班圍觀單人跑",q:2,fx:[2,1,1],n:"檢測的公開性要設計。圍觀是壓力，不是支持。"},
+  {t:"用個人參照談進步：這學期比上學期快了幾秒",q:2,fx:[1,0,1],n:"常模問「你贏過多少人」，個人參照問「你有沒有變強」。後者他做得到。"},
+  {t:"平時課程導入 RPE 自覺量表，讓他學會配速不爆衝",q:1,fx:[1,2,0],n:"會配速的人不怕長距離。這是帶得走的能力。"},
+  {t:"提供跑走組合的完成方式，照實記錄",q:1,fx:[1,1,0],n:"跑走組合是檢測允許的方式，不是放水。"},
+  {t:"安排他最後一個單獨測，避開人群",q:0,fx:[0,1,-1],n:"避開圍觀，但「單獨測」本身也是一種被看見。先問他想要哪一種。"},
+  {t:"把全班成績排名貼在佈告欄激勵大家",q:-2,fx:[-1,0,-2],trap:"label",n:"公開排名對後段的學生是每週一次的公開處刑。他躲的不是跑步，是那張表。"},
+  {t:"幫他開免測，反正跑了成績也難看",q:-2,fx:[-2,0,-2],trap:"exclude",n:"免測拿走的不只是一次檢測，是他認識自己身體的機會。"}]},
+
+{who:"恬恬・腦性麻痺・使用助行器",what:"舞蹈律動單元",title:"「她會拖累我們的隊形」",
+ body:"律動單元要分組編舞，恬恬用助行器，變換隊形比較慢。有組員私下跟你說：「老師，她會拖累我們的隊形分數。」",
+ opts:[
+  {t:"評分規準改成「每組作品需包含站姿與坐姿動作段落」",q:2,fx:[2,0,2],n:"把多元動作寫進評分規準，恬恬的版本就是作品的必要部分，不是妥協。"},
+  {t:"改合作型計分，隊形變化速度不列入評分",q:2,fx:[1,0,2],n:"「拖累」是評分結構餵養出來的。改結構，不是勸學生友善。"},
+  {t:"全班都自選動作幅度與隊形位置",q:1,fx:[1,1,0],n:"每個人都在選自己的版本，就沒有誰是特例。"},
+  {t:"問恬恬想怎麼參與：領舞、定點段落、還是節奏設計",q:1,fx:[1,0,1],n:"選擇權在她。參與的樣子由她定義。"},
+  {t:"讓她負責控音樂，兼跳一段定點動作",q:0,fx:[1,0,0],n:"可以，但要確認定點段落是她選的，不是被分配剩下的。"},
+  {t:"讓她當隊形設計師就好，不用下場跳",q:-2,fx:[-2,0,-1],trap:"exclude",n:"設計師聽起來體面，但這是律動課，她是來跳舞的。"},
+  {t:"要求全組配合她，把所有動作都放慢",q:-1,fx:[0,0,-2],trap:"same",n:"強迫齊一是反向的齊頭式公平，組員的不滿會轉嫁到她身上。多版本並存才是解方。"}]},
+
+{who:"家豪・發展性協調障礙（DCD）",what:"跳繩單元",title:"把繩子丟在地上的家豪",
+ body:"全班練雙腳跳繩，家豪的手腳老是對不上，繩子一直卡在腳踝。第三節課，他把繩子丟在地上說：「我天生就不會。」",
+ opts:[
+  {t:"First-Then 分解：先只搖繩、再只原地跳，最後才合併",q:2,fx:[2,0,0],n:"協調問題就用分解處理。一次只練一件事，成功才有累積的地方。"},
+  {t:"器材區提供長繩（他人搖）、粗短繩等選項，全班自選",q:1,fx:[1,0,1],n:"通用選項不標記任何人，每個人都在挑自己的挑戰。"},
+  {t:"具體回饋他做對的部分：「手腕有在轉，節奏是對的」",q:2,fx:[1,0,1],n:"「我天生就不會」要用證據反駁：指出他已經會的部分，學習才有立足點。"},
+  {t:"設小目標：今天連續兩下就好，自己記錄進步",q:1,fx:[1,0,0],n:"小步驟與個人紀錄，把「會不會」換成「進步了沒」。"},
+  {t:"下課留他個別練十分鐘",q:0,fx:[1,0,-1],n:"個別練習有社會代價，同學都看得見誰被留下。先問他願不願意。"},
+  {t:"「多練就會了」，叫他繼續跳滿一百下",q:-1,fx:[-1,-1,0],trap:"read",n:"把協調障礙誤讀成不努力。方法不變，重複失敗只會累積「我不會」。"},
+  {t:"讓他負責幫大家數次數",q:-2,fx:[-2,0,-1],trap:"exclude",n:"數次數的人學不會跳繩。他丟掉繩子，不代表他想放棄。"}]},
+
+{who:"樂樂・自閉症・喜歡旋轉物品",what:"呼拉圈單元",title:"檔案上寫著「建議逐步消除」",
+ body:"樂樂的檔案寫著「旋轉物品之固著行為，建議逐步消除」。呼拉圈單元開始，他眼睛發亮，蹲在地上讓圈一個接一個轉。",
+ opts:[
+  {t:"把旋轉當入口：從地板轉圈漸進到腰轉呼拉圈的任務鏈",q:2,fx:[2,0,1],n:"優勢本位的教科書操作：興趣是參與引擎，不是待消除的行為。"},
+  {t:"設多站自選：腰轉、手臂轉、地面花式、合作傳圈",q:1,fx:[1,0,1],n:"多入口的設計，每個人從自己的地方進來。"},
+  {t:"請他示範「地面陀螺圈」，變成全班挑戰站之一",q:2,fx:[1,0,2],n:"他的專長變成大家想學的技能，被幫助者的位置就翻轉了。"},
+  {t:"活動轉換前先預告、倒數",q:1,fx:[0,1,0],n:"轉換的可預期性，對他是剛需，對全班是加分。"},
+  {t:"約定「先完成腰轉練習，再自由轉圈」",q:0,fx:[1,0,0],n:"First-Then 可行，但小心把他的興趣降格成交換籌碼。"},
+  {t:"照檔案建議：沒收呼拉圈，禁止旋轉",q:-2,fx:[-2,0,-2],trap:"read",n:"把興趣當問題行為消除，等於拆掉他的參與引擎。檔案的語言取向，可以被課程翻轉。"},
+  {t:"隨他去轉，反正他開心就好",q:-1,fx:[-1,0,-1],trap:"exclude",n:"放任不是尊重。沒有教學設計的「開心」，是被放棄的另一種樣子。"}]}
 ];
 
 const PTS={2:20,1:12,0:4,"-1":-10,"-2":-18};
@@ -280,6 +347,7 @@ const TRAPTXT={
  same:{t:"公平不等於相同",d:"齊頭式的一樣，對不同起點的身體是最大的不公平。公平是每個人都拿到自己需要的，這件事值得直接教給學生。"},
  read:{t:"先讀行為，再回應",d:"感官超載、焦慮、聽不懂，外表都可能像「不配合」。壓制式回應會讓行為升級，也燒掉信任。行為是訊息，先翻譯再處理。"}};
 
+let CASES=[];
 let ri=0,score=0,M={P:50,S:50,B:50},sel=new Set(),timer=null,left=45,useTimer=true,traps={},bests=0,picks=0;
 const $=id=>document.getElementById(id);
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);}
@@ -287,7 +355,13 @@ function mcolor(v){return v>=55?"var(--good)":v>=35?"var(--warn)":"var(--bad)";}
 function paint(pfx){["P","S","B"].forEach(k=>{const f=$(pfx+k);f.style.width=M[k]+"%";f.style.background=mcolor(M[k]);});
   $(pfx==="m"?"vP":"wP").textContent=M.P;$(pfx==="m"?"vS":"wS").textContent=M.S;$(pfx==="m"?"vB":"wB").textContent=M.B;}
 
-function startGame(){useTimer=!$("noTimer").checked;show("sGame");loadRound();}
+function startGame(){
+  useTimer=!$("noTimer").checked;
+  const pool=[...BANK];
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  CASES=pool.slice(0,6);
+  show("sGame");loadRound();
+}
 function loadRound(){
   const c=CASES[ri];sel.clear();
   $("hudRound").textContent="第 "+(ri+1)+" 案／共 "+CASES.length+" 案";
@@ -353,7 +427,7 @@ function endGame(){
     d.innerHTML='<div class="t">你避開了所有陷阱</div><div class="d">排除、過度支持、公開標記、齊頭式公平，一個都沒踩。在真實的教學現場，這非常不容易。</div>';box.appendChild(d);}
   else keys.forEach(k=>{const T=TRAPTXT[k],d=document.createElement("div");d.className="lesson b";
     d.innerHTML='<div class="t">'+T.t+"（踩到 "+traps[k]+" 次）</div><div class=\"d\">"+T.d+"</div>";box.appendChild(d);});
-  ["P","S","B"].forEach((k,i)=>{ if(M[k]<35){const nm=["參與度","安全","歸屬感"][i],d=document.createElement("div");d.className="lesson b";
+  ["P","S","B"].forEach((k,i)=>{ if(M[k]<35){const nm=["有意義的參與","安全","歸屬感"][i],d=document.createElement("div");d.className="lesson b";
     d.innerHTML='<div class="t">'+nm+"量表亮紅燈（"+M[k]+"／100）</div><div class=\"d\">回頭看看是哪幾個決定把它拉低的。量表不會說謊。</div>";box.appendChild(d);}});
   if(LB_URL){$("lbPanel").style.display="block";loadBoard();}
   show("sEnd");

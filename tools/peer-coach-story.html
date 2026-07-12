@@ -120,11 +120,11 @@ body{
     <div class="modes">
       <button class="mode" data-m="student" onclick="pickMode(this)">
         <b>🏐 學生版：我是小教練</b>
-        <p>你是本週的同儕小老師，陪同班的阿豪練排球低手發球。13 幕現場情境，附中英對照句型。適合國高中學生直接學習。</p>
+        <p>你是本週的同儕小老師。兩套劇本隨機一套：排球課的阿豪，或籃球課的小琪。13 幕現場情境，附中英對照句型，適合國高中學生直接學習。</p>
       </button>
       <button class="mode" data-m="teacher" onclick="pickMode(this)">
         <b>🎓 師培版：我是老師</b>
-        <p>你要在班上建立同儕指導制度：招募、訓練、督導、輪替，每一步都有現場會踩的坑。適合師培生與在職教師。</p>
+        <p>兩套劇本隨機一套：從零建立同儕指導制度，或接手修復一個壞掉的制度。10 幕，每一步都有現場會踩的坑，適合師培生與在職教師。</p>
       </button>
     </div>
     <div class="toggle">
@@ -132,7 +132,7 @@ body{
     </div>
     <button class="cta" id="btnStart" disabled onclick="startGame()">▶ 開始這節課</button>
   </div>
-  <div class="foot">內容取自「同儕指導訓練包」（依據 Houston-Wilson 等 1997；Lieberman 等 2021；Block 訓練手冊）<br>本遊戲僅供教學討論與同儕指導員訓練，非正式評量工具，情境為虛構。</div>
+  <div class="foot">每個版本各有兩套劇本，每次隨機抽一套。內容取自「同儕指導訓練包」（依據 Houston-Wilson 等 1997；Lieberman 等 2021；Block 訓練手冊）<br>本遊戲僅供教學討論與同儕指導員訓練，非正式評量工具，情境為虛構。</div>
 </section>
 
 <!-- 遊戲 -->
@@ -204,7 +204,8 @@ const STUDENT={
  id:"peer-coach-student",
  m1:"他的學習",m2:"你的收穫",
  ckTitle:"下課前的自我檢查（依你剛剛的選擇結算）",
- scenes:[
+ stories:[
+ {t:"排球課的阿豪",scenes:[
  {tag:"上課前",text:"老師宣布這週由你擔任小老師，陪阿豪練排球低手發球。阿豪坐在場邊，看起來有點緊張。你走過去，第一句話說什麼？",
   opts:[
    {t:"「阿豪，別怕，我來幫你！」",q:"trap",fx:[-1,0],flags:{},n:"訓練卡第一條：第一句話永遠不是「我來幫你」。這句話把他放進了被照顧者的位置。"},
@@ -270,13 +271,82 @@ const STUDENT={
    {t:"忍著，反正是幫忙，下次再運動",q:"trap",fx:[0,-2],flags:{},n:"你也是來上體育課的。犧牲自己的學習換來的協助，撐不久也不健康。"},
    {t:"跟老師說：「我可以跟別人輪流嗎？」",q:"best",fx:[0,2],flags:{moved:1},n:"說出來。角色要輪替、時間要有上限，這是制度該給你的保障，不是你的任性。",en:"May I take turns with someone else?"},
    {t:"明天開始找藉口不當小老師了",q:"poor",fx:[-1,-1],flags:{},n:"直接退出很可惜，你已經做得很好了。問題出在安排，開口就能修。"}]}
+ ]},
+ {t:"籃球課的小琪",scenes:[
+ {tag:"上課前",text:"老師宣布這週由你擔任小老師，陪小琪練籃球胸前傳球。小琪抱著球站在三分線外，不太敢靠近人群。你走過去，第一句話說什麼？",
+  opts:[
+   {t:"「小琪，交給我，我罩你！」",q:"trap",fx:[-1,0],flags:{},n:"氣勢很足，但這句話宣告了「這節課由我主導」。第一句話永遠不是「我來幫你」。"},
+   {t:"「你要我怎麼做？」",q:"best",fx:[1,1],flags:{decide:1},n:"決定權從第一秒就在她手上。你是支持者，不是隊長。",en:"How do you want me to help?"},
+   {t:"先示範一次標準的胸前傳球",q:"ok",fx:[1,0],flags:{},n:"示範沒有錯，但還沒問過她想從哪裡開始。先問，再教。"}]},
+ {tag:"第一球",text:"開始練傳接，小琪接球時手指老是朝前，球一直戳到手指，她越接越怕。",
+  opts:[
+   {t:"抓著她的手擺好接球姿勢",q:"trap",fx:[-1,0],flags:{touchNoAsk:1,didFor:1},n:"肢體協助是最後手段，而且你沒問過她。提示層級的第一層是用說的。"},
+   {t:"口頭提示：「手指朝上，像要接一顆西瓜。」",q:"best",fx:[2,0],flags:{},n:"第一層：口頭提示，而且畫面感十足。給她自己修正的機會。",en:"Fingers up, like catching a watermelon."},
+   {t:"馬上做一次接球示範",q:"ok",fx:[1,0],flags:{},n:"示範是第二層。可以用，但口頭提示還沒試過。"}]},
+ {tag:"還是不行",text:"你提示了兩次，小琪點頭說懂，但球一來，手指還是朝前。",
+  opts:[
+   {t:"慢動作示範：「看我的手，像這樣打開。」",q:"best",fx:[2,0],flags:{},n:"口頭沒用就升到第二層：示範。做給她看，不是做給她完。",en:"Watch my hands. Open like this."},
+   {t:"直接扳她的手指擺正",q:"trap",fx:[0,0],flags:{touchNoAsk:1},n:"又跳層又沒問。示範還沒用過，肢體協助不能搶先。"},
+   {t:"「先不要接了，我們去投籃。」",q:"poor",fx:[-1,0],flags:{},n:"她不是學不會，是還在半路。這時候換目標，挫折會跟著搬家。"}]},
+ {tag:"需要出手了",text:"示範了兩次，小琪的手型還是擺不出來。看來需要肢體協助了。",
+  opts:[
+   {t:"站到她背後直接調整她的手臂",q:"trap",fx:[0,-1],flags:{touchNoAsk:1},n:"層級對了，程序錯了。碰她之前一定要先問，並說清楚要碰哪裡。"},
+   {t:"「我可以碰你的手腕嗎？帶你擺一次接球的位置。」",q:"best",fx:[2,0],flags:{asked:1,decide:1},n:"最後手段用得正確：先問、說清楚、由她同意。她的身體，她決定。",en:"May I hold your wrists and set the position once?"},
+   {t:"再示範第三次",q:"poor",fx:[0,0],flags:{},n:"同一層級卡住三次，就該升級了。"}]},
+ {tag:"接住了！",text:"這一球她穩穩接住，自己都嚇一跳，抬頭看你。你說什麼？",
+  opts:[
+   {t:"「太棒了！」",q:"ok",fx:[1,0],flags:{},n:"支持性夠，但太籠統。她不知道剛剛哪裡做對了。"},
+   {t:"「你手指朝上了，所以球才穩穩進手裡！」",q:"best",fx:[2,0],flags:{taught:1},n:"具體動作，加上為什麼好。這句話讓成功可以被複製。",en:"Your fingers were up, and that is why the ball stuck!"},
+   {t:"「看吧，照我教的就對了。」",q:"trap",fx:[-1,0],flags:{},n:"這句話把她的成功搬到你身上。成功是她的。"}]},
+ {tag:"投不進",text:"換練投籃，小琪連投五球都沒進，把球抱在懷裡不丟了。",
+  opts:[
+   {t:"「沒關係，我幫你投一顆進的。」",q:"trap",fx:[-1,0],flags:{didFor:1},n:"最溫柔的代勞。她需要的是下一球怎麼修，不是你的進球。"},
+   {t:"「這球有碰到框了，下一球出手角度再高一點。」",q:"best",fx:[2,0],flags:{taught:1},n:"失敗的回饋也要具體：肯定嘗試、指出差在哪、給下一步。",en:"Good try, it touched the rim. Aim higher next time."},
+   {t:"安靜等她自己想通",q:"poor",fx:[-1,0],flags:{},n:"沒有訊息的失敗只會累積挫折，不會累積學習。"}]},
+ {tag:"她不動了",text:"小琪抱著球坐到場邊：「我不想玩了。」",
+  opts:[
+   {t:"把球拿走，拉她起來繼續",q:"trap",fx:[-1,-1],flags:{},n:"硬拉只會把「不想玩」變成「討厭這堂課」。"},
+   {t:"「你想先運球，還是先傳球？」",q:"best",fx:[2,0],flags:{decide:1},n:"給選擇，把自主權還給她。很多「不想動」其實是「不想被安排」。",en:"Dribble first, or pass first?"},
+   {t:"那我先幫她把這輪投完好了",q:"trap",fx:[-2,0],flags:{didFor:1},n:"她坐在旁邊看你投，這節課就跟她無關了。"}]},
+ {tag:"眼眶紅了",text:"隔壁場的球飛過來打到小琪的肩膀，她眼眶一下就紅了。",
+  opts:[
+   {t:"「不痛不痛，這又沒什麼。」",q:"poor",fx:[-1,0],flags:{},n:"否定感受不是安慰。先接住情緒，再說別的。"},
+   {t:"「嚇到了齁，我們先到旁邊坐一下。」然後告訴老師",q:"best",fx:[1,1],flags:{},n:"情緒支持，然後回報。身體碰撞一定要讓老師知道。",en:"That was scary. Let's take a break, and I will tell the teacher."},
+   {t:"趕快繼續練，幫她轉移注意力",q:"trap",fx:[-1,-1],flags:{},n:"被打到要先確認狀況，不是轉移。這超出小老師能自己判斷的範圍。"}]},
+ {tag:"聽不懂",text:"你說「三步上籃就是跨一步、再跨一步、跳起來放球」，小琪完全愣住。",
+  opts:[
+   {t:"講快一點再講一次",q:"trap",fx:[-1,0],flags:{},n:"聽不懂的問題不在速度。一長串的口頭步驟就是負荷來源。"},
+   {t:"簡化：「看我。」做一次，然後說「換你。」",q:"best",fx:[2,0],flags:{},n:"簡化句子、確認注意力、示範、交棒。每一步都有功能。",en:"Watch me. … Now it's your turn."},
+   {t:"「那我們先不學上籃好了。」",q:"poor",fx:[-1,0],flags:{},n:"還沒換過溝通方式就放棄內容，太快了。"}]},
+ {tag:"「你幫我投」",text:"罰球練習，小琪把球塞給你：「你幫我投啦，你比較準。」",
+  opts:[
+   {t:"「好，看我的。」",q:"trap",fx:[-2,0],flags:{didFor:1},n:"她開口要求的代勞，還是代勞。答應得越快，她放棄得越快。"},
+   {t:"「我可以幫你，但你告訴我怎麼做。」",q:"best",fx:[2,0],flags:{decide:1},n:"可以幫，但指揮權在她。她出腦，你出手。",en:"I can help, but you tell me how."},
+   {t:"「不行，自己的球自己投。」",q:"poor",fx:[0,-1],flags:{},n:"一口回絕連支持都收走了。中間有一條路。"}]},
+ {tag:"三對三",text:"分組打三對三，兩局下來沒有任何人傳球給小琪，她在場上像個隱形人。",
+  opts:[
+   {t:"我自己每一球都傳給她",q:"ok",fx:[1,0],flags:{},n:"治標。你能傳的球有限，下一場沒有你呢？問題在結構。"},
+   {t:"跟老師說：「這個打法讓她碰不到球，能不能加每人觸球的規則？」",q:"best",fx:[2,0],flags:{rule:1},n:"看出這是規則的問題，不是她的問題。改規則，全隊受益。",en:"Could we add a rule that everyone touches the ball?"},
+   {t:"她碰不到球也沒辦法，比賽就是這樣",q:"trap",fx:[-2,0],flags:{},n:"「沒辦法」是融合最大的敵人。規則是人訂的。"}]},
+ {tag:"笑聲",text:"小琪的投籃姿勢有點特別，隔壁有人誇張地模仿，引來一片笑聲。",
+  opts:[
+   {t:"裝作沒聽到，趕快繼續練",q:"trap",fx:[0,-2],flags:{},n:"你聽到了，她也知道你聽到了。沉默會被讀成默許。"},
+   {t:"當場說「不要這樣」，課後告訴老師",q:"best",fx:[1,2],flags:{},n:"當場制止，然後回報。安全包含情緒安全。",en:"Hey, stop it. That is not okay."},
+   {t:"自己也跟著笑了一下",q:"trap",fx:[-2,-2],flags:{},n:"這一笑，你就從她的隊友變成了觀眾。"}]},
+ {tag:"下課前",text:"你發現自己這節課只投了兩球，其他時間都在陪練。",
+  opts:[
+   {t:"沒關係，幫人比較重要",q:"trap",fx:[0,-2],flags:{},n:"你也是來上體育課的。犧牲自己的學習換來的協助撐不久。"},
+   {t:"跟老師說：「我可以跟別人輪流當小老師嗎？」",q:"best",fx:[0,2],flags:{moved:1},n:"角色輪替、時間上限，是制度該給你的保障。",en:"May I take turns with someone else?"},
+   {t:"決定下週找理由躲掉小老師",q:"poor",fx:[-1,-1],flags:{},n:"問題出在安排，開口就能修，不用逃。"}]}
+ ]}
  ]};
 
 const TEACHER={
  id:"peer-coach-teacher",
  m1:"指導品質",m2:"關係健康",
  ckTitle:"學期末的教師自我檢查（依你剛剛的選擇結算）",
- scenes:[
+ stories:[
+ {t:"從零建立",scenes:[
  {tag:"開學第二週",text:"班上有一位需要動作支持的學生，你決定導入同儕指導。第一步，小老師怎麼來？",
   opts:[
    {t:"指派班上最穩重的模範生",q:"trap",fx:[0,-1],flags:{},n:"不要指派。被指定的善意撐不久，也容易讓兩個學生都覺得這是懲罰或負擔。"},
@@ -327,9 +397,62 @@ const TEACHER={
    {t:"固定他繼續當，他做得太好了",q:"trap",fx:[0,-2],flags:{},n:"固定同一人，就是把「照顧者」寫進他的身分。角色要輪替，關係才是平等的。"},
    {t:"評鑑與輪替，小老師自己的學習目標也要被評量",q:"best",fx:[2,1],flags:{evaluate:1},n:"小老師也是學習者：動作分析、溝通、觀察與回饋都是硬能力。評量他的成長，才是雙向獲益。"},
    {t:"直接把這對配對複製到下學期",q:"poor",fx:[0,-1],flags:{},n:"關係固定太久，支持就會變成身分。換人不是否定，是保護。"}]}
+ ]},
+ {t:"接手修復",scenes:[
+ {tag:"接新班",text:"你接手新班級。前任老師指派班長小雅當固定小老師，照顧同學阿寬一整年，全班都叫她「保母長」。第一步你會？",
+  opts:[
+   {t:"制度看起來運作正常，蕭規曹隨",q:"trap",fx:[-1,-1],flags:{},n:"「運作正常」的意思常常是「沒有人敢說不」。固定照顧者的關係早就在傾斜了。"},
+   {t:"先觀察幾節課，記錄小雅和阿寬實際的互動",q:"best",fx:[2,0],flags:{},n:"修理之前先診斷。你要看的是互動品質，不是表面秩序。"},
+   {t:"立刻宣布廢除舊制度，重新來過",q:"poor",fx:[0,-1],flags:{},n:"急轉彎會讓小雅覺得自己做錯了一年。先懂，再動。"}]},
+ {tag:"你看到了",text:"觀察三節課：小雅幫阿寬撿球、代跑、甚至替他回答老師的問題。阿寬全程幾乎沒有自己做過一個決定。你找小雅談，怎麼開場？",
+  opts:[
+   {t:"「你這樣是在害他，不是在幫他。」",q:"trap",fx:[-1,-2],flags:{},n:"她照著被指派的方式做了一年，錯的是制度，不是她。責備會讓她把付出讀成罪狀。"},
+   {t:"先謝謝她的付出，再問：「剛剛那一球，是誰決定的？」",q:"best",fx:[2,1],flags:{},n:"肯定加上核心提問。讓她自己看見代勞，比任何指正都深。"},
+   {t:"不談了，直接把她換掉",q:"poor",fx:[0,-2],flags:{},n:"沒有說明的撤換，她會帶著困惑和委屈離開這段經驗。"}]},
+ {tag:"重新開始",text:"你決定重建制度。新的小老師怎麼產生？",
+  opts:[
+   {t:"公開徵求自願者：小雅可以重新申請，也可以光榮退役",q:"best",fx:[1,2],flags:{recruit:1},n:"把選擇權還給她。一年的付出值得一個體面的選項，而不是默默被換掉。"},
+   {t:"繼續讓小雅做，她最有經驗",q:"trap",fx:[0,-2],flags:{},n:"經驗不能抵消耗。固定照顧者的問題，就是這樣一年一年延續下去的。"},
+   {t:"這次改成指派副班長",q:"poor",fx:[0,-1],flags:{},n:"換一個被指派的人，等於把同一個錯誤再做一次。"}]},
+ {tag:"程序補課",text:"自願者出來了，小雅也重新申請了。上場之前要補什麼？",
+  opts:[
+   {t:"訓練加檢核：角色責任、提示層級、回饋語言，演練通過才配對",q:"best",fx:[2,0],flags:{trained:1,checked:1},n:"前任制度壞在沒訓練。這次把地基打好，訓練手冊和小測驗都是現成的。"},
+   {t:"讓小雅帶新人邊做邊學就好",q:"trap",fx:[-2,0],flags:{},n:"讓沒受過訓的人傳承沒受過訓的做法，是把問題複製貼上。"},
+   {t:"發訓練卡回家自己讀",q:"poor",fx:[0,0],flags:{},n:"卡片是提醒，不是訓練。沒有演練的知識，上場就會還原成熱心。"}]},
+ {tag:"主角呢",text:"制度都在談小老師。那阿寬呢？他被「照顧」了一年，沒有人問過他。",
+  opts:[
+   {t:"先問阿寬：想要什麼支持？想跟誰配對？哪些事想自己來？",q:"best",fx:[2,1],flags:{},n:"被支持的人是制度的主角，不是客體。他的意見決定支持的形狀。"},
+   {t:"阿寬已經習慣小雅了，不用特別問",q:"trap",fx:[-1,-1],flags:{},n:"「習慣」可能是依賴，也可能是沒得選。不問，就永遠不會知道。"},
+   {t:"問他家長的意見就好",q:"poor",fx:[0,0],flags:{},n:"家長的意見不等於本人的意見。他自己說得出想要什麼。"}]},
+ {tag:"配對上場",text:"新配對開始運作，第一節課。你的位置在哪裡？",
+  opts:[
+   {t:"前幾次在場邊觀察、即時修正，之後漸進撤出",q:"best",fx:[2,0],flags:{supervised:1},n:"訓練過不等於會用。前幾次的督導，是把訓練接到現場的橋。"},
+   {t:"這次有訓練過了，放心放手",q:"trap",fx:[-1,0],flags:{},n:"放手太早，舊文化會把新訓練吃掉。"},
+   {t:"每一球都盯著，隨時介入",q:"poor",fx:[0,-1],flags:{},n:"盯太緊，小老師永遠學不會判斷。督導也有提示層級。"}]},
+ {tag:"舊習慣回來了",text:"第四節課，你看到小雅又順手替阿寬把球撿好、擺好，動作快得像反射。",
+  opts:[
+   {t:"課後輕聲問她：「剛剛那球，如果讓阿寬自己來，會怎麼樣？」",q:"best",fx:[2,1],flags:{},n:"舊習慣要用新問題慢慢沖掉。她已經在改，需要的是提醒，不是糾正。"},
+   {t:"當場叫住她：「又來了！」",q:"trap",fx:[0,-2],flags:{},n:"當眾點名會讓她把一年的付出全部讀成錯誤。"},
+   {t:"算了，比以前好多了",q:"poor",fx:[-1,0],flags:{},n:"進步值得肯定，但放過反射性代勞，它就會留下來。"}]},
+ {tag:"衝突",text:"課堂比賽起爭執，有人罵阿寬「拖油瓶」，小雅衝過去理論，場面快失控。前任的慣例是「阿寬的事都給小雅處理」。",
+  opts:[
+   {t:"你立刻接手處理衝突，把行為管理收回老師身上",q:"best",fx:[1,2],flags:{behavior:1},n:"界線重畫的關鍵一幕：管理是你的，小雅只負責支持。全班都在看新規則。"},
+   {t:"讓小雅處理，她最有經驗",q:"trap",fx:[-1,-2],flags:{},n:"這正是舊制度壞掉的核心：把老師的責任外包給一個學生。"},
+   {t:"衝突雙方各打五十大板，繼續比賽",q:"poor",fx:[0,-1],flags:{},n:"沒有處理「拖油瓶」這句話，它就會再出現。"}]},
+ {tag:"家長來電",text:"小雅媽媽打電話來：「孩子當了一年多小老師，壓力很大，可是她不敢說不要。」",
+  opts:[
+   {t:"說明新制度：輪替、時數上限、隨時可退出，並謝謝媽媽說出來",q:"best",fx:[1,2],flags:{rotate:1},n:"這通電話是舊制度的成績單。新制度要讓「說不要」變成安全的選項。"},
+   {t:"「她做得很好，是全班的榜樣，請媽媽放心。」",q:"trap",fx:[0,-2],flags:{},n:"讚美迴避了問題。榜樣的代價是她的體育課，和她說不的權利。"},
+   {t:"那就直接讓小雅退出，不用輪替了",q:"poor",fx:[0,0],flags:{},n:"單獨處理她一個人，下一位小老師還會遇到同樣的事。要修的是制度。"}]},
+ {tag:"學期末",text:"新制度運作穩定，阿寬開始自己做決定，小雅也回到自己的體育課。收尾怎麼做？",
+  opts:[
+   {t:"評鑑雙方：阿寬的學習、小老師們的成長，都被看見與評量",q:"best",fx:[2,1],flags:{evaluate:1},n:"雙向獲益要寫進評量才算數。小雅這學期學會的「退後一步」，值得被正式肯定。"},
+   {t:"運作穩定就好，不用特別做什麼",q:"trap",fx:[-1,0],flags:{},n:"沒有評鑑的制度，下一次交接又會走樣。紀錄是留給下一位老師的地圖。"},
+   {t:"只評阿寬有沒有進步",q:"poor",fx:[0,0],flags:{},n:"漏了一半。小老師的成長也是這個制度的成果。"}]}
+ ]}
  ]};
 
-let MODE=null,si=0,score=0,M1=50,M2=50,timer=null,left=30,useTimer=true;
+let MODE=null,STORY=null,SCENES=[],si=0,score=0,M1=50,M2=50,timer=null,left=30,useTimer=true;
 let flags={},bestCount=0;
 const $=id=>document.getElementById(id);
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);}
@@ -348,13 +471,15 @@ function pickMode(btn){
 }
 function startGame(){
   useTimer=!$("noTimer").checked;
+  STORY=MODE.stories[Math.floor(Math.random()*MODE.stories.length)];
+  SCENES=STORY.scenes;
   $("mLab1").textContent=MODE.m1;$("mLab2").textContent=MODE.m2;
   $("fLab1").textContent=MODE.m1;$("fLab2").textContent=MODE.m2;
   show("sGame");loadScene();
 }
 function loadScene(){
-  const sc=MODE.scenes[si];
-  $("hudRound").textContent="第 "+(si+1)+" 幕／共 "+MODE.scenes.length+" 幕";
+  const sc=SCENES[si];
+  $("hudRound").textContent=STORY.t+"・第 "+(si+1)+"／"+SCENES.length+" 幕";
   $("hudScore").textContent=score;
   $("cTag").textContent=sc.tag;$("cText").textContent=sc.text;
   const box=$("cOpts");box.innerHTML="";
@@ -373,7 +498,7 @@ function loadScene(){
 }
 function choose(i){
   if(timer){clearInterval(timer);timer=null;}
-  const sc=MODE.scenes[si];const box=$("fbBox");box.innerHTML="";
+  const sc=SCENES[si];const box=$("fbBox");box.innerHTML="";
   let gain=0;
   if(i<0){
     gain=-5;
@@ -397,11 +522,11 @@ function choose(i){
   score+=gain;
   $("fbRound").textContent="第 "+(si+1)+" 幕・"+(gain>=0?"+":"")+gain+" 分";
   $("fbScore").textContent=score;
-  $("btnNext").textContent=si===MODE.scenes.length-1?"下課，看結果 →":"下一幕 →";
+  $("btnNext").textContent=si===SCENES.length-1?"下課，看結果 →":"下一幕 →";
   paint("f1","f2","w1","w2");
   show("sFb");
 }
-function nextScene(){si++; if(si>=MODE.scenes.length) return endGame(); show("sGame"); loadScene();}
+function nextScene(){si++; if(si>=SCENES.length) return endGame(); show("sGame"); loadScene();}
 
 function ckRow(ok,label,detail){
   return '<div class="check '+(ok?"ok":"bad")+'"><span class="ic">'+(ok?"✔":"✘")+'</span><span>'+label
@@ -409,7 +534,7 @@ function ckRow(ok,label,detail){
 }
 function endGame(){
   $("endScore").textContent=score;
-  const n=MODE.scenes.length,max=n*15;
+  const n=SCENES.length,max=n*15;
   const r=score>=max*0.8?["🏅 "+(MODE===STUDENT?"金牌小教練":"制度建築師"),MODE===STUDENT?"決定權一直在他手上，而你自己也是學習者。這節課你們兩個都上到了。":"招募到輪替，每一步都接得住。這套制度離開你也能運轉，這才是成功。"]
         :score>=max*0.55?["💪 "+(MODE===STUDENT?"夠格的小老師":"上路的督導者"),"大方向都對，回頭看看踩過的那幾幕，差的通常是「先問」和「界線」。"]
         :score>=max*0.3?["🌱 "+(MODE===STUDENT?"熱心的同學":"還在建置中"),MODE===STUDENT?"還記得開場那個研究嗎？熱心不等於有用。差別就在訓練，而你正在補上。":"制度的地基還有洞：訓練、檢核、督導，一個都不能省。"]
@@ -439,7 +564,7 @@ function endGame(){
 }
 function copyScore(){
   const mode=MODE===STUDENT?"學生版":"師培版";
-  const t="🏐 同儕小教練（"+mode+"）｜我拿到 "+score+" 分・"+$("endRank").textContent+"（關鍵決定 "+bestCount+"/"+MODE.scenes.length+"）協助不是代勞，你能守住界線嗎？";
+  const t="🏐 同儕小教練（"+mode+"・"+STORY.t+"）｜我拿到 "+score+" 分・"+$("endRank").textContent+"（關鍵決定 "+bestCount+"/"+SCENES.length+"）協助不是代勞，你能守住界線嗎？";
   navigator.clipboard.writeText(t).then(()=>alert("已複製，可貼到留言區或群組。")).catch(()=>alert("複製失敗，請手動選取。"));
 }
 
