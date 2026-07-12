@@ -1,0 +1,388 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>調整判讀挑戰｜融合式體育決策遊戲</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#173F63;--teal:#0F766E;--amber:#fbbf24;
+  --good:#34d399;--warn:#fbbf24;--bad:#f87171;
+  --ink:#eaf2f5;--dim:rgba(234,242,245,.72);
+  --card:rgba(255,255,255,.10);--edge:rgba(255,255,255,.22);
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(150deg,var(--navy) 0%,#12506b 55%,var(--teal) 100%) fixed;
+  color:var(--ink);min-height:100vh;display:flex;justify-content:center;padding:14px 12px 48px;
+}
+.app{width:100%;max-width:560px}
+.screen{display:none}.screen.on{display:block;animation:rise .35s ease}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen.on{animation:none}.fill{transition:none!important}}
+
+/* ── 開始畫面 ── */
+.hero{text-align:center;padding:34px 10px 10px}
+.hero .kicker{font-size:.78rem;letter-spacing:.35em;color:var(--amber);font-weight:900}
+.hero h1{font-size:2.05rem;font-weight:900;letter-spacing:.06em;margin:10px 0 8px;text-wrap:balance}
+.hero p{color:var(--dim);font-size:.92rem;line-height:1.8;max-width:30em;margin:0 auto}
+.panel{background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:18px 20px;margin-top:18px;backdrop-filter:blur(8px)}
+.panel h2{font-size:.85rem;font-weight:900;letter-spacing:.12em;color:var(--amber);margin-bottom:10px}
+.panel ol{list-style:none}
+.panel li{font-size:.9rem;line-height:1.7;padding:6px 0;display:flex;gap:10px}
+.panel li b{flex:0 0 auto;color:var(--amber)}
+.toggle{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;font-size:.88rem;color:var(--dim)}
+.toggle input{width:18px;height:18px;accent-color:var(--amber)}
+.cta{display:block;width:100%;margin-top:16px;font:inherit;font-weight:900;font-size:1.1rem;
+  padding:15px;border:none;border-radius:14px;cursor:pointer;background:var(--amber);color:var(--navy)}
+.cta:focus-visible,.opt:focus-visible,.ghost:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.foot{margin-top:14px;text-align:center;font-size:.72rem;color:rgba(234,242,245,.5);line-height:1.7}
+
+/* ── 資源條 ── */
+.hud{position:sticky;top:0;z-index:5;background:rgba(15,49,72,.88);backdrop-filter:blur(10px);
+  border:1px solid var(--edge);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.hud .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.hud .rd{font-size:.8rem;font-weight:900;letter-spacing:.08em;color:var(--amber)}
+.hud .sc{font-size:.94rem;font-weight:900;font-variant-numeric:tabular-nums}
+.meter{display:grid;grid-template-columns:4.6em 1fr 2.4em;gap:8px;align-items:center;margin:4px 0}
+.meter .lb{font-size:.74rem;font-weight:700;color:var(--dim)}
+.meter .val{font-size:.74rem;font-weight:900;text-align:right;font-variant-numeric:tabular-nums}
+.track{height:9px;border-radius:99px;background:rgba(0,0,0,.35);overflow:hidden}
+.fill{height:100%;border-radius:99px;transition:width .6s ease,background .6s ease}
+
+/* ── 案例卡 ── */
+.case{background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:16px 18px}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tag{font-size:.72rem;font-weight:900;padding:3px 10px;border-radius:99px}
+.tag.who{background:rgba(251,191,36,.18);color:var(--amber);border:1px solid rgba(251,191,36,.4)}
+.tag.what{background:rgba(52,211,153,.14);color:var(--good);border:1px solid rgba(52,211,153,.35)}
+.case h3{font-size:1.12rem;font-weight:900;line-height:1.5;margin-bottom:6px;text-wrap:balance}
+.case p{font-size:.9rem;line-height:1.8;color:var(--dim)}
+.ask{display:flex;justify-content:space-between;align-items:center;margin:14px 2px 8px}
+.ask .q{font-size:.86rem;font-weight:900}
+.ask .tm{font-size:1.05rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--dim)}
+.ask .tm.low{color:var(--bad)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{font:inherit;text-align:left;font-size:.9rem;line-height:1.65;padding:12px 14px;border-radius:13px;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1.5px solid var(--edge);color:var(--ink)}
+.opt.sel{background:rgba(251,191,36,.16);border-color:var(--amber)}
+.opt:disabled{opacity:.45;cursor:not-allowed}
+.submit{display:block;width:100%;margin-top:12px;font:inherit;font-weight:900;font-size:1rem;padding:13px;
+  border:none;border-radius:13px;cursor:pointer;background:var(--amber);color:var(--navy)}
+.submit:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── 回饋 ── */
+.fb{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.fbcard{border-radius:13px;padding:11px 14px;font-size:.86rem;line-height:1.7;border:1px solid;background:rgba(0,0,0,.22)}
+.fbcard .h{font-weight:900;display:flex;gap:8px;align-items:baseline}
+.fbcard .pt{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:900;flex:0 0 auto}
+.fbcard.g{border-color:rgba(52,211,153,.5)}.fbcard.g .h{color:var(--good)}
+.fbcard.w{border-color:rgba(251,191,36,.5)}.fbcard.w .h{color:var(--warn)}
+.fbcard.b{border-color:rgba(248,113,113,.55)}.fbcard.b .h{color:var(--bad)}
+.fbcard .n{color:var(--dim);margin-top:4px}
+.miss{border:1.5px dashed rgba(234,242,245,.4);border-radius:13px;padding:11px 14px;font-size:.84rem;line-height:1.7;color:var(--dim)}
+.miss b{color:var(--ink)}
+
+/* ── 結算 ── */
+.final{text-align:center;padding-top:26px}
+.final .big{font-size:3.2rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--amber);line-height:1.1}
+.final .rank{font-size:1.25rem;font-weight:900;margin:6px 0 2px}
+.final .sub{color:var(--dim);font-size:.88rem;line-height:1.7}
+.lesson{text-align:left;background:rgba(0,0,0,.22);border:1px solid;border-radius:14px;padding:13px 16px;margin-top:10px;font-size:.87rem;line-height:1.75}
+.lesson.b{border-color:rgba(248,113,113,.55)}
+.lesson.g{border-color:rgba(52,211,153,.5)}
+.lesson .t{font-weight:900;margin-bottom:3px}
+.lesson.b .t{color:var(--bad)}.lesson.g .t{color:var(--good)}
+.lesson .d{color:var(--dim)}
+.row{display:flex;gap:10px;margin-top:16px}
+.row .cta{margin-top:0}
+.ghost{flex:1;font:inherit;font-weight:900;font-size:1rem;padding:14px;border-radius:14px;cursor:pointer;
+  background:rgba(255,255,255,.12);border:1.5px solid var(--edge);color:var(--ink)}
+
+/* ── 排行榜 ── */
+.lbrow{display:flex;gap:8px}
+.lbrow input{flex:1;font:inherit;font-size:.95rem;padding:11px 13px;border-radius:12px;border:1.5px solid var(--edge);
+  background:rgba(0,0,0,.25);color:var(--ink)}
+.lbrow input::placeholder{color:rgba(234,242,245,.45)}
+.lbrow .ghost{flex:0 0 auto;padding:11px 18px;font-size:.92rem}
+.lbList{margin-top:12px;font-size:.9rem}
+.lbItem{display:grid;grid-template-columns:2.2em 1fr auto;gap:10px;padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.12);
+  font-variant-numeric:tabular-nums}
+.lbItem .no{font-weight:900;color:var(--amber)}
+.lbItem .pts{font-weight:900}
+</style></head><body>
+
+<div class="app">
+
+<!-- 開始 -->
+<section class="screen on" id="sStart">
+  <div class="hero">
+    <div class="kicker">融 合 式 體 育 決 策 遊 戲</div>
+    <h1>調整判讀挑戰</h1>
+    <p>六個真實改編的體育課現場。每一案，從七個做法中選出你會先做的三個支持：守住「參與度」與「安全」，別讓「歸屬感」掉下去。</p>
+  </div>
+  <div class="panel">
+    <h2>怎麼玩</h2>
+    <ol>
+      <li><b>①</b><span>讀案例：一位學生、一個單元、一個現場狀況。</span></li>
+      <li><b>②</b><span>45 秒內點選 3 個支持策略，按「就這麼做」。</span></li>
+      <li><b>③</b><span>看三條量表的變化。有些選項是陷阱，會讓歸屬感暴跌。</span></li>
+    </ol>
+    <div class="toggle">
+      <input type="checkbox" id="noTimer"><label for="noTimer">關閉倒數計時（課堂討論模式）</label>
+    </div>
+    <button class="cta" onclick="startGame()">▶ 開始挑戰</button>
+  </div>
+  <div class="foot">案例改編自「抽案輪盤」27 案、策略取自「STEP 調整卡產生器」<br>本遊戲僅供教學討論與師資培育，非正式評量工具，不對應任何真實學生。</div>
+</section>
+
+<!-- 遊戲 -->
+<section class="screen" id="sGame">
+  <div class="hud">
+    <div class="top"><span class="rd" id="hudRound">第 1 案／共 6 案</span><span class="sc">分數 <span id="hudScore">0</span></span></div>
+    <div class="meter"><span class="lb">參與度</span><div class="track"><div class="fill" id="mP"></div></div><span class="val" id="vP">50</span></div>
+    <div class="meter"><span class="lb">安全</span><div class="track"><div class="fill" id="mS"></div></div><span class="val" id="vS">50</span></div>
+    <div class="meter"><span class="lb">歸屬感</span><div class="track"><div class="fill" id="mB"></div></div><span class="val" id="vB">50</span></div>
+  </div>
+  <div class="case">
+    <div class="tags"><span class="tag who" id="cWho"></span><span class="tag what" id="cWhat"></span></div>
+    <h3 id="cTitle"></h3>
+    <p id="cBody"></p>
+  </div>
+  <div class="ask"><span class="q">選 3 個你會先做的支持（<span id="nSel">0</span>/3）</span><span class="tm" id="cTimer">45</span></div>
+  <div class="opts" id="cOpts"></div>
+  <button class="submit" id="btnGo" disabled onclick="submitRound()">就這麼做</button>
+</section>
+
+<!-- 回饋 -->
+<section class="screen" id="sFb">
+  <div class="hud">
+    <div class="top"><span class="rd" id="fbRound"></span><span class="sc">分數 <span id="fbScore">0</span></span></div>
+    <div class="meter"><span class="lb">參與度</span><div class="track"><div class="fill" id="fP"></div></div><span class="val" id="wP"></span></div>
+    <div class="meter"><span class="lb">安全</span><div class="track"><div class="fill" id="fS"></div></div><span class="val" id="wS"></span></div>
+    <div class="meter"><span class="lb">歸屬感</span><div class="track"><div class="fill" id="fB"></div></div><span class="val" id="wB"></span></div>
+  </div>
+  <div class="fb" id="fbList"></div>
+  <div class="miss" id="fbMiss" style="margin-top:8px"></div>
+  <button class="cta" id="btnNext" onclick="nextRound()">下一案 →</button>
+</section>
+
+<!-- 結算 -->
+<section class="screen" id="sEnd">
+  <div class="final">
+    <div class="big" id="endScore">0</div>
+    <div class="rank" id="endRank"></div>
+    <div class="sub" id="endSub"></div>
+  </div>
+  <div class="panel">
+    <h2>給你的回饋（依你踩過的地方客製）</h2>
+    <div id="endLessons"></div>
+  </div>
+  <div class="panel" id="lbPanel" style="display:none">
+    <h2>🏆 跨裝置排行榜</h2>
+    <div class="lbrow">
+      <input id="lbName" maxlength="12" placeholder="暱稱（最多 12 字，勿用真名）">
+      <button class="ghost" id="lbSend" onclick="sendScore()">上傳成績</button>
+    </div>
+    <div class="lbList" id="lbList">載入中…</div>
+  </div>
+  <div class="row">
+    <button class="ghost" onclick="copyScore()">⧉ 複製成績</button>
+    <button class="cta" style="flex:1" onclick="location.reload()">再玩一次</button>
+  </div>
+  <div class="foot">記住三件事：<b>全班皆可選</b>、<b>支持要能褪除</b>、<b>先問本人</b>。<br>本遊戲僅供教學討論，非正式評量工具。排行榜只儲存暱稱與分數。</div>
+</section>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// 排行榜設定：部署「排行榜後端_AppsScript」後，
+// 把 Web App 網址貼進下面引號內（留空＝隱藏排行榜）。
+const LB_URL="https://script.google.com/macros/s/AKfycbxCCp-Mflzy6Enazv-FH4Bt9xhyzGECv3WJacyOv-MWjiy20k9ahVrhoHXZZ82lna18/exec";
+const GAME_ID="adaptation-challenge"; // 後端用這個字串區分不同遊戲的榜
+// ══════════════════════════════════════════════════
+
+// q: 2=關鍵支持 1=好支持 0=有代價的取捨 -1=踩線 -2=陷阱
+// fx: [參與, 安全, 歸屬]  trap: 陷阱類別
+const CASES=[
+{who:"小捷・脊髓損傷 T10・輪椅使用者",what:"羽球單元",title:"第一次上羽球課的小捷",
+ body:"小捷上學期才受傷返校，這是他坐輪椅後第一堂球類課。他球感不錯，但場地是站立者的尺寸，網子對坐姿揮拍太高。全班 28 人，你只有一個人。",
+ opts:[
+  {t:"重排場地：縮短場、降網，設「站或坐皆可」的多個挑戰區，全班自選",q:2,fx:[2,0,1],n:"這是重構，不是調整。選項開放給全班，小捷只是眾多做選擇的人之一。"},
+  {t:"課前先私下問小捷：你想怎麼參與？需要什麼？",q:2,fx:[0,1,2],n:"支持從本人開始。他對自己的身體與意願最有發言權。"},
+  {t:"器材區加放大拍面短柄拍與慢速球，任何人都能取用",q:1,fx:[1,0,1],n:"通用器材選項，不會標記任何人。"},
+  {t:"指定一位固定同學把球餵到他正前方，他只負責回擊",q:0,fx:[1,0,-1],n:"短期可行，但固定的單向協助容易滑向「幫助者—被幫助者」階層，被幫助的人也會累。"},
+  {t:"請小捷當計分員，「這樣他也有參與到」",q:-2,fx:[-2,0,-2],trap:"exclude",n:"在場不等於參與。他是來打球的，計分員拿不到這堂課的學習目標。"},
+  {t:"宣布小捷得分算兩分，鼓勵大家多傳球給他",q:-1,fx:[0,0,-2],trap:"label",n:"為一個人改規則＝公開標記。同儕的「不公平感」會轉嫁到他身上。"},
+  {t:"請助理員全程代推輪椅、代撿球",q:-1,fx:[0,1,-1],trap:"overhelp",n:"過度支持剝奪自主，也把他和同儕隔開。協助之前先問本人，再拿捏劑量。"}]},
+
+{who:"阿澤・自閉症・對哨音敏感",what:"全班暖身操",title:"哨聲一響就搗住耳朵的阿澤",
+ body:"每次你吹哨集合，阿澤就搗住耳朵蹲下來。今天換了新的暖身流程，他在隊伍外圍繞圈走，不肯進來。上一位老師的做法是叫助理員把他帶去旁邊。",
+ opts:[
+  {t:"改用手勢卡＋視覺計時器取代哨音，全班都看得更清楚",q:2,fx:[1,1,1],n:"把口令轉成看得到的訊號，受益的不只阿澤，還有聽損與分心的孩子。"},
+  {t:"流程固定化：活動前先預告順序、變化前倒數",q:2,fx:[1,1,0],n:"可預期性降低焦慮。對他是必需，對全班是加分。"},
+  {t:"設一個「緩衝角」：任何人覺得需要，都能暫退再回來",q:1,fx:[0,1,1],n:"緩衝角開放給全班，不是他專屬的隔離區。這個差別就是尊嚴。"},
+  {t:"和阿澤私下約定一個暫停手勢",q:1,fx:[0,1,1],n:"給他表達「我需要停」的合法管道，行為問題常常是溝通問題。"},
+  {t:"請助理員把他帶去角落自己做",q:-2,fx:[-2,0,-2],trap:"exclude",n:"這是把「融合時段」變成「同一空間的隔離」。他失去課程，同儕失去認識他的機會。"},
+  {t:"向全班宣布「阿澤比較特別，大家要多包容他」",q:-1,fx:[0,0,-2],trap:"label",n:"未經本人同意的公開揭露。善意的標記仍是標記。"},
+  {t:"他搗住耳朵不動時，大聲數到三要求歸隊",q:-2,fx:[0,-2,-1],trap:"read",n:"感官超載不是不服從。對超載的孩子提高音量與最後通牒，是火上加油。"}]},
+
+{who:"小晴・全盲",what:"體適能檢測週・800 公尺",title:"免測單已經開好了，但小晴想跑",
+ body:"體適能檢測週，行政端照慣例幫小晴開了免測單。她私下跟你說：「我也想知道我跑起來怎麼樣。」操場有彎道，中間還有別班在測立定跳遠。",
+ opts:[
+  {t:"培訓同儕領跑員（領跑繩＋簡單口令），大家輪流擔任",q:2,fx:[2,1,2],n:"領跑是可以教的合作技能。輪流擔任讓它成為全班的能力，不是某人的負擔。"},
+  {t:"改用個人參照：記錄她自己的配速與進步，不套全國常模",q:2,fx:[1,0,1],n:"常模回答「你贏過多少人」，個人參照回答「你有沒有變強」。體育課要的是後者。"},
+  {t:"起終點與彎道加上聲音標記，事先帶她走一次動線",q:1,fx:[1,2,0],n:"環境的可預期性就是她的安全。該被克服的是環境，不是身體。"},
+  {t:"跟主測老師協調時段，錯開中間測跳遠的班級",q:1,fx:[0,2,0],n:"風險管理做在結構上，而不是做在「叫她小心一點」上。"},
+  {t:"尊重行政流程，收下免測單，讓她在司令台旁休息",q:-2,fx:[-2,0,-2],trap:"exclude",n:"免測「保護」了她的安全，也拿走了她認識自己身體的權利，何況她已經開口了。"},
+  {t:"讓全班圍在跑道邊幫她加油，跑完大合照",q:-1,fx:[0,0,-1],trap:"label",n:"她要的是一次普通的測驗，不是一場感動的展示。檢測的公開性要設計，不是越熱鬧越好。"},
+  {t:"由你全程牽著她慢走完 800 公尺",q:0,fx:[0,1,-1],n:"安全，但把挑戰也一起拿走了。她說的是「想知道我跑起來怎麼樣」。支持劑量超過需求，就變成另一種限制。"}]},
+
+{who:"大牛・智能障礙",what:"樂樂棒球",title:"規則講了三遍，大牛還站在原地",
+ body:"樂樂棒球第二週。大牛很喜歡揮棒，但打完就站在原地看大家喊「跑啊！」。隊友開始不耐煩，有人說「他害我們輸的」。",
+ opts:[
+  {t:"用 First-Then 圖卡把「打→跑」拆成兩步：先看示範，再上場",q:2,fx:[2,0,0],n:"步驟化＋示範優先。他不是不會跑，是訊息進來的方式不對。"},
+  {t:"設兩種壘距與兩種棒面，全班每打席自選挑戰等級",q:2,fx:[1,0,2],n:"當每個人都在選自己的難度，大牛的版本就不是「特例」，只是選項之一。"},
+  {t:"場邊張貼圖示化規則，一次只給一個指令",q:1,fx:[1,0,0],n:"減少語言負荷。長規則拆短，全班的理解都變快。"},
+  {t:"改計分方式：上壘＝全隊得分的合作制，取代個人英雄制",q:1,fx:[0,0,2],n:"「他害我們輸」是競賽結構餵養出來的態度。要改的是結構，不是大牛。"},
+  {t:"讓他固定當啦啦隊長，帶大家喊加油",q:-2,fx:[-2,0,-1],trap:"exclude",n:"又一個「在場但不在學」的角色。他喜歡的是揮棒。"},
+  {t:"指定最強的同學隨時「幫他完成」跑壘",q:-1,fx:[0,0,-1],trap:"overhelp",n:"被代勞的人學不到，代勞的人也累。支持要指向「他自己做得到」。"},
+  {t:"聽不懂就先坐著看，等別人示範完再說",q:-1,fx:[-1,0,-1],trap:"exclude",n:"「先看著」常常變成「一直看著」。等待不是教學策略。"}]},
+
+{who:"芸芸・肌肉萎縮症・體力受限",what:"體適能循環站",title:"第三站之後，芸芸的手開始抖",
+ body:"八站循環訓練，每站 40 秒。芸芸想跟大家一起完成，但到第三站手已經在抖。上次她硬撐到吐，家長打電話來，行政的建議是「讓她看影片寫學習單」。",
+ opts:[
+  {t:"每站設三種強度（坐／站／進階），人人每站自選",q:2,fx:[2,1,1],n:"分層挑戰站是給全班的設計。她只是在做跟所有人一樣的事：選自己的版本。"},
+  {t:"「休息不扣分」寫進全班規則，搭配 RPE 自覺量表自我監控",q:2,fx:[1,2,1],n:"把「聽身體的話」變成課程目標而不是弱點。RPE 是她帶得走的終身技能。"},
+  {t:"教她用 RPE 設定自己的停止點，累了主動降階",q:1,fx:[0,2,0],n:"自我調節的決定權在她手上。這是自主，不是放水。"},
+  {t:"雙人一組輪替制，工作量自然分攤",q:1,fx:[1,0,1],n:"用結構分攤負荷，不需要任何人被特別點名。"},
+  {t:"接受行政建議：她看影片寫學習單",q:-2,fx:[-2,1,-2],trap:"exclude",n:"用「安全」之名把她移出體育課。她要的是跟大家一起動，風險要管理，不是迴避。"},
+  {t:"為了公平，全班都做一樣的次數與強度",q:-2,fx:[-1,-2,0],trap:"same",n:"齊頭式的相同，對不同起點的身體是最大的不公平，對她更是真實的健康風險。"},
+  {t:"公開宣布「芸芸做一半就好，大家不要比她」",q:-1,fx:[0,1,-2],trap:"label",n:"劑量對了，方式錯了。當眾特赦＝當眾標記。"}]},
+
+{who:"書涵・腦性麻痺・平衡較弱",what:"足球運球單元",title:"媽媽問：要不要跟全班說明？",
+ body:"書涵走路可以，但快速變向容易跌倒。足球單元要開始了，媽媽打電話來問要不要向全班說明她的狀況；書涵自己說「我不知道要講什麼」。有同學已經在模仿她走路的樣子。",
+ opts:[
+  {t:"先私下問書涵：想不想讓同學知道？想用什麼方式說？",q:2,fx:[0,0,2],n:"說明與否、由誰說、怎麼說，決定權都在本人，不在媽媽，也不在老師。"},
+  {t:"運球道加寬、由靜到動漸進，動線邊提供扶靠點",q:2,fx:[1,2,0],n:"平衡支持做進環境設計，每個初學者都用得上。"},
+  {t:"縮小場地、增設球門，降低碰撞與變向密度",q:1,fx:[1,1,0],n:"改活動結構來降風險，而不是把她抽出活動。"},
+  {t:"直接處理模仿嘲笑：把它當班級文化問題，全班談尊重",q:1,fx:[0,0,2],n:"嘲笑是全班的課題，不是書涵的問題。就算她選擇不說明，這件事也要處理。"},
+  {t:"未問過她，先向全班說明她的診斷，請大家「多讓她」",q:-2,fx:[0,0,-2],trap:"label",n:"善意的揭露仍是揭露。隱私一旦公開就收不回來，而承擔後果的人是她。"},
+  {t:"安排她固定守球門，「這樣就不用跑了」",q:-1,fx:[-1,1,-1],trap:"exclude",n:"用固定位置交換安全，也交換掉了這個單元的學習。她可以練她的版本的運球。"},
+  {t:"請她下課留下來個別加強平衡訓練",q:0,fx:[1,1,-1],n:"個別練習有它的位置，但也有社會代價（同學都看見誰被留下）。先問她願不願意。"}]}
+];
+
+const PTS={2:20,1:12,0:4,"-1":-10,"-2":-18};
+const TRAPTXT={
+ exclude:{t:"「在場」不等於「參與」",d:"計分員、啦啦隊、免測單、學習單……這些安排讓學生「有事做」，但把他移出了學習本身。下一次先問：這堂課的學習目標，他的版本長什麼樣？"},
+ overhelp:{t:"支持是有劑量的",d:"過度協助會同時傷害學習與同儕關係，被幫助的人也會累。好的支持要能褪除、由本人調整劑量，指向「他自己做得到」。"},
+ label:{t:"未經同意的公開標記",d:"專屬規則、當眾宣布、熱鬧的加油展示，都在把一個人變成「那個特別的學生」。說明與否、怎麼說，決定權在本人。"},
+ same:{t:"公平不等於相同",d:"齊頭式的一樣，對不同起點的身體是最大的不公平。公平是每個人都拿到自己需要的，這件事值得直接教給學生。"},
+ read:{t:"先讀行為，再回應",d:"感官超載、焦慮、聽不懂，外表都可能像「不配合」。壓制式回應會讓行為升級，也燒掉信任。行為是訊息，先翻譯再處理。"}};
+
+let ri=0,score=0,M={P:50,S:50,B:50},sel=new Set(),timer=null,left=45,useTimer=true,traps={},bests=0,picks=0;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);}
+function mcolor(v){return v>=55?"var(--good)":v>=35?"var(--warn)":"var(--bad)";}
+function paint(pfx){["P","S","B"].forEach(k=>{const f=$(pfx+k);f.style.width=M[k]+"%";f.style.background=mcolor(M[k]);});
+  $(pfx==="m"?"vP":"wP").textContent=M.P;$(pfx==="m"?"vS":"wS").textContent=M.S;$(pfx==="m"?"vB":"wB").textContent=M.B;}
+
+function startGame(){useTimer=!$("noTimer").checked;show("sGame");loadRound();}
+function loadRound(){
+  const c=CASES[ri];sel.clear();
+  $("hudRound").textContent="第 "+(ri+1)+" 案／共 "+CASES.length+" 案";
+  $("hudScore").textContent=score;
+  $("cWho").textContent=c.who;$("cWhat").textContent=c.what;
+  $("cTitle").textContent=c.title;$("cBody").textContent=c.body;
+  $("nSel").textContent=0;$("btnGo").disabled=true;
+  const box=$("cOpts");box.innerHTML="";
+  const order=c.opts.map((_,i)=>i);
+  for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+  order.forEach(i=>{
+    const o=c.opts[i],b=document.createElement("button");
+    b.className="opt";b.textContent=o.t;b.dataset.i=i;
+    b.onclick=()=>{ if(sel.has(i)){sel.delete(i);b.classList.remove("sel");}
+      else if(sel.size<3){sel.add(i);b.classList.add("sel");}
+      $("nSel").textContent=sel.size;$("btnGo").disabled=sel.size!==3;};
+    box.appendChild(b);});
+  paint("m");
+  if(useTimer){left=45;$("cTimer").textContent=left;$("cTimer").classList.remove("low");
+    timer=setInterval(()=>{left--;$("cTimer").textContent=left;if(left<=10)$("cTimer").classList.add("low");
+      if(left<=0){clearInterval(timer);submitRound(true);}},1000);}
+  else $("cTimer").textContent="∞";
+}
+function submitRound(auto){
+  if(timer){clearInterval(timer);timer=null;}
+  const c=CASES[ri];let gain=0;const list=$("fbList");list.innerHTML="";
+  const chosen=[...sel];
+  if(auto&&chosen.length===0){const d=document.createElement("div");d.className="fbcard w";
+    d.innerHTML='<div class="h">⏱ 時間到，這一案沒有出手</div><div class="n">現場不等人，倉促的決定卻也有代價。下一案先鎖定「問本人」與「全班皆可選」兩類選項。</div>';list.appendChild(d);}
+  chosen.forEach(i=>{const o=c.opts[i],p=PTS[o.q];gain+=p;picks++;if(o.q===2)bests++;
+    if(o.trap)traps[o.trap]=(traps[o.trap]||0)+1;
+    M.P=clamp(M.P+o.fx[0]*5);M.S=clamp(M.S+o.fx[1]*5);M.B=clamp(M.B+o.fx[2]*5);
+    const cls=o.q>0?"g":o.q===0?"w":"b",ic=o.q===2?"⭐":o.q===1?"✅":o.q===0?"⚖️":o.q===-1?"⚠️":"❌";
+    const d=document.createElement("div");d.className="fbcard "+cls;
+    d.innerHTML='<div class="h"><span>'+ic+"</span><span>"+esc(o.t)+'</span><span class="pt">'+(p>0?"+":"")+p+'</span></div><div class="n">'+esc(o.n)+"</div>";
+    list.appendChild(d);});
+  if(useTimer&&!auto&&chosen.length===3&&left>20){gain+=5;
+    const d=document.createElement("div");d.className="fbcard g";
+    d.innerHTML='<div class="h"><span>⚡</span><span>判斷明快</span><span class="pt">+5</span></div>';list.appendChild(d);}
+  score+=gain;
+  const missed=c.opts.filter((o,i)=>o.q===2&&!sel.has(i));
+  $("fbMiss").style.display=missed.length?"block":"none";
+  if(missed.length)$("fbMiss").innerHTML="💡 <b>你漏掉的關鍵支持：</b>"+esc(missed[0].t)+"："+esc(missed[0].n);
+  $("fbRound").textContent="第 "+(ri+1)+" 案・本案 "+(gain>=0?"+":"")+gain+" 分";
+  $("fbScore").textContent=score;
+  $("btnNext").textContent=ri===CASES.length-1?"看結果 →":"下一案 →";
+  paint("f");show("sFb");
+}
+function clamp(v){return Math.max(0,Math.min(100,v));}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function nextRound(){ri++; if(ri>=CASES.length) return endGame(); show("sGame"); loadRound();}
+function endGame(){
+  $("endScore").textContent=score;
+  const r=score>=240?["🏅 共融設計師","你做的已經超過調整：你在重新設計課程，把選擇權還給每個學生。"]
+        :score>=160?["💪 調整實踐者","方向正確，偶爾支持的「劑量」與「方式」還可以再想一步。"]
+        :score>=80?["🌱 融合見習生","你已經避開了最糟的做法。下一步：每次出手前先問「這是給全班的選項，還是給他一個人的標記？」"]
+        :["🔁 先深呼吸，再看一次案例","善意不等於支持。從「先問本人」開始重玩一次。"];
+  $("endRank").textContent=r[0];
+  $("endSub").textContent=r[1]+"（關鍵支持命中 "+bests+"／12）";
+  const box=$("endLessons");box.innerHTML="";
+  const keys=Object.keys(traps);
+  if(keys.length===0){const d=document.createElement("div");d.className="lesson g";
+    d.innerHTML='<div class="t">你避開了所有陷阱</div><div class="d">排除、過度支持、公開標記、齊頭式公平，一個都沒踩。在真實的教學現場，這非常不容易。</div>';box.appendChild(d);}
+  else keys.forEach(k=>{const T=TRAPTXT[k],d=document.createElement("div");d.className="lesson b";
+    d.innerHTML='<div class="t">'+T.t+"（踩到 "+traps[k]+" 次）</div><div class=\"d\">"+T.d+"</div>";box.appendChild(d);});
+  ["P","S","B"].forEach((k,i)=>{ if(M[k]<35){const nm=["參與度","安全","歸屬感"][i],d=document.createElement("div");d.className="lesson b";
+    d.innerHTML='<div class="t">'+nm+"量表亮紅燈（"+M[k]+"／100）</div><div class=\"d\">回頭看看是哪幾個決定把它拉低的。量表不會說謊。</div>";box.appendChild(d);}});
+  if(LB_URL){$("lbPanel").style.display="block";loadBoard();}
+  show("sEnd");
+}
+function copyScore(){
+  const t="🧩 調整判讀挑戰｜我拿到 "+score+" 分・"+$("endRank").textContent+"（關鍵支持 "+bests+"/12）你能避開所有融合陷阱嗎？";
+  navigator.clipboard.writeText(t).then(()=>alert("已複製，可貼到留言區或群組。")).catch(()=>alert("複製失敗，請手動選取。"));
+}
+
+/* ── 排行榜（LB_URL 留空時整段不啟用） ── */
+let sent=false;
+async function loadBoard(){
+  try{
+    const r=await fetch(LB_URL+"?game="+encodeURIComponent(GAME_ID));const d=await r.json();
+    const top=(d.top||[]).slice(0,10),box=$("lbList");box.innerHTML="";
+    if(!top.length){box.textContent="還沒有人上榜，搶頭香！";return;}
+    top.forEach((e,i)=>{const d2=document.createElement("div");d2.className="lbItem";
+      d2.innerHTML='<span class="no">'+(i+1)+'</span><span>'+esc(String(e.n||"匿名"))+'</span><span class="pts">'+Number(e.s||0)+"</span>";
+      box.appendChild(d2);});
+  }catch(err){$("lbList").textContent="排行榜暫時連不上，稍後再試。";}
+}
+async function sendScore(){
+  if(sent)return;
+  const name=($("lbName").value||"").trim().slice(0,12)||"匿名";
+  $("lbSend").disabled=true;$("lbSend").textContent="上傳中…";
+  try{
+    await fetch(LB_URL,{method:"POST",body:JSON.stringify({game:GAME_ID,name:name,score:score,rank:$("endRank").textContent})});
+    sent=true;$("lbSend").textContent="已上傳 ✓";loadBoard();
+  }catch(err){$("lbSend").disabled=false;$("lbSend").textContent="上傳成績";alert("上傳失敗，請再試一次。");}
+}
+paint("m");
+</script></body></html>
