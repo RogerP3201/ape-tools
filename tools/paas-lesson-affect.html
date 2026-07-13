@@ -128,35 +128,37 @@ const SUB = [
   {key:"neg", zh:"難受挫折", sci:"負向情感", en:"Feeling bad",       sciEn:"Negative affect", color:"var(--neg)", good:false},
   {key:"fat", zh:"累了沒力", sci:"疲勞",     en:"Worn out",          sciEn:"Fatigue",         color:"var(--fat)", good:false}
 ];
+/* 題序與向度對應完全依 Lox 等人（2000）附錄原文：
+   正向情感 1, 3, 11；負向情感 6, 10, 12；疲勞 4, 7, 9；平靜 2, 5, 8 */
 const ITEMS = [
-  {sub:"pos", en:"Enthusiastic", zh:"我覺得很起勁，想動一動",  hint:"（很想參與、很想試試看）"},
   {sub:"pos", en:"Upbeat",       zh:"我心情很好",              hint:"（開心、輕快）"},
-  {sub:"pos", en:"Energetic",    zh:"我覺得身體很有力氣",      hint:"（有精神、使得上力）"},
-  {sub:"neg", en:"Crummy",       zh:"我覺得整個人很不舒服",    hint:"（悶悶的、不對勁）"},
-  {sub:"neg", en:"Discouraged",  zh:"我覺得有點灰心",          hint:"（覺得自己做不到、想放棄）"},
-  {sub:"neg", en:"Miserable",    zh:"我覺得很難受",            hint:"（很不好受、很想離開）"},
-  {sub:"fat", en:"Fatigued",     zh:"我覺得很疲倦",            hint:"（身體沉沉的）"},
-  {sub:"fat", en:"Tired",        zh:"我覺得很累",              hint:"（想休息）"},
-  {sub:"fat", en:"Worn-out",     zh:"我覺得快沒力了",          hint:"（用完了力氣）"},
   {sub:"tra", en:"Calm",         zh:"我覺得很平靜",            hint:"（不緊張）"},
+  {sub:"pos", en:"Energetic",    zh:"我覺得身體很有力氣",      hint:"（有精神、使得上力）"},
+  {sub:"fat", en:"Tired",        zh:"我覺得很累",              hint:"（想休息）"},
+  {sub:"tra", en:"Peaceful",     zh:"我覺得心裡很安穩",        hint:"（安心、不慌）"},
+  {sub:"neg", en:"Miserable",    zh:"我覺得很難受",            hint:"（很不好受、很想離開）"},
+  {sub:"fat", en:"Worn-out",     zh:"我覺得快沒力了",          hint:"（用完了力氣）"},
   {sub:"tra", en:"Relaxed",      zh:"我覺得很放鬆",            hint:"（身體是鬆的）"},
-  {sub:"tra", en:"Peaceful",     zh:"我覺得心裡很安穩",        hint:"（安心、不慌）"}
+  {sub:"fat", en:"Fatigued",     zh:"我覺得很疲倦",            hint:"（身體沉沉的）"},
+  {sub:"neg", en:"Discouraged",  zh:"我覺得有點灰心",          hint:"（覺得自己做不到、想放棄）"},
+  {sub:"pos", en:"Enthusiastic", zh:"我覺得很起勁，想動一動",  hint:"（很想參與、很想試試看）"},
+  {sub:"neg", en:"Crummy",       zh:"我覺得整個人很不舒服",    hint:"（悶悶的、不對勁）"}
 ];
 const SCALE_ZH = ["完全沒有","有一點","中等","蠻強的","非常強"];
 const SCALE_EN = ["Do not feel","Feel slightly","Feel moderately","Feel strongly","Feel very strongly"];
 const T = {
   zh:{title:"這節課的感受", tag:"課前填一次、課後再填一次，看看這節課把你的感受帶往哪個方向。",
       pre:"① 課前", post:"② 課後", cmp:"③ 對照",
-      hintPre:"上課前，你現在的感覺是？沒有對錯，照實選就好。",
-      hintPost:"剛剛這節課上完，你現在的感覺是？",
+      hintPre:"上課前。下面每一個詞，請選出它形容你「此刻」感受的程度。沒有對錯，照實選就好。",
+      hintPost:"這節課剛上完。下面每一個詞，請選出它形容你「此刻」感受的程度。",
       submit:"送出", waitTitle:"課前的作答已經記住了。上完這節課再回來填課後。",
       teachSum:"給老師：怎麼用、怎麼讀", again:"再測一次",
       codeHint:"回報給老師時，只要念出這四個數字，不用說名字。",
       foot:"量表來源：Physical Activity Affect Scale（Lox 等人，2000），12 題四向度。中文為易讀改寫版，供教學回饋使用。<br>本工具不會上傳任何資料，你的作答只留在這台裝置上，關掉分頁就可以清掉。教學用途，不是評分。"},
   en:{title:"How This Lesson Felt", tag:"Answer once before the lesson and once after, and see which way the lesson moved you.",
       pre:"1 Before", post:"2 After", cmp:"3 Compare",
-      hintPre:"Before the lesson: how do you feel right now? There is no right answer.",
-      hintPost:"The lesson has just finished. How do you feel right now?",
+      hintPre:"Before the lesson. Indicate the extent to which each word below describes how you feel at this moment in time.",
+      hintPost:"The lesson has just finished. Indicate the extent to which each word below describes how you feel at this moment in time.",
       submit:"Submit", waitTitle:"Your pre-lesson answers are saved. Come back after the lesson.",
       teachSum:"For teachers: how to use and how to read it", again:"Start again",
       codeHint:"When reporting to your teacher, just read out the four numbers. No name needed.",
