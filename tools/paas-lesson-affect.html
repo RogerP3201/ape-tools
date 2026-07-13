@@ -74,8 +74,10 @@ summary{cursor:pointer;color:var(--green);font-size:.88rem;font-weight:600}
 
   <div class="card" id="idCard">
     <div id="idHint" style="font-size:.9rem;color:var(--sub);margin-bottom:10px"></div>
-    <div class="idrow"><label id="lbName">姓名或座號</label><input id="fName" placeholder="王小明 或 座號 12"></div>
-    <div class="idrow"><label id="lbId">學號（可不填）</label><input id="fId" placeholder="41012345"></div>
+    <div class="idrow"><label id="lbName">學號後四碼</label>
+      <input id="fName" inputmode="numeric" maxlength="4" placeholder="例如 2345">
+      <div class="legend" id="codeErr" style="color:#a8483a;display:none"></div>
+    </div>
     <div class="idrow"><label id="lbCourse">課程</label>
       <select id="fCourse" onchange="courseChange()">
         <option value="適應體育班">適應體育班</option>
@@ -112,6 +114,12 @@ summary{cursor:pointer;color:var(--green);font-size:.88rem;font-weight:600}
     <div class="read" id="reading"></div>
     <div class="code" id="shareCode"></div>
     <div class="legend" id="codeHint">回報給老師時，只要念出這四個數字，不用說名字。</div>
+    <div class="warn" style="background:#eef4f2;border-color:#c9d6d2">
+      <b style="color:var(--green)" id="sendT">要把結果送給老師嗎？</b>
+      <div id="sendB"></div>
+      <button class="go" style="margin-top:10px" id="sendBtn" onclick="sendToTeacher()">送出給老師</button>
+      <div class="legend" id="sendMsg" style="margin-top:6px"></div>
+    </div>
     <button class="ghost" style="margin-top:14px;width:100%" onclick="resetAll()">再測一次</button>
   </div>
 
@@ -161,7 +169,7 @@ const T = {
       submit:"送出", waitTitle:"課前的作答已經記住了。上完這節課再回來填課後。",
       teachSum:"給老師：怎麼用、怎麼讀", again:"再測一次",
       codeHint:"回報給老師時，只要念出這四個數字，不用說名字。",
-      foot:"量表來源：Physical Activity Affect Scale（Lox 等人，2000），12 題四向度。中文為易讀改寫版，供教學回饋使用。<br>本工具不會上傳任何資料，你的作答只留在這台裝置上，關掉分頁就可以清掉。教學用途，不是評分。"},
+      foot:"量表來源：Physical Activity Affect Scale（Lox 等人，2000），12 題四向度。中文為易讀改寫版，供教學回饋使用。<br>預設不上傳：你的作答只留在這台裝置上。只有在你按下「送出給老師」時，才會送出課程、班級、單元、代碼與十二題作答，不含姓名與學號。教學用途，不是評分。"},
   en:{title:"How This Lesson Felt", tag:"Answer once before the lesson and once after, and see which way the lesson moved you.",
       pre:"1 Before", post:"2 After", cmp:"3 Compare",
       hintPre:"Before the lesson. Indicate the extent to which each word below describes how you feel at this moment in time.",
@@ -169,7 +177,7 @@ const T = {
       submit:"Submit", waitTitle:"Your pre-lesson answers are saved. Come back after the lesson.",
       teachSum:"For teachers: how to use and how to read it", again:"Start again",
       codeHint:"When reporting to your teacher, just read out the four numbers. No name needed.",
-      foot:"Scale: Physical Activity Affect Scale (Lox, Jackson, Tuholski, Wasley, & Treasure, 2000). 12 items, four subscales.<br>Nothing is uploaded. Your answers stay on this device. For teaching feedback, not for grading."}
+      foot:"Scale: Physical Activity Affect Scale (Lox, Jackson, Tuholski, Wasley, & Treasure, 2000). 12 items, four subscales.<br>Nothing is uploaded by default. Data leaves this device only when you press Send to teacher, and then without your name or student ID. For teaching feedback, not for grading."}
 };
 const TEACH_ZH = `
 <h3>這個量表在測什麼</h3>
@@ -179,6 +187,10 @@ PAAS 測的是一次身體活動之後的感受，分成四個向度。學生看
 <h3>怎麼在一節課裡用</h3>
 上課前發 QR，學生用自己的手機填課前 12 題（約一分鐘）。課後下課前再填一次，當場看到自己的四個向度往哪走。
 學生只需要念出畫面上的四位數字回報，不必說出姓名，你就能在黑板上做出全班的粗略分布。
+<h3>要看全班的資料</h3>
+結果頁有一顆「送出給老師」按鈕（學生自己按，不按也可以）。送出的內容進到共用 Apps Script 後端的 <b>paas</b> 工作表：課程、班級、單元、學號後四碼、四向度的課前課後與變化，以及十二題的原始作答。<b>不送姓名，也不送完整學號。</b>
+後四碼的用途是把同一個人的課前與課後配成一對，也讓你跨週次追蹤同一個學生。
+請注意：這是<b>假名資料，不是匿名資料</b>，因為你手上有名冊可以回推。當課堂回饋用沒問題；要當研究資料用（例如先導研究），需先過 IRB 與知情同意，並說明對照表由誰保管、存在哪裡、何時銷毀。
 <h3>怎麼讀</h3>
 疲勞上升不一定是壞事，那可能只代表這節課的運動量足夠。真正該注意的是這兩個組合：
 正向情感下降而負向情感上升，代表這節課讓他挫折了；疲勞沒動而正向情感也沒動，代表他這節課其實沒有真的參與。
@@ -199,23 +211,35 @@ Measure the same unit before and after an adaptation, and you have evidence abou
 This is classroom feedback, not research data. Research use requires ethics approval and consent.
 `;
 
-let lang="zh", phase="pre", ans={}, pre=null, post=null, meta={}, preTime="";
-const K="paas_pre_v1", KM="paas_meta_v1", KT="paas_pretime_v1";
+/* 送出給老師：沿用遊戲排行榜同一支 Apps Script 後端（kind=paas，寫進 paas 工作表）。
+   留空則整個「送出給老師」區塊自動隱藏，工具維持純單機。 */
+const API_URL="https://script.google.com/macros/s/AKfycbxCCp-Mflzy6Enazv-FH4Bt9xhyzGECv3WJacyOv-MWjiy20k9ahVrhoHXZZ82lna18/exec";
+
+let lang="zh", phase="pre", ans={}, pre=null, post=null, meta={}, preTime="", preRaw=null, postRaw=null, sent=false;
+const K="paas_pre_v1", KM="paas_meta_v1", KT="paas_pretime_v1", KR="paas_preraw_v1";
 const TID = {
-  zh:{hint:"先填一下基本資料，這些只會留在這台裝置上，不會上傳。",
-      name:"姓名或座號", id:"學號（可不填）", course:"課程", cls:"班級", unit:"單元（可不填）",
-      note:"若老師只需要匿名回報，姓名欄可以填座號。這份工具不會把任何資料送出去。", start:"開始填課前",
+  zh:{hint:"先填一下基本資料。課前與課後請填同一組數字，這樣兩次才對得起來。",
+      name:"學號後四碼", id:"", course:"課程", cls:"班級", unit:"單元（可不填）",
+      note:"只填學號後四碼，不要填姓名。這組數字是為了把你的課前與課後配成一對，老師看到的是數字，不是名字。", start:"開始填課前",
+      codeErr:"請填學號後四碼（四個數字）。",
       warnT:"已經填過課前，卻看到這一頁？",
       warnB:"代表這台裝置沒有記到你的課前作答，多半是因為你換了瀏覽器（例如課前用相機或 LINE 掃、課後用 Safari 掃），或用了無痕模式。請不要重填課前，直接按下面的按鈕填課後，並告訴老師你的課前紀錄不見了。下次請用同一個瀏覽器開這個網頁。",
       waitAt:"課前作答時間：",
-      postOnlyMsg:"找不到課前紀錄，這一輪只記錄課後的分數，不會顯示變化。"},
-  en:{hint:"A few details first. They stay on this device and are never uploaded.",
-      name:"Name or seat number", id:"Student ID (optional)", course:"Course", cls:"Class", unit:"Unit (optional)",
-      note:"If your teacher only needs anonymous reporting, put your seat number instead of your name. Nothing leaves this device.", start:"Start the pre-lesson form",
+      postOnlyMsg:"找不到課前紀錄，這一輪只記錄課後的分數，不會顯示變化。",
+      sendT:"要把結果送給老師嗎？",
+      sendB:"送出的內容是：課程、班級、單元、你的學號後四碼，以及十二題的作答。不會送出姓名，也不會送出完整學號。後四碼只是為了把你的課前與課後配成一對。不想送出就直接關掉，你的作答仍然只留在這台手機上。",
+      sendBtn:"送出給老師", sending:"送出中…", sentOk:"已送出。謝謝你。", sendErr:"送不出去，可能是網路問題。請把畫面上的四個數字念給老師。"},
+  en:{hint:"A few details first. Use the same four digits before and after the lesson so the two rounds can be paired.",
+      name:"Last four digits of your student ID", id:"", course:"Course", cls:"Class", unit:"Unit (optional)",
+      note:"Enter only the last four digits of your student ID, not your name. These digits exist to pair your pre-lesson and post-lesson answers.", start:"Start the pre-lesson form",
+      codeErr:"Please enter the last four digits of your student ID.",
       warnT:"Already did the pre-lesson form but seeing this page?",
       warnB:"This device has no record of your pre-lesson answers, usually because you opened the page in a different browser this time, or used private mode. Do not redo the pre-lesson form. Use the button below to record the post-lesson form only, and tell your teacher the pre-lesson record was lost. Next time, open the page in the same browser both times.",
       waitAt:"Pre-lesson answers saved at ",
-      postOnlyMsg:"No pre-lesson record found. This round records the post-lesson scores only; no change is shown."}
+      postOnlyMsg:"No pre-lesson record found. This round records the post-lesson scores only; no change is shown.",
+      sendT:"Send your results to your teacher?",
+      sendB:"What is sent: course, class, unit, the code you entered, and your twelve answers. Your name and student ID are never sent, so use your seat number or the code your teacher gave you. This is anonymous aggregation for course feedback and research. If you prefer not to send, just close the page; your answers stay on this device.",
+      sendBtn:"Send to teacher", sending:"Sending…", sentOk:"Sent. Thank you.", sendErr:"Could not send, possibly a network problem. Read the four numbers to your teacher instead."}
 };
 
 function setLang(l){
@@ -241,7 +265,6 @@ function render(){
   const ti=TID[lang];
   document.getElementById("idHint").textContent=ti.hint;
   document.getElementById("lbName").textContent=ti.name;
-  document.getElementById("lbId").textContent=ti.id;
   document.getElementById("lbCourse").textContent=ti.course;
   document.getElementById("lbClass").textContent=ti.cls;
   document.getElementById("lbUnit").textContent=ti.unit;
@@ -249,6 +272,9 @@ function render(){
   document.getElementById("warnT").textContent=ti.warnT;
   document.getElementById("warnB").textContent=ti.warnB;
   document.querySelector("#warnBox button").textContent = lang==="zh" ? "我填過課前了，直接填課後" : "I already did the pre-lesson form: go straight to the post-lesson form";
+  document.getElementById("sendT").textContent=ti.sendT;
+  document.getElementById("sendB").textContent=ti.sendB;
+  if(!sent) document.getElementById("sendBtn").textContent=ti.sendBtn;
   document.getElementById("waitMsg").textContent = t.waitTitle + (preTime ? "（" + ti.waitAt + preTime + "）" : "");
   document.getElementById("who").textContent = meta.name ? [meta.name, meta.course, meta.cls, meta.unit].filter(Boolean).join("｜") : "";
   const scale = lang==="zh"?SCALE_ZH:SCALE_EN;
@@ -265,12 +291,22 @@ function courseChange(){
   const c=document.getElementById("fCourse").value;
   document.getElementById("classRow").classList.toggle("hide", c==="適應體育班");
 }
+function readMeta(){
+  const code=document.getElementById("fName").value.trim();
+  const err=document.getElementById("codeErr");
+  if(!/^\d{4}$/.test(code)){
+    err.textContent=TID[lang].codeErr; err.style.display="block";
+    return null;
+  }
+  err.style.display="none";
+  return { name:code, sid:"",
+           course:document.getElementById("fCourse").value,
+           cls:document.getElementById("fClass").value.trim(),
+           unit:document.getElementById("fUnit").value.trim() };
+}
 function startPostOnly(){
-  meta={ name:document.getElementById("fName").value.trim(),
-         sid:document.getElementById("fId").value.trim(),
-         course:document.getElementById("fCourse").value,
-         cls:document.getElementById("fClass").value.trim(),
-         unit:document.getElementById("fUnit").value.trim() };
+  const m=readMeta(); if(!m) return;
+  meta=m;
   localStorage.setItem(KM, JSON.stringify(meta));
   phase="post"; ans={}; pre=null;
   document.getElementById("idCard").classList.add("hide");
@@ -280,11 +316,8 @@ function startPostOnly(){
   render(); window.scrollTo(0,0);
 }
 function startPre(){
-  meta={ name:document.getElementById("fName").value.trim(),
-         sid:document.getElementById("fId").value.trim(),
-         course:document.getElementById("fCourse").value,
-         cls:document.getElementById("fClass").value.trim(),
-         unit:document.getElementById("fUnit").value.trim() };
+  const m=readMeta(); if(!m) return;
+  meta=m;
   localStorage.setItem(KM, JSON.stringify(meta));
   document.getElementById("idCard").classList.add("hide");
   document.getElementById("formCard").classList.remove("hide");
@@ -301,7 +334,9 @@ function score(a){
 function submit(){
   if(phase==="pre"){
     pre=score(ans);
+    preRaw = ITEMS.map((_,i)=>ans[i]);
     localStorage.setItem(K, JSON.stringify(pre));
+    localStorage.setItem(KR, JSON.stringify(preRaw));
     preTime = new Date().toLocaleTimeString(lang==="zh"?"zh-TW":"en-US",{hour:"2-digit",minute:"2-digit"});
     localStorage.setItem(KT, preTime);
     ans={};
@@ -310,12 +345,24 @@ function submit(){
     document.getElementById("s1").className="step done";
   }else{
     post=score(ans);
+    postRaw = ITEMS.map((_,i)=>ans[i]);
     showResult();
   }
+}
+function sendToTeacher(){
+  const ti=TID[lang], btn=document.getElementById("sendBtn"), msg=document.getElementById("sendMsg");
+  if(sent || !API_URL) return;
+  btn.disabled=true; btn.textContent=ti.sending; msg.textContent="";
+  const payload={ kind:"paas", code:(meta.name||"").slice(0,16), course:meta.course||"",
+                  cls:meta.cls||"", unit:meta.unit||"", pre:preRaw, post:postRaw };
+  fetch(API_URL,{ method:"POST", body:JSON.stringify(payload) })
+    .then(()=>{ sent=true; btn.textContent=ti.sentOk; msg.textContent=""; })
+    .catch(()=>{ btn.disabled=false; btn.textContent=ti.sendBtn; msg.textContent=ti.sendErr; });
 }
 function startPost(){
   phase="post"; ans={};
   pre = JSON.parse(localStorage.getItem(K)||"null");
+  preRaw = JSON.parse(localStorage.getItem(KR)||"null");
   document.getElementById("waitCard").classList.add("hide");
   document.getElementById("formCard").classList.remove("hide");
   document.getElementById("s2").className="step on";
@@ -337,7 +384,7 @@ function showResult(){
         <div class="sum">${sc}　平均 ${b.toFixed(1)} / 4　加總分 ${(b*3).toFixed(0)} / 12</div>
       </div>`;
     }).join("");
-    const head = meta.name ? `<div style="font-size:.85rem;color:var(--sub);margin-bottom:10px">${[meta.name, meta.sid, meta.course, meta.cls, meta.unit].filter(Boolean).join("｜")}</div>` : "";
+    const head = meta.name ? `<div style="font-size:.85rem;color:var(--sub);margin-bottom:10px">${[meta.name ? "代碼 " + meta.name : "", meta.course, meta.cls, meta.unit].filter(Boolean).join("｜")}</div>` : "";
     document.getElementById("bars").innerHTML = head + `<div class="read" style="border-left-color:#a8483a;background:#fbf1ee;margin:0 0 12px">${ti.postOnlyMsg}</div>` + rows;
     document.getElementById("reading").innerHTML = lang==="zh"
       ? "・只有課後的數字，看不出這節課把你帶往哪個方向。請把這四個數字回報給老師，並說明課前紀錄不見了。"
@@ -358,7 +405,7 @@ function showResult(){
       <div class="sum">${sc}　平均 ${b.toFixed(1)} / 4　加總分 ${(b*3).toFixed(0)} / 12（課前 ${(a*3).toFixed(0)}）</div>
     </div>`;
   }).join("");
-  const head = meta.name ? `<div style="font-size:.85rem;color:var(--sub);margin-bottom:10px">${[meta.name, meta.sid, meta.course, meta.cls, meta.unit].filter(Boolean).join("｜")}</div>` : "";
+  const head = meta.name ? `<div style="font-size:.85rem;color:var(--sub);margin-bottom:10px">${[meta.name ? "代碼 " + meta.name : "", meta.course, meta.cls, meta.unit].filter(Boolean).join("｜")}</div>` : "";
   document.getElementById("bars").innerHTML = head + bars;
   document.getElementById("reading").innerHTML = readOut();
   const code = SUB.map(x=>Math.round(post[x.key])).join(" ");
@@ -376,13 +423,16 @@ function readOut(){
   return list.map(s=>"・"+s).join("<br>");
 }
 function resetAll(){
-  localStorage.removeItem(K); localStorage.removeItem(KM); localStorage.removeItem(KT);
-  ans={}; pre=null; post=null; meta={}; phase="pre"; preTime="";
+  localStorage.removeItem(K); localStorage.removeItem(KM); localStorage.removeItem(KT); localStorage.removeItem(KR);
+  ans={}; pre=null; post=null; meta={}; phase="pre"; preTime=""; preRaw=null; postRaw=null; sent=false;
+  const sb=document.getElementById("sendBtn"); sb.disabled=false; sb.textContent=TID[lang].sendBtn;
+  document.getElementById("sendMsg").textContent="";
   document.getElementById("resultCard").classList.add("hide");
   document.getElementById("waitCard").classList.add("hide");
   document.getElementById("formCard").classList.add("hide");
   document.getElementById("idCard").classList.remove("hide");
-  document.getElementById("fName").value=""; document.getElementById("fId").value="";
+  document.getElementById("fName").value="";
+  document.getElementById("codeErr").style.display="none";
   document.getElementById("fClass").value=""; document.getElementById("fUnit").value="";
   document.getElementById("s1").className="step on";
   document.getElementById("s2").className="step";
@@ -392,6 +442,7 @@ function resetAll(){
 if(localStorage.getItem(K)){
   meta = JSON.parse(localStorage.getItem(KM)||"{}");
   preTime = localStorage.getItem(KT) || "";
+  preRaw = JSON.parse(localStorage.getItem(KR)||"null");
   document.getElementById("idCard").classList.add("hide");
   document.getElementById("waitCard").classList.remove("hide");
   document.getElementById("s1").className="step done";
