@@ -51,6 +51,8 @@ summary{cursor:pointer;color:var(--green);font-size:.88rem;font-weight:600}
 .idrow label{display:block;font-size:.85rem;color:var(--sub);margin-bottom:3px}
 .idrow input,.idrow select{width:100%;padding:10px;border:1px solid #cfd8d5;border-radius:8px;font-size:.95rem;font-family:inherit;background:#fff}
 .sum{font-size:.78rem;color:var(--sub)}
+.warn{margin-top:14px;padding:12px 14px;border-radius:10px;background:#fbf1ee;border:1px solid #e6cfc9;font-size:.84rem;color:var(--ink);line-height:1.6}
+.warn b{display:block;color:#a8483a;margin-bottom:4px;font-size:.88rem}
 .code{font-family:ui-monospace,monospace;background:#eef4f2;padding:8px 10px;border-radius:8px;font-size:1.05rem;letter-spacing:.1em;text-align:center;margin-top:8px}
 </style>
 </head>
@@ -85,6 +87,11 @@ summary{cursor:pointer;color:var(--green);font-size:.88rem;font-weight:600}
     <div class="idrow"><label id="lbUnit">單元（可不填）</label><input id="fUnit" placeholder="例如 排球墊球"></div>
     <div class="legend" id="idNote"></div>
     <button class="go" onclick="startPre()">開始填課前</button>
+    <div class="warn" id="warnBox">
+      <b id="warnT">已經填過課前，卻看到這一頁？</b>
+      <div id="warnB"></div>
+      <button class="ghost" style="margin-top:8px;width:100%" onclick="startPostOnly()">我填過課前了，直接填課後</button>
+    </div>
   </div>
 
   <div class="card hide" id="formCard">
@@ -192,15 +199,23 @@ Measure the same unit before and after an adaptation, and you have evidence abou
 This is classroom feedback, not research data. Research use requires ethics approval and consent.
 `;
 
-let lang="zh", phase="pre", ans={}, pre=null, post=null, meta={};
-const K="paas_pre_v1", KM="paas_meta_v1";
+let lang="zh", phase="pre", ans={}, pre=null, post=null, meta={}, preTime="";
+const K="paas_pre_v1", KM="paas_meta_v1", KT="paas_pretime_v1";
 const TID = {
   zh:{hint:"先填一下基本資料，這些只會留在這台裝置上，不會上傳。",
       name:"姓名或座號", id:"學號（可不填）", course:"課程", cls:"班級", unit:"單元（可不填）",
-      note:"若老師只需要匿名回報，姓名欄可以填座號。這份工具不會把任何資料送出去。", start:"開始填課前"},
+      note:"若老師只需要匿名回報，姓名欄可以填座號。這份工具不會把任何資料送出去。", start:"開始填課前",
+      warnT:"已經填過課前，卻看到這一頁？",
+      warnB:"代表這台裝置沒有記到你的課前作答，多半是因為你換了瀏覽器（例如課前用相機或 LINE 掃、課後用 Safari 掃），或用了無痕模式。請不要重填課前，直接按下面的按鈕填課後，並告訴老師你的課前紀錄不見了。下次請用同一個瀏覽器開這個網頁。",
+      waitAt:"課前作答時間：",
+      postOnlyMsg:"找不到課前紀錄，這一輪只記錄課後的分數，不會顯示變化。"},
   en:{hint:"A few details first. They stay on this device and are never uploaded.",
       name:"Name or seat number", id:"Student ID (optional)", course:"Course", cls:"Class", unit:"Unit (optional)",
-      note:"If your teacher only needs anonymous reporting, put your seat number instead of your name. Nothing leaves this device.", start:"Start the pre-lesson form"}
+      note:"If your teacher only needs anonymous reporting, put your seat number instead of your name. Nothing leaves this device.", start:"Start the pre-lesson form",
+      warnT:"Already did the pre-lesson form but seeing this page?",
+      warnB:"This device has no record of your pre-lesson answers, usually because you opened the page in a different browser this time, or used private mode. Do not redo the pre-lesson form. Use the button below to record the post-lesson form only, and tell your teacher the pre-lesson record was lost. Next time, open the page in the same browser both times.",
+      waitAt:"Pre-lesson answers saved at ",
+      postOnlyMsg:"No pre-lesson record found. This round records the post-lesson scores only; no change is shown."}
 };
 
 function setLang(l){
@@ -231,6 +246,10 @@ function render(){
   document.getElementById("lbClass").textContent=ti.cls;
   document.getElementById("lbUnit").textContent=ti.unit;
   document.getElementById("idNote").textContent=ti.note;
+  document.getElementById("warnT").textContent=ti.warnT;
+  document.getElementById("warnB").textContent=ti.warnB;
+  document.querySelector("#warnBox button").textContent = lang==="zh" ? "我填過課前了，直接填課後" : "I already did the pre-lesson form: go straight to the post-lesson form";
+  document.getElementById("waitMsg").textContent = t.waitTitle + (preTime ? "（" + ti.waitAt + preTime + "）" : "");
   document.getElementById("who").textContent = meta.name ? [meta.name, meta.course, meta.cls, meta.unit].filter(Boolean).join("｜") : "";
   const scale = lang==="zh"?SCALE_ZH:SCALE_EN;
   document.getElementById("items").innerHTML = ITEMS.map((it,i)=>{
@@ -245,6 +264,20 @@ function pick(i,v){ ans[i]=v; render(); }
 function courseChange(){
   const c=document.getElementById("fCourse").value;
   document.getElementById("classRow").classList.toggle("hide", c==="適應體育班");
+}
+function startPostOnly(){
+  meta={ name:document.getElementById("fName").value.trim(),
+         sid:document.getElementById("fId").value.trim(),
+         course:document.getElementById("fCourse").value,
+         cls:document.getElementById("fClass").value.trim(),
+         unit:document.getElementById("fUnit").value.trim() };
+  localStorage.setItem(KM, JSON.stringify(meta));
+  phase="post"; ans={}; pre=null;
+  document.getElementById("idCard").classList.add("hide");
+  document.getElementById("formCard").classList.remove("hide");
+  document.getElementById("s1").className="step";
+  document.getElementById("s2").className="step on";
+  render(); window.scrollTo(0,0);
 }
 function startPre(){
   meta={ name:document.getElementById("fName").value.trim(),
@@ -269,6 +302,8 @@ function submit(){
   if(phase==="pre"){
     pre=score(ans);
     localStorage.setItem(K, JSON.stringify(pre));
+    preTime = new Date().toLocaleTimeString(lang==="zh"?"zh-TW":"en-US",{hour:"2-digit",minute:"2-digit"});
+    localStorage.setItem(KT, preTime);
     ans={};
     document.getElementById("formCard").classList.add("hide");
     document.getElementById("waitCard").classList.remove("hide");
@@ -292,6 +327,24 @@ function showResult(){
   document.getElementById("resultCard").classList.remove("hide");
   document.getElementById("s2").className="step done";
   document.getElementById("s3").className="step on";
+  if(!pre){
+    const t=T[lang], ti=TID[lang];
+    const rows = SUB.map(x=>{
+      const b=post[x.key], nm=lang==="zh"?x.zh:x.en, sc=lang==="zh"?x.sci:x.sciEn;
+      return `<div class="bar">
+        <div class="bl"><b>${nm}</b><span>${b.toFixed(1)} / 4</span></div>
+        <div class="track"><div class="fill" style="width:${b/4*100}%;background:${x.color}"></div></div>
+        <div class="sum">${sc}　平均 ${b.toFixed(1)} / 4　加總分 ${(b*3).toFixed(0)} / 12</div>
+      </div>`;
+    }).join("");
+    const head = meta.name ? `<div style="font-size:.85rem;color:var(--sub);margin-bottom:10px">${[meta.name, meta.sid, meta.course, meta.cls, meta.unit].filter(Boolean).join("｜")}</div>` : "";
+    document.getElementById("bars").innerHTML = head + `<div class="read" style="border-left-color:#a8483a;background:#fbf1ee;margin:0 0 12px">${ti.postOnlyMsg}</div>` + rows;
+    document.getElementById("reading").innerHTML = lang==="zh"
+      ? "・只有課後的數字，看不出這節課把你帶往哪個方向。請把這四個數字回報給老師，並說明課前紀錄不見了。"
+      : "・With post-lesson scores only, the direction of change cannot be read. Report these four numbers to your teacher and mention that the pre-lesson record was lost.";
+    document.getElementById("shareCode").textContent = SUB.map(x=>Math.round(post[x.key])).join(" ");
+    return;
+  }
   const bars = SUB.map(x=>{
     const a=pre?pre[x.key]:0, b=post[x.key], d=b-a;
     const cls = Math.abs(d)<0.25?"flat":(d>0?"up":"down");
@@ -323,8 +376,8 @@ function readOut(){
   return list.map(s=>"・"+s).join("<br>");
 }
 function resetAll(){
-  localStorage.removeItem(K); localStorage.removeItem(KM);
-  ans={}; pre=null; post=null; meta={}; phase="pre";
+  localStorage.removeItem(K); localStorage.removeItem(KM); localStorage.removeItem(KT);
+  ans={}; pre=null; post=null; meta={}; phase="pre"; preTime="";
   document.getElementById("resultCard").classList.add("hide");
   document.getElementById("waitCard").classList.add("hide");
   document.getElementById("formCard").classList.add("hide");
@@ -338,6 +391,7 @@ function resetAll(){
 }
 if(localStorage.getItem(K)){
   meta = JSON.parse(localStorage.getItem(KM)||"{}");
+  preTime = localStorage.getItem(KT) || "";
   document.getElementById("idCard").classList.add("hide");
   document.getElementById("waitCard").classList.remove("hide");
   document.getElementById("s1").className="step done";
