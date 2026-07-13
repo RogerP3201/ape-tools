@@ -1,0 +1,394 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IEP 找碴｜體育課程品質鑑識遊戲</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#173F63;--purple:#7E22CE;--amber:#fbbf24;
+  --good:#34d399;--warn:#fbbf24;--bad:#f87171;
+  --ink:#f0edf5;--dim:rgba(240,237,245,.72);
+  --card:rgba(255,255,255,.10);--edge:rgba(255,255,255,.22);
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:linear-gradient(150deg,var(--navy) 0%,#3b2a6b 55%,var(--purple) 100%) fixed;
+  color:var(--ink);min-height:100vh;display:flex;justify-content:center;padding:14px 12px 48px;
+}
+.app{width:100%;max-width:560px}
+.screen{display:none}.screen.on{display:block;animation:rise .35s ease}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.screen.on{animation:none}}
+
+/* ── 開始畫面 ── */
+.hero{text-align:center;padding:34px 10px 10px}
+.hero .kicker{font-size:.78rem;letter-spacing:.35em;color:var(--amber);font-weight:900}
+.hero h1{font-size:2.05rem;font-weight:900;letter-spacing:.06em;margin:10px 0 8px;text-wrap:balance}
+.hero p{color:var(--dim);font-size:.92rem;line-height:1.8;max-width:30em;margin:0 auto}
+.panel{background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:18px 20px;margin-top:18px;backdrop-filter:blur(8px)}
+.panel h2{font-size:.85rem;font-weight:900;letter-spacing:.12em;color:var(--amber);margin-bottom:10px}
+.panel ol{list-style:none}
+.panel li{font-size:.9rem;line-height:1.7;padding:6px 0;display:flex;gap:10px}
+.panel li b{flex:0 0 auto;color:var(--amber)}
+.toggle{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;font-size:.88rem;color:var(--dim)}
+.toggle input{width:18px;height:18px;accent-color:var(--amber)}
+.cta{display:block;width:100%;margin-top:16px;font:inherit;font-weight:900;font-size:1.1rem;
+  padding:15px;border:none;border-radius:14px;cursor:pointer;background:var(--amber);color:var(--navy)}
+.cta:focus-visible,.sent:focus-visible,.ghost:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.foot{margin-top:14px;text-align:center;font-size:.72rem;color:rgba(240,237,245,.5);line-height:1.7}
+
+/* ── HUD ── */
+.hud{position:sticky;top:0;z-index:5;background:rgba(28,26,58,.9);backdrop-filter:blur(10px);
+  border:1px solid var(--edge);border-radius:14px;padding:10px 14px;margin-bottom:12px;
+  display:flex;justify-content:space-between;align-items:center}
+.hud .rd{font-size:.8rem;font-weight:900;letter-spacing:.08em;color:var(--amber)}
+.hud .sc{font-size:.94rem;font-weight:900;font-variant-numeric:tabular-nums}
+.hud .tm{font-size:1.05rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--dim)}
+.hud .tm.low{color:var(--bad)}
+
+/* ── 文件卡 ── */
+.doc{background:var(--card);border:1px solid var(--edge);border-radius:18px;padding:16px 18px;margin-bottom:12px}
+.doc .tag{display:inline-block;font-size:.72rem;font-weight:900;padding:3px 10px;border-radius:99px;
+  background:rgba(251,191,36,.18);color:var(--amber);border:1px solid rgba(251,191,36,.4);margin-bottom:8px}
+.doc h3{font-size:1.1rem;font-weight:900;line-height:1.5;margin-bottom:6px;text-wrap:balance}
+.doc p{font-size:.88rem;line-height:1.8;color:var(--dim)}
+.ask{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 8px;font-size:.86rem;font-weight:900}
+.sents{display:flex;flex-direction:column;gap:8px}
+.sent{font:inherit;text-align:left;font-size:.9rem;line-height:1.7;padding:12px 14px;border-radius:13px;cursor:pointer;
+  background:rgba(255,255,255,.07);border:1.5px solid var(--edge);color:var(--ink);display:flex;gap:10px}
+.sent .flag{flex:0 0 auto;opacity:.35}
+.sent.sel{background:rgba(248,113,113,.16);border-color:var(--bad)}
+.sent.sel .flag{opacity:1}
+.submit{display:block;width:100%;margin-top:12px;font:inherit;font-weight:900;font-size:1rem;padding:13px;
+  border:none;border-radius:13px;cursor:pointer;background:var(--amber);color:var(--navy)}
+
+/* ── 回饋 ── */
+.fb{display:flex;flex-direction:column;gap:8px}
+.fbcard{border-radius:13px;padding:11px 14px;font-size:.86rem;line-height:1.7;border:1px solid;background:rgba(0,0,0,.25)}
+.fbcard .h{font-weight:900;display:flex;gap:8px;align-items:baseline}
+.fbcard .pt{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:900;flex:0 0 auto}
+.fbcard.g{border-color:rgba(52,211,153,.5)}.fbcard.g .h{color:var(--good)}
+.fbcard.w{border-color:rgba(251,191,36,.5)}.fbcard.w .h{color:var(--warn)}
+.fbcard.b{border-color:rgba(248,113,113,.55)}.fbcard.b .h{color:var(--bad)}
+.fbcard.n{border-color:rgba(255,255,255,.18)}.fbcard.n .h{color:var(--dim)}
+.fbcard .note{color:var(--dim);margin-top:4px}
+
+/* ── 結算 ── */
+.final{text-align:center;padding-top:26px}
+.final .big{font-size:3.2rem;font-weight:900;font-variant-numeric:tabular-nums;color:var(--amber);line-height:1.1}
+.final .rank{font-size:1.25rem;font-weight:900;margin:6px 0 2px}
+.final .sub{color:var(--dim);font-size:.88rem;line-height:1.7}
+.lesson{text-align:left;background:rgba(0,0,0,.25);border:1px solid;border-radius:14px;padding:13px 16px;margin-top:10px;font-size:.87rem;line-height:1.75}
+.lesson.b{border-color:rgba(248,113,113,.55)}
+.lesson.g{border-color:rgba(52,211,153,.5)}
+.lesson .t{font-weight:900;margin-bottom:3px}
+.lesson.b .t{color:var(--bad)}.lesson.g .t{color:var(--good)}
+.lesson .d{color:var(--dim)}
+.row{display:flex;gap:10px;margin-top:16px}
+.row .cta{margin-top:0}
+.ghost{flex:1;font:inherit;font-weight:900;font-size:1rem;padding:14px;border-radius:14px;cursor:pointer;
+  background:rgba(255,255,255,.12);border:1.5px solid var(--edge);color:var(--ink)}
+
+/* ── 排行榜 ── */
+.lbrow{display:flex;gap:8px}
+.lbrow input{flex:1;font:inherit;font-size:.95rem;padding:11px 13px;border-radius:12px;border:1.5px solid var(--edge);
+  background:rgba(0,0,0,.25);color:var(--ink)}
+.lbrow input::placeholder{color:rgba(240,237,245,.45)}
+.lbrow .ghost{flex:0 0 auto;padding:11px 18px;font-size:.92rem}
+.lbList{margin-top:12px;font-size:.9rem}
+.lbItem{display:grid;grid-template-columns:2.2em 1fr auto;gap:10px;padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.12);
+  font-variant-numeric:tabular-nums}
+.lbItem .no{font-weight:900;color:var(--amber)}
+.lbItem .pts{font-weight:900}
+</style></head><body>
+
+<div class="app">
+
+<!-- 開始 -->
+<section class="screen on" id="sStart">
+  <div class="hero">
+    <div class="kicker">體 育 課 程 品 質 鑑 識 遊 戲</div>
+    <h1>IEP 找碴</h1>
+    <p>三份虛構的 IEP 體育摘要，每份藏著幾句寫壞的話：不可測的目標、被偷換的學習內容、寫成祝福的轉銜。限時把它們標出來。</p>
+  </div>
+  <div class="panel">
+    <h2>怎麼玩</h2>
+    <ol>
+      <li><b>①</b><span>讀一份 IEP 摘要，逐句判斷。</span></li>
+      <li><b>②</b><span>75 秒內點選你認為有問題的句子（點錯會扣分），按「送出檢核」。</span></li>
+      <li><b>③</b><span>逐句對照解說，三份文件一份比一份難。</span></li>
+    </ol>
+    <div class="toggle">
+      <input type="checkbox" id="noTimer"><label for="noTimer">關閉倒數計時（課堂討論模式）</label>
+    </div>
+    <button class="cta" onclick="startGame()">▶ 開始鑑識</button>
+  </div>
+  <div class="foot">題庫共 6 份文件，每次依難度各抽一份。文件為虛構樣本，錯誤模式取自「IEP 體育課程品質檢核」的判讀線索<br>本遊戲僅供教學討論與師資培育，非正式評量工具，不對應任何真實學生。</div>
+</section>
+
+<!-- 遊戲 -->
+<section class="screen" id="sGame">
+  <div class="hud">
+    <span class="rd" id="hudRound">第 1 份／共 3 份</span>
+    <span class="sc">分數 <span id="hudScore">0</span></span>
+    <span class="tm" id="hudTimer">75</span>
+  </div>
+  <div class="doc">
+    <span class="tag" id="dTag"></span>
+    <h3 id="dTitle"></h3>
+    <p id="dIntro"></p>
+  </div>
+  <div class="ask"><span>標出有問題的句子（已標 <span id="nSel">0</span> 句）</span></div>
+  <div class="sents" id="dSents"></div>
+  <button class="submit" onclick="submitDoc()">送出檢核</button>
+</section>
+
+<!-- 回饋 -->
+<section class="screen" id="sFb">
+  <div class="hud">
+    <span class="rd" id="fbRound"></span>
+    <span class="sc">分數 <span id="fbScore">0</span></span>
+    <span class="tm" id="fbStat"></span>
+  </div>
+  <div class="fb" id="fbList"></div>
+  <button class="cta" id="btnNext" onclick="nextDoc()">下一份 →</button>
+</section>
+
+<!-- 結算 -->
+<section class="screen" id="sEnd">
+  <div class="final">
+    <div class="big" id="endScore">0</div>
+    <div class="rank" id="endRank"></div>
+    <div class="sub" id="endSub"></div>
+  </div>
+  <div class="panel">
+    <h2>判讀線索（依你漏掉的類型客製）</h2>
+    <div id="endLessons"></div>
+  </div>
+  <div class="panel" id="lbPanel" style="display:none">
+    <h2>🏆 跨裝置排行榜</h2>
+    <div class="lbrow">
+      <input id="lbName" maxlength="12" placeholder="暱稱（最多 12 字，勿用真名）">
+      <button class="ghost" id="lbSend" onclick="sendScore()">上傳成績</button>
+    </div>
+    <div class="lbList" id="lbList">載入中…</div>
+  </div>
+  <div class="row">
+    <button class="ghost" onclick="copyScore()">⧉ 複製成績</button>
+    <button class="cta" style="flex:1" onclick="location.reload()">再玩一次</button>
+  </div>
+  <div class="foot">寫得壞的句子有跡可循：找形容詞當證據、找沒有數字的承諾、找被偷換的目標。<br>延伸資源：<a href="https://www.fitness.org.tw/suggestion" target="_blank" rel="noopener" style="color:var(--amber)">運動部學生體適能網站「運動建議」</a>，依檢測結果提供肌力、肌耐力、心肺耐力與柔軟度的具體處方。<br>本遊戲僅供教學討論，非正式評量工具。排行榜只儲存暱稱與分數。</div>
+</section>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+const LB_URL="https://script.google.com/macros/s/AKfycbxCCp-Mflzy6Enazv-FH4Bt9xhyzGECv3WJacyOv-MWjiy20k9ahVrhoHXZZ82lna18/exec";
+const GAME_ID="iep-spot-challenge";
+// ══════════════════════════════════════════════════
+
+// flaw: null＝合格句；否則為錯誤類型代碼
+// 題庫共 6 份文件、分三個難度級（lv），每次遊玩依難度各抽一份
+const BANK=[
+{lv:1,tag:"國小四年級・發展遲緩",title:"新接的 IEP，你先看哪裡？",
+ intro:"你是新接班的體育老師，收到小樂的 IEP 體育摘要。有些句子合格，有些撐不起任何教學。",
+ sents:[
+  {t:"小樂體能不佳，動作協調差，常常不願意參與活動。",flaw:"impression",n:"「體能不佳」是印象不是描述。沒有工具、沒有對照基準，這句話撐不起任何目標。"},
+  {t:"本學期全校體適能檢測：仰臥捲腹 8 下、坐姿體前彎 21 公分（附紀錄），另以自編動作檢核表補充觀察。",flaw:null,n:"用的是學校現場真實的工具，有結果、有紀錄，還補了自編觀察。這是合格的現況證據。"},
+  {t:"學年目標：提升體適能，培養運動興趣。",flaw:"vague",n:"「提升」「培養」無法衡量。達成或沒達成，誰說了算？"},
+  {t:"學期目標：能連續雙腳跳 8 下，3 次測驗中 2 次達成。",flaw:null,n:"數字、精熟標準、可觀察的動作都有，可以驗收。"},
+  {t:"服務方式：視需要提供適應體育支持。",flaw:"noquant",n:"「視需要」沒有頻率、沒有期程。沒有數字的服務等於沒有承諾。"},
+  {t:"支持策略：活動前先示範，搭配圖示行事曆。",flaw:null,n:"具體的教學支持，寫得出來就查得到、做得到。"},
+  {t:"因安全考量，球類單元安排在場邊觀看。",flaw:"exclude",n:"這是決定不是評估。風險在哪、調整試過什麼都沒寫，就直接把人移出活動。"},
+  {t:"800 公尺跑走依全校統一項目施測，成績未達全國常模，列為待加強項目。",flaw:"norm",n:"套用全校項目之前要先問三件事：安全嗎？動作型態做得出來嗎？常模對他有意義嗎？需要的調整或替代測驗應該寫進 IEP，不是檢測當天現場發揮。"},
+  {t:"每月以聯絡簿回報目標進展一次。",flaw:null,n:"進展溝通有頻率、有方式，這是機制不是氣氛。"}]},
+
+{lv:2,tag:"國中二年級・ADHD",title:"行為問題，還是課程問題？",
+ intro:"阿凱的 IEP 讀起來很順，但有幾句悄悄把體育課變成了管教現場。",
+ sents:[
+  {t:"阿凱上課不專心，常干擾同學，參與意願低落。",flaw:"impression",n:"整句都是負面結論。意願低落的背後是聽不懂、跟不上，還是沒有成功經驗？沒人問。"},
+  {t:"學年目標：改善上課秩序，能遵守團體規則。",flaw:"swap",n:"秩序是管理目標，不在體育課綱的學習內容裡。體育目標被行為管理偷換了。"},
+  {t:"學期目標：籃球原地運球連續 15 下，3 次中 2 次達成。",flaw:null,n:"回到動作學習，而且可衡量。這才是體育目標該有的樣子。"},
+  {t:"違規時暫停參與，至場邊罰坐反省五分鐘。",flaw:"punish",n:"罰坐是處罰不是支持。行為支持是預防與教導：提前預告、視覺提示、增強系統。"},
+  {t:"提供行為紀錄表，逐日記錄干擾行為次數。",flaw:"punish",n:"記錄不等於支持。記完之後呢？沒有介入設計，紀錄表只是在幫問題存檔。"},
+  {t:"活動指令一次只給一個，搭配手勢與示範。",flaw:null,n:"減少語言負荷的教學支持，具體可執行。"},
+  {t:"服務：融合班體育課每週 2 節，一學年。",flaw:null,n:"頻率與期程完整，這是有數字的承諾。"},
+  {t:"阿凱反應快、喜歡競速活動，可作為課程設計的切入點。",flaw:null,n:"優勢與興趣有記載，而且連到課程。這是整份文件最值錢的一句。"}]},
+
+{lv:3,tag:"高中三年級・腦性麻痺",title:"課堂很好，然後呢？",
+ intro:"高三下學期的 IEP。課堂部分幾乎無可挑剔，問題藏在畢業之後。",
+ sents:[
+  {t:"宗霖為痙攣型腦性麻痺，桌球社固定成員，校內賽四強。",flaw:null,n:"身分、參與、表現都具體，這是有場景的現況描述。"},
+  {t:"800 公尺跑走經安全性與適用性評估，改以六分鐘走路測驗（6MWT）施測，採個人參照逐年比較（附紀錄）。",flaw:null,n:"這就是替代測驗的正確用法：先評估、再替換、用個人參照，而且留下紀錄。"},
+  {t:"學年目標：培養終身運動習慣。",flaw:"vague",n:"方向正確，但無法衡量也無法驗收。高三了，這句話必須變成具體行動。"},
+  {t:"情緒穩定，與同學相處融洽。",flaw:"impression",n:"「相處融洽」是結論不是描述。跟誰、在什麼活動、什麼樣子？一句都沒有。"},
+  {t:"學期目標：發球 10 次中 6 次入界，每月記錄一次。",flaw:null,n:"可衡量、有追蹤頻率，合格。"},
+  {t:"桌球單元以規則調整與夥伴制支持參與。",flaw:null,n:"課程調整與社會支持都有記載。"},
+  {t:"畢業後鼓勵持續參與社區運動。",flaw:"wish",n:"「鼓勵」是祝福不是規劃。去哪裡、跟誰、怎麼開始，一個都沒有。"},
+  {t:"轉銜計畫載明升學與生活自理；運動休閒由學生畢業後自行安排。",flaw:"wish",n:"社區桌球資源明明存在，卻把銜接責任丟給畢業後的他。運動轉銜是團隊的工作，不是學生的家庭作業。"}]},
+
+{lv:1,tag:"國小三年級・聽覺障礙",title:"FM 系統在，起跑訊號呢？",
+ intro:"小恩的 IEP 有些地方寫得很好，有些地方把訊息問題寫成了性格問題。",
+ sents:[
+  {t:"小恩個性內向，不合群，上課常常恍神。",flaw:"impression",n:"聽不到和恍神，外表上長得一樣。沒有評估就下的性格標籤，把訊息問題寫成了個性問題。"},
+  {t:"配戴助聽器，FM 調頻系統已到位，體育課由授課教師配戴發射器。",flaw:null,n:"輔具與使用方式都寫清楚了，這是可執行、可查核的支持。"},
+  {t:"學年目標：增進人際互動，融入團體生活。",flaw:"vague",n:"「增進」「融入」無法衡量。這是願望的寫法，不是目標的寫法。"},
+  {t:"學期目標：樂樂棒球擊球十次中六次擊中球座上的球。",flaw:null,n:"可觀察、可計數、有精熟標準，合格。"},
+  {t:"戶外課程視情況安排參與方式。",flaw:"noquant",n:"「視情況」是誰的情況？沒寫下來的調整，到了操場就會消失。"},
+  {t:"集合與轉換活動改用手勢與旗號，全班統一使用。",flaw:null,n:"視覺訊號給全班用，不標記任何人，這是通用設計。"},
+  {t:"因聽不到哨音，大隊接力項目免予參加。",flaw:"exclude",n:"缺的是起跑訊號的替代方案（旗號、拍肩），不是免參加的理由。"},
+  {t:"全校體適能檢測依一般程序施測，成績列入常模比較。",flaw:"norm",n:"800 公尺的口令與哨音對他就是施測障礙。施測調整要先討論並記載，不是檢測當天現場想辦法。"},
+  {t:"每月與家長以聯絡簿確認 FM 系統使用情形。",flaw:null,n:"追蹤有頻率、有焦點，是機制不是客套。"}]},
+
+{lv:2,tag:"國中一年級・自閉症",title:"他不是挑釁，是不知道現在要做什麼",
+ intro:"小翔的 IEP 一半寫得很專業，另一半把需求寫成了罪狀。",
+ sents:[
+  {t:"小翔常在課堂中突然離開隊伍，繞著球場邊線走。",flaw:null,n:"有場景、無標籤的行為描述。先記錄看到什麼，再談是什麼。"},
+  {t:"研判為故意挑釁師長，屢勸不聽。",flaw:"impression",n:"「故意」是詮釋不是觀察。離開隊伍更可能是感官負荷或流程不可預期，先翻譯行為再下結論。"},
+  {t:"學年目標：籃球胸前傳球十次中七次傳到夥伴胸前位置。",flaw:null,n:"具體、可衡量、指向動作學習。"},
+  {t:"策略：口頭警告三次後，取消當節課參與資格。",flaw:"punish",n:"取消參與是處罰，而且拿學習權當籌碼。行為支持是預告、視覺流程與增強，不是驅逐。"},
+  {t:"提供圖示化課堂流程表，活動轉換前予以預告。",flaw:null,n:"可預期性做進課程結構，這才是給他的行為支持。"},
+  {t:"該生對數字有高度興趣，可協助設計計分表並參與計分輪值。",flaw:null,n:"優勢有記載且連到課程，「輪值」兩個字尤其關鍵：是角色，不是安置。"},
+  {t:"為避免同學誤解，開學時向全班說明其診斷與特質。",flaw:"label",n:"未經本人與家長同意的公開揭露。善意的說明仍是揭露，決定權不在老師。"},
+  {t:"PACER 檢測依全校統一梯次施測，未另行討論。",flaw:"norm",n:"PACER 的折返音訊與群測情境對他可能都是障礙。適用性要先討論並記載。"}]},
+
+{lv:3,tag:"高中二年級・肌肉萎縮症・電動輪椅",title:"「很乖，很配合」",
+ intro:"宇軒的 IEP 幾乎每一句都很順眼。問題就出在太順眼。",
+ sents:[
+  {t:"宇軒使用電動輪椅，上肢操作精細，地板滾球校隊選手，全國賽前八。",flaw:null,n:"身分、能力、表現都具體，這是有內容的現況。"},
+  {t:"個性溫和，很乖，很配合，無需特別關注。",flaw:"impression",n:"「很乖」是大人的方便，不是學生的現況。「無需關注」的結論，常常是需求被靜音的開始。"},
+  {t:"學期目標：地板滾球定點擲準十球中六球進入計分區，每月記錄。",flaw:null,n:"可衡量、有追蹤，而且長在他的強項上。"},
+  {t:"體適能經評估改以自編上肢操作與擲準測驗替代，採個人參照逐年比較（附紀錄）。",flaw:null,n:"替代測驗的正確流程：先評估、再替換、個人參照、留下紀錄。"},
+  {t:"班際比賽日，安排宇軒擔任攝影記錄，留下精彩畫面。",flaw:"exclude",n:"全國前八的選手，在班際賽拿相機。規則可以調整，鏡頭後面不是他的位置。"},
+  {t:"服務：融合班每週兩節，一學年；輪椅動線與場地平整度已檢核。",flaw:null,n:"量完整，環境檢核也做在前面。"},
+  {t:"學年目標：養成規律運動習慣，快樂上體育課。",flaw:"vague",n:"「快樂」與「習慣」都無法驗收。他已經是選手了，目標可以更有野心、更具體。"},
+  {t:"轉銜：畢業後鼓勵家人多帶他出門走走。",flaw:"wish",n:"他是全國前八的選手，社區地板滾球隊就在那裡。轉銜要寫銜接誰、何時、怎麼開始，不是把責任交給家人。"}]}
+];
+
+const FLAWTXT={
+ vague:{t:"不可測的目標",d:"找「提升、培養、增進、改善」開頭的句子。好目標有數字、精熟標準與可觀察的動作，寫下來就能驗收。"},
+ impression:{t:"結論不是描述",d:"「體能不佳」「相處融洽」都是印象。描述要有場景、工具或對照基準，否則撐不起任何目標。"},
+ swap:{t:"被偷換的體育目標",d:"秩序、服從、計分任務都不在課綱的學習內容裡。體育目標永遠指向動作學習與參與。"},
+ punish:{t:"處罰與記錄都不是支持",d:"行為支持是預防與教導。罰坐是處罰、紀錄表只是存檔，兩者都沒有教孩子任何事。"},
+ noquant:{t:"沒有量的承諾",d:"服務要有頻率與期程。「視需要」「適時提供」都是沒有數字的空話。"},
+ wish:{t:"祝福式轉銜",d:"「鼓勵」「自行安排」是祝福。轉銜要有地點、對象與可驗收的行動，而且是 IEP 團隊的責任。"},
+ exclude:{t:"排除被寫成安排",d:"「在旁觀看」「擔任計分」若沒有評估與調整的嘗試，就是把排除寫進了正式文件。"},
+ norm:{t:"未經調整的全校檢測",d:"PACER、捲腹、坐姿體前彎、800 及 1600 公尺跑走套在身心障礙學生身上之前，先問三件事：安全性、適用性、常模意義。必要時調整施測方式、改用替代測驗（如六分鐘走路測驗）或自編項目，並採個人參照。"},
+ label:{t:"未經同意的揭露",d:"向全班說明學生的診斷與特質，決定權在本人與家長，不在老師的善意。要寫進 IEP 的是「知情同意的紀錄」，不是揭露的計畫。"}};
+
+const HIT=15, FALSE_ALARM=-10, TIME_BONUS=10;
+let DOCS=[];
+let di=0,score=0,sel=new Set(),timer=null,left=75,useTimer=true;
+let hits=0,totalFlaws=0,missTypes={},faCount=0;
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));$(id).classList.add("on");window.scrollTo(0,0);}
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+function startGame(){
+  useTimer=!$("noTimer").checked;
+  DOCS=[1,2,3].map(l=>{const g=BANK.filter(d=>d.lv===l);return g[Math.floor(Math.random()*g.length)];});
+  totalFlaws=0;DOCS.forEach(d=>d.sents.forEach(s=>{if(s.flaw)totalFlaws++;}));
+  show("sGame");loadDoc();
+}
+function loadDoc(){
+  const d=DOCS[di];sel.clear();
+  $("hudRound").textContent="第 "+(di+1)+" 份／共 "+DOCS.length+" 份";
+  $("hudScore").textContent=score;
+  $("dTag").textContent=d.tag;$("dTitle").textContent=d.title;$("dIntro").textContent=d.intro;
+  $("nSel").textContent=0;
+  const box=$("dSents");box.innerHTML="";
+  d.sents.forEach((s,i)=>{
+    const b=document.createElement("button");
+    b.className="sent";b.innerHTML='<span class="flag">🚩</span><span>'+esc(s.t)+"</span>";
+    b.onclick=()=>{ if(sel.has(i)){sel.delete(i);b.classList.remove("sel");}
+      else {sel.add(i);b.classList.add("sel");}
+      $("nSel").textContent=sel.size;};
+    box.appendChild(b);});
+  if(useTimer){left=75;$("hudTimer").textContent=left;$("hudTimer").classList.remove("low");
+    timer=setInterval(()=>{left--;$("hudTimer").textContent=left;if(left<=15)$("hudTimer").classList.add("low");
+      if(left<=0){clearInterval(timer);submitDoc(true);}},1000);}
+  else $("hudTimer").textContent="∞";
+}
+function submitDoc(auto){
+  if(timer){clearInterval(timer);timer=null;}
+  const d=DOCS[di];let gain=0,dHit=0,dMiss=0,dFa=0;
+  const list=$("fbList");list.innerHTML="";
+  d.sents.forEach((s,i)=>{
+    const marked=sel.has(i);
+    let cls,ic,head,pt=0;
+    if(s.flaw&&marked){cls="g";ic="🎯";head="抓到了";pt=HIT;dHit++;hits++;}
+    else if(s.flaw&&!marked){cls="b";ic="❌";head="漏掉的問題句";missTypes[s.flaw]=(missTypes[s.flaw]||0)+1;dMiss++;}
+    else if(!s.flaw&&marked){cls="w";ic="⚠️";head="誤判：這句其實合格";pt=FALSE_ALARM;dFa++;faCount++;}
+    else {cls="n";ic="✔";head="正確放行";}
+    gain+=pt;
+    const el=document.createElement("div");el.className="fbcard "+cls;
+    el.innerHTML='<div class="h"><span>'+ic+'</span><span>'+head+(s.flaw?"（"+FLAWTXT[s.flaw].t+"）":"")+'</span><span class="pt">'+(pt?((pt>0?"+":"")+pt):"")+'</span></div>'
+      +'<div class="note">「'+esc(s.t)+'」</div><div class="note">'+esc(s.n)+"</div>";
+    list.appendChild(el);});
+  if(useTimer&&!auto&&left>30){gain+=TIME_BONUS;
+    const el=document.createElement("div");el.className="fbcard g";
+    el.innerHTML='<div class="h"><span>⚡</span><span>鑑識明快</span><span class="pt">+'+TIME_BONUS+'</span></div>';
+    list.appendChild(el);}
+  if(auto){const el=document.createElement("div");el.className="fbcard w";
+    el.innerHTML='<div class="h"><span>⏱</span><span>時間到，以目前標記結算</span></div>';
+    list.insertBefore(el,list.firstChild);}
+  score+=gain;
+  $("fbRound").textContent="第 "+(di+1)+" 份・"+(gain>=0?"+":"")+gain+" 分";
+  $("fbScore").textContent=score;
+  $("fbStat").textContent="抓到 "+dHit+"・漏 "+dMiss+"・誤判 "+dFa;
+  $("btnNext").textContent=di===DOCS.length-1?"看結果 →":"下一份 →";
+  show("sFb");
+}
+function nextDoc(){di++; if(di>=DOCS.length) return endGame(); show("sGame"); loadDoc();}
+function endGame(){
+  $("endScore").textContent=score;
+  const r=score>=170?["🔍 IEP 鑑識官","形容詞、空話、偷換的目標都逃不過你的眼睛。下一步是把這雙眼睛帶進真實的 IEP 會議。"]
+        :score>=120?["📋 品質把關者","大方向都抓得到，細微的類型（記錄不等於支持、結論不是描述）再磨一下。"]
+        :score>=60?["🌱 檢核見習生","你開始看得出「哪裡怪怪的」了。往下讀判讀線索，類型記熟就快了。"]
+        :["🔁 帶著線索再來一次","先記住一件事：形容詞不是證據。從這一條開始重玩。"];
+  $("endRank").textContent=r[0];
+  $("endSub").textContent=r[1]+"（問題句抓到 "+hits+"／"+totalFlaws+"，誤判 "+faCount+" 次）";
+  const box=$("endLessons");box.innerHTML="";
+  const keys=Object.keys(missTypes);
+  if(keys.length===0&&faCount===0){
+    const el=document.createElement("div");el.className="lesson g";
+    el.innerHTML='<div class="t">十二句問題句全數抓到，零誤判</div><div class="d">這份鑑識力請帶進實習與 IEP 會議。也可以試試進階版：把你自己寫過的教案或 IEP 拿出來照一遍。</div>';
+    box.appendChild(el);}
+  else{
+    keys.forEach(k=>{const T=FLAWTXT[k],el=document.createElement("div");el.className="lesson b";
+      el.innerHTML='<div class="t">'+T.t+"（漏掉 "+missTypes[k]+" 句）</div><div class=\"d\">"+T.d+"</div>";
+      box.appendChild(el);});
+    if(faCount>=3){const el=document.createElement("div");el.className="lesson b";
+      el.innerHTML='<div class="t">誤判偏多（'+faCount+' 次）</div><div class="d">別把「句子短」當成「句子壞」。合格句的特徵是有數字、有工具、有場景。先找證據，再下判斷。</div>';
+      box.appendChild(el);}}
+  if(LB_URL){$("lbPanel").style.display="block";loadBoard();}
+  show("sEnd");
+}
+function copyScore(){
+  const t="🔍 IEP 找碴｜我拿到 "+score+" 分・"+$("endRank").textContent+"（問題句 "+hits+"/"+totalFlaws+"）你能全數抓到嗎？";
+  navigator.clipboard.writeText(t).then(()=>alert("已複製，可貼到留言區或群組。")).catch(()=>alert("複製失敗，請手動選取。"));
+}
+
+/* ── 排行榜 ── */
+let sent_=false;
+async function loadBoard(){
+  try{
+    const r=await fetch(LB_URL+"?game="+encodeURIComponent(GAME_ID));const d=await r.json();
+    const top=(d.top||[]).slice(0,10),box=$("lbList");box.innerHTML="";
+    if(!top.length){box.textContent="還沒有人上榜，搶頭香！";return;}
+    top.forEach((e,i)=>{const el=document.createElement("div");el.className="lbItem";
+      el.innerHTML='<span class="no">'+(i+1)+'</span><span>'+esc(String(e.n||"匿名"))+'</span><span class="pts">'+Number(e.s||0)+"</span>";
+      box.appendChild(el);});
+  }catch(err){$("lbList").textContent="排行榜暫時連不上，稍後再試。";}
+}
+async function sendScore(){
+  if(sent_)return;
+  const name=($("lbName").value||"").trim().slice(0,12)||"匿名";
+  $("lbSend").disabled=true;$("lbSend").textContent="上傳中…";
+  try{
+    await fetch(LB_URL,{method:"POST",body:JSON.stringify({game:GAME_ID,name:name,score:score,rank:$("endRank").textContent})});
+    sent_=true;$("lbSend").textContent="已上傳 ✓";loadBoard();
+  }catch(err){$("lbSend").disabled=false;$("lbSend").textContent="上傳成績";alert("上傳失敗，請再試一次。");}
+}
+</script></body></html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>帕拉演講互動｜你是分級師＋標題翻轉器</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#0e1621;color:#eef2f6;min-height:100vh;padding:26px 20px 50px}
+.tabs{display:flex;gap:10px;justify-content:center;margin-bottom:24px}
+.tab{font:inherit;font-weight:900;font-size:1.05rem;padding:12px 30px;border-radius:14px;border:1.5px solid #24344a;background:#16212e;color:#9fb0c1;cursor:pointer}
+.tab.on{background:#B91C1C;border-color:#B91C1C;color:#fff}
+.view{display:none;max-width:900px;margin:0 auto}
+.view.on{display:block}
+h1{font-size:1.5rem;font-weight:900;text-align:center;margin-bottom:4px}
+.sub{text-align:center;color:#7d8b99;font-size:.88rem;margin-bottom:22px}
+.cards{display:flex;gap:16px;flex-wrap:wrap}
+.pcard{flex:1;min-width:260px;background:#16212e;border:1px solid #24344a;border-radius:16px;padding:20px 22px}
+.pcard h3{color:#fbbf24;font-size:1.05rem;margin-bottom:10px}
+.pcard p{font-size:.95rem;line-height:1.95;color:#c7d2dc}
+.qline{text-align:center;font-size:1.25rem;font-weight:900;margin:22px 0 14px}
+.opts{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.opt{font:inherit;font-weight:700;font-size:1rem;padding:12px 26px;border-radius:12px;border:1.5px solid #3a4c63;background:#16212e;color:#eef2f6;cursor:pointer}
+.opt.pick{background:#2563eb;border-color:#2563eb}
+.reveal{background:#1d2a1f;border:1.5px solid #15803D;border-radius:16px;padding:20px 24px;margin-top:20px;display:none;line-height:2}
+.reveal.show{display:block}
+.reveal b{color:#4ade80}
+.navrow{display:flex;justify-content:space-between;margin-top:22px}
+button.nav{font:inherit;font-weight:900;padding:11px 26px;border-radius:12px;border:1.5px solid #24344a;background:#16212e;color:#9fb0c1;cursor:pointer}
+.rvbtn{display:block;margin:18px auto 0;font:inherit;font-weight:900;font-size:1rem;padding:12px 30px;border-radius:12px;border:none;background:#15803D;color:#fff;cursor:pointer}
+/* headline flipper */
+.hbox{background:#16212e;border:1px solid #24344a;border-radius:20px;padding:34px 30px;text-align:center}
+.tag{display:inline-block;font-size:.85rem;font-weight:900;letter-spacing:.15em;padding:5px 16px;border-radius:99px;margin-bottom:18px}
+.tag.insp{background:#7E22CE;color:#fff}.tag.sport{background:#0F766E;color:#fff}
+.headline{font-size:clamp(1.3rem,3.6vw,2rem);font-weight:900;line-height:1.7;min-height:120px;display:flex;align-items:center;justify-content:center}
+.note{color:#7d8b99;font-size:.9rem;margin-top:16px;min-height:48px;line-height:1.9}
+.flip{font:inherit;font-weight:900;font-size:1.05rem;padding:13px 34px;border-radius:14px;border:none;background:#fbbf24;color:#173F63;cursor:pointer;margin-top:18px}
+.ask{color:#fbbf24;font-weight:700;margin-top:14px;font-size:1rem}
+</style></head><body>
+<div class="tabs">
+  <button class="tab on" onclick="tab(0)">⚖️ 你是分級師</button>
+  <button class="tab" onclick="tab(1)">📰 標題翻轉器</button>
+  <button class="tab" onclick="tab(2)">💬 語錄判讀</button>
+</div>
+
+<div class="view on" id="v0">
+  <h1>你是分級師</h1>
+  <div class="sub">十個分級難題：同級身體、誠信、科技、預備分級與分級的權力（除雪梨事件為史實外，人物均為虛構）——先表決，再揭示爭點</div>
+  <div id="round"></div>
+  <div class="navrow"><button class="nav" onclick="go(-1)">← 上一題</button><span id="rno" style="color:#7d8b99"></span><button class="nav" onclick="go(1)">下一題 →</button></div>
+</div>
+
+<div class="view" id="v1">
+  <h1>標題翻轉器</h1>
+  <div class="sub">同一場比賽，兩種寫法——按「翻轉」看差異</div>
+  <div class="hbox">
+    <span class="tag insp" id="htag">勵志框架</span>
+    <div class="headline" id="hline"></div>
+    <div class="ask" id="hask"></div>
+    <button class="flip" onclick="flip()">🔄 翻轉框架</button>
+    <div class="note" id="hnote"></div>
+  </div>
+  <div class="navrow"><button class="nav" onclick="hgo(-1)">← 上一則</button><span id="hno" style="color:#7d8b99"></span><button class="nav" onclick="hgo(1)">下一則 →</button></div>
+</div>
+
+<div class="view" id="v2">
+  <h1>語錄判讀：融合語言，還是微妙的能力主義？</h1>
+  <div class="sub">以下語錄改寫自大學生帕拉運動體驗後的典型反思——先判斷，再揭示</div>
+  <div class="hbox">
+    <div class="headline" id="qline2" style="min-height:140px"></div>
+    <div class="opts" style="margin-top:14px">
+      <button class="opt" onclick="pick2(this)">融合語言</button>
+      <button class="opt" onclick="pick2(this)">微妙的能力主義</button>
+      <button class="opt" onclick="pick2(this)">兩者並存</button>
+    </div>
+    <button class="rvbtn" onclick="document.getElementById('rv2').classList.add('show')">揭示</button>
+    <div class="reveal" id="rv2"></div>
+  </div>
+  <div class="navrow"><button class="nav" onclick="qgo(-1)">← 上一則</button><span id="qno2" style="color:#7d8b99"></span><button class="nav" onclick="qgo(1)">下一則 →</button></div>
+</div>
+
+<div id="case-placeholder"></div>
+<script>
+const ROUNDS=[
+{t:"同一級的兩種身體",
+ a:{n:"選手 A｜S8 級",d:"單側大腿截肢。損傷穩定、不隨狀態波動；使用義肢多年，出發與轉身技術成熟。"},
+ b:{n:"選手 B｜S8 級",d:"痙攣型腦性麻痺。肌張力隨疲勞、緊張與水溫波動；今天狀態好與不好，可能差一秒以上。"},
+ q:"兩人被分在同一級同場競技——你認為？",
+ opts:["公平","不公平","資訊不足，無法判斷"],
+ r:"<b>爭點：</b>分級依「活動限制程度」而非診斷——同級不代表同一種身體。截肢是穩定的，腦麻是波動的；同一級內「狀態波動性」的差異，是實證分級（evidence-based classification）還在處理的難題。<b>沒有標準答案</b>——這正是分級師每天面對的判斷。"},
+{t:"測試日的謎",
+ a:{n:"分級測試日",d:"選手 C 游出比個人最佳慢 12% 的成績，動作幅度明顯保守。"},
+ b:{n:"三週後正式比賽",d:"同一位選手刷新個人最佳，領先第二名半個泳池。"},
+ q:"你會怎麼判斷？",
+ opts:["故意誤報（IM），應調查","緊張或疲勞的正常波動","啟動觀察程序，蒐集更多證據"],
+ r:"<b>爭點：</b>故意誤報（intentional misrepresentation）被視為帕拉運動誠信的最大威脅——但「表現落差」本身不是證據，緊張、疲勞、策略性保留都可能存在。制度端的解方不是懷疑選手，而是<b>程序設計</b>：分級過程錄影、選手教育、明確罰則與申訴機制。"},
+{t:"進步的懲罰？",
+ a:{n:"選手 D｜三年前",d:"剛入隊，體能與技術皆弱，勉強達到分級測試的動作標準。"},
+ b:{n:"選手 D｜現在",d:"苦練三年，成績大幅進步、屢破全國紀錄。對手陣營檢舉：「功能變好了，應該升級。」"},
+ q:"該把選手 D 升到限制較少的級別嗎？",
+ opts:["應該升級","不應該升級","看重測數據決定"],
+ r:"<b>爭點：</b>這是「選擇性分級 vs 表現分級」的核心區別——帕拉分級測的是<b>損傷造成的活動限制</b>，不是比賽成績。訓練帶來的進步<b>不應</b>被升級懲罰，否則等於懲罰努力；只有損傷本身對應的功能改變，才是調級的理由（IPC 立場聲明的明文原則）。"},
+{t:"全盲與低視能，該同場嗎？",
+ a:{n:"選手 E｜全盲（原 B1）",d:"完全無光覺，柔道比賽中完全依賴觸覺與聽覺；過去與低視能選手同場，勝率長期偏低。"},
+ b:{n:"選手 F｜低視能（原 B3）",d:"保有部分視野與形體辨識，能預判對手重心移動；同場對戰全盲選手時佔明顯優勢。"},
+ q:"視覺損傷差距這麼大，該分開比嗎？",
+ opts:["應該分開","合併但調整規則","維持合併"],
+ r:"<b>爭點：</b>帕拉柔道 2022 年真的改了——從 B1–B3 合併改為 J1（全盲）／J2（低視能）兩級，賽果分析顯示新制縮小了表現差距。但代價是：級別變多、每級人數變少，<b>量級被迫合併變寬</b>，又製造了新的公平問題。分級改革永遠是取捨，不是一勞永逸。"},
+{t:"看不見的損傷",
+ a:{n:"選手 G｜智能障礙（II 類）",d:"檢附智力測驗與適應行為評估報告，符合資格標準。籃球場上戰術執行明顯優於同組對手。"},
+ b:{n:"質疑方",d:"對手教練質疑：「智力損傷怎麼影響籃球表現？他看起來完全沒有障礙。」"},
+ q:"「看不見的損傷」該怎麼把關？",
+ opts:["現行文件審查已足夠","應加入運動情境的認知測驗","乾脆取消此類別"],
+ r:"<b>爭點：</b>這不是假設性問題——2000 年雪梨帕運，西班牙智能障礙籃球隊被踢爆多數球員<b>資格造假</b>，導致整個智能障礙類別被逐出帕運，直到 2012 倫敦才重返，且新增了「智力損傷如何影響該項運動表現」的運動情境驗證。一次把關失靈，全球同類選手陪葬十二年。"},
+{t:"科技的邊界",
+ a:{n:"選手 H",d:"使用最新碳纖維競速義肢，單價超過八十萬元，由贊助商提供，每季依數據微調。"},
+ b:{n:"選手 I",d:"同級對手，使用基本款義肢——他所屬的國家與家庭，負擔不起下一個等級的裝備。"},
+ q:"這場比賽比的是身體，還是裝備？",
+ opts:["限制裝備規格","開放但公開裝備資訊","按裝備分開比賽"],
+ r:"<b>爭點：</b>McNamee 等人稱之為<b>程序公平</b>問題：分級控制了損傷差異，卻沒有控制科技與資源差異。IPC 的裝備政策原則是「運動表現應由身體能力主導」，但「主導」的界線劃在哪裡，至今沒有乾淨答案——而這條線的位置，直接決定哪些國家的選手有機會站上頒獎台。"},
+{t:"暫定的級別，正式的後果",
+ a:{n:"國內賽現場",d:"缺乏認證分級師，選手多以「預備分級」出賽——教練或大會依文件與目測先給暫定級別。"},
+ b:{n:"同一份成績單",d:"這些暫定級別下游出的成績，被用於全國紀錄、國手選拔與補助分配——後果全是正式的。"},
+ q:"暫定分級的成績，可以承載正式的後果嗎？",
+ opts:["可以，總得有起點","不可以，效度未定","過渡可用，但需設落日條款"],
+ r:"<b>爭點：</b>國際制度用 sport class status（New／Review／Confirmed）管理分級的<b>不確定性</b>——新分級的成績本來就該被視為暫時的。當本土分級量能長期缺位，「暫定」就變成事實上的永久：一個效度未定的分類，卻承載了選拔與資源分配的全部重量。要害不在分級師個人，在<b>量能投資</b>。"},
+{t:"不夠格的損傷",
+ a:{n:"選手 J",d:"輕度腦性麻痺，動作協調明顯受影響——跟一般選手比，起跑反應與步態讓他總是墊底。"},
+ b:{n:"分級結果",d:"經評估未達「最低損傷標準」（minimum impairment criteria），判定 NE（不符參賽資格）——帕拉賽場不收，一般賽場比不贏。"},
+ q:"損傷「不夠重」的人，該去哪裡比賽？",
+ opts:["放寬最低門檻","維持門檻，另設參與組","這不是分級該解決的問題"],
+ r:"<b>爭點：</b>最低損傷標準是分級的第一道門，它同時是科學問題（損傷是否影響該項運動表現）與<b>價值問題</b>（帕拉運動為誰存在）。門檻劃在哪裡，就製造出一群「兩邊都不屬於」的人——這是分級制度最少被討論的縫隙，也是「參與導向」賽事存在的理由。"},
+{t:"誰擁有分級？",
+ a:{n:"分級制度的權力",d:"分級決定你能不能比、跟誰比、獎牌值多少——它是帕拉運動的憲法。"},
+ b:{n:"運動員的位置",d:"規則由國際組織與分級師制定；運動員是被分類的對象，卻幾乎無從參與分類規則的制定與修訂。"},
+ q:"被分類的人，該參與分類規則的制定嗎？",
+ opts:["應該，設運動員代表席","不應該，維持專業獨立","公開所有分級數據即可"],
+ r:"<b>爭點：</b>Howe 與 Jones 批判 IPC 將分級權從障礙運動組織手中收編，「去賦權」了實踐社群；Powis 的訪談則顯示運動員對分級制度的不信任與流言文化。制度的<b>效度</b>（分得準不準）與<b>正當性</b>（被分的人服不服）是兩件事——只修效度，救不回正當性。"},
+{t:"分級邏輯的外溢",
+ a:{n:"某縣市身障運動體驗營",d:"報名表第一欄：「請填寫您的運動分級」。沒有分級的報名者被要求先取得證明，家長在電話中被問倒。"},
+ b:{n:"活動目的",d:"主辦單位的計畫書寫著：「推廣身心障礙者運動參與，培養終身運動習慣。」"},
+ q:"參與導向的活動，該用菁英分級的邏輯把關嗎？",
+ opts:["該，避免不公平","不該，參與階段不需要分級","簡化為功能分組即可"],
+ r:"<b>爭點：</b>這就是分級的「過度強勢」——菁英競技的分類工具外溢到基層，變成參與的<b>入場券</b>。長期發展模式的觀點（潘正宸、Legg, 2025）：覺察與首次參與階段需要的是低門檻與樂趣，分級是發展路徑<b>後段</b>的工具。先問「你是什麼級」再問「你要不要玩」，順序反了。"}];
+let R=0, picked=false;
+function renderR(){
+  const r=ROUNDS[R]; picked=false;
+  document.getElementById("rno").textContent=(R+1)+" / "+ROUNDS.length;
+  document.getElementById("round").innerHTML=
+   '<h1 style="font-size:1.2rem;color:#fbbf24;margin-bottom:14px">'+r.t+'</h1>'
+   +'<div class="cards"><div class="pcard"><h3>'+r.a.n+'</h3><p>'+r.a.d+'</p></div>'
+   +'<div class="pcard"><h3>'+r.b.n+'</h3><p>'+r.b.d+'</p></div></div>'
+   +'<div class="qline">'+r.q+'</div>'
+   +'<div class="opts">'+r.opts.map((o,i)=>'<button class="opt" onclick="pick(this)">'+o+'</button>').join('')+'</div>'
+   +'<button class="rvbtn" onclick="document.getElementById(\'rv\').classList.add(\'show\')">揭示爭點</button>'
+   +'<div class="reveal" id="rv">'+r.r+'</div>';
+}
+function pick(el){ document.querySelectorAll(".opt").forEach(o=>o.classList.remove("pick")); el.classList.add("pick"); }
+function go(d){ R=Math.max(0,Math.min(ROUNDS.length-1,R+d)); renderR(); window.scrollTo(0,0);}
+const HS=[
+{i:"「失去雙腿卻沒失去夢想——輪椅網球選手的生命奇蹟」",s:"「發球局零失誤　林○○直落二挺進輪椅網球四強」",
+ n:"勵志版整篇沒有告訴你：他今天打得怎麼樣。主角是「感動」，不是選手。"},
+{i:"「不向命運低頭！視障泳將在泳池裡找回人生」",s:"「50 公尺自由式刷新個人最佳　陳○○ S11 級摘銀」",
+ n:"運動版有級別、有項目、有成績——這是給運動員的報導，不是給觀眾的雞湯。"},
+{i:"「坐輪椅也能打球　他們的笑容治癒了全場」",s:"「攻防轉換快對手十秒　輪椅籃球隊逆轉闖進金牌戰」",
+ n:"「也能」兩個字，預設了他們本來不能。運動版報導的是戰術，不是慈善。"},
+{i:"「上天關了一扇門：腦麻跑者的奇蹟旅程」",s:"「配速策略奏效　T36 級張○○ 800 公尺摘銅」",
+ n:"「奇蹟」把訓練的功勞讓給了上天。銅牌是配速跑出來的，不是奇蹟掉下來的。"},
+{i:"「全場最感人的一幕！身障學生完賽　全校起立鼓掌」",s:"「完賽時間進步 4 分鐘　特教班學生完成第二場路跑」",
+ n:"被感動之前先問：他自己怎麼看這場比賽？「進步 4 分鐘」是他的敘事，「感人」是我們的。"},
+{i:"「殘而不廢！獨臂桌球手感動千萬網友」",s:"「反手擰球得分率六成　莊○○ TT8 級晉級四強」",
+ n:"「殘而不廢」這四個字本身就是問題——它的預設是「殘」理應「廢」。技術數據不需要這種讓步。"},
+{i:"「她用一條腿跳出生命的高度」",s:"「4 公尺 85 刷新全國紀錄　T63 級蕭○○跳遠奪金」",
+ n:"勵志版連她跳了幾公尺都沒說。紀錄是用數字寫的，不是用眼淚寫的。"},
+{i:"「視障按摩師的另一個身分：馬拉松勇者」",s:"「與陪跑員默契零失誤　全盲跑者江○○ 3 小時 08 分完賽達標」",
+ n:"「勇者」框架讓完賽變成勇氣的證明；運動框架裡，這是配速、補給與陪跑默契的技術成果。"},
+{i:"「這群孩子讓我們看見生命的韌性」",s:"「四個月訓練有成　特教班接力隊首度跑進校慶決賽」",
+ n:"「讓我們看見」——受益者是「我們」。運動版的受益者是他們自己：四個月的訓練，換來決賽資格。"},
+{i:"「催淚！腦麻男孩堅持爬完終點　母親淚崩」",s:"「使用助行器完成 900 公尺　吳○○：明年目標完整一圈」",
+ n:"「催淚」由旁觀者定義；「明年目標完整一圈」由他自己定義。把麥克風還給當事人，是最簡單的改寫。"}];
+let H=0, flipped=false;
+function renderH(){
+  const x=HS[H];
+  document.getElementById("hno").textContent=(H+1)+" / "+HS.length;
+  document.getElementById("htag").className="tag "+(flipped?"sport":"insp");
+  document.getElementById("htag").textContent=flipped?"運動框架":"勵志框架";
+  document.getElementById("hline").textContent=flipped?x.s:x.i;
+  document.getElementById("hask").textContent=flipped?"":"這則報導有告訴你，他比賽表現如何嗎？";
+  document.getElementById("hnote").textContent=flipped?x.n:"";
+}
+function flip(){ flipped=!flipped; renderH(); }
+function hgo(d){ H=Math.max(0,Math.min(HS.length-1,H+d)); flipped=false; renderH(); }
+
+const QS2=[
+{q:"「他們比我們還厲害，真的很不簡單。看完之後我覺得要更珍惜自己所擁有的。」",
+ r:"<b>兩者並存。</b>前半句重新評估了能力（融合方向）；但「珍惜自己所擁有的」是下行比較——把他人的處境當成自我安慰的素材。這句話的受益者是說話的人，不是被觀看的人。"},
+{q:"「規則調整之後我們可以同場競賽，輸贏取決於策略和默契，跟障礙沒有關係。」",
+ r:"<b>融合語言。</b>能力被重新定義為情境的函數（規則、策略、默契），障礙從「個人屬性」變成「可以被設計消解的變項」——這正是社會模式在課堂裡的樣子。"},
+{q:"「他們雖然身體有缺陷，但意志力超乎常人，非常勵志。」",
+ r:"<b>微妙的能力主義。</b>「缺陷＋超常意志」正是 supercrip 的標準公式：先把身體貶值，再用意志力補償。它同時暗示：不夠勵志的身障者，是不夠努力。"},
+{q:"「我發現我連坐式排球的基本規則都不知道——原來是我自己的知識不足。」",
+ r:"<b>融合語言。</b>問題被定位在自己的知識缺口，而不是對方的身體。這種「雙重認識」（看見對方的能力＋看見自己的無知）是單次體驗最有價值的認知重構。"},
+{q:"「看到他們這麼努力地生活，我覺得我的煩惱根本不算什麼。」",
+ r:"<b>微妙的能力主義。</b>inspiration porn 的完整結構：他人的日常存在被轉用為自己的心靈雞湯。注意——這句話裡沒有任何關於「運動表現」的內容，只有「被觀看的處境」。"},
+{q:"「輪椅籃球的急停轉向比我想像中難太多，他們的操控技術是真的強。」",
+ r:"<b>融合語言。</b>讚美的對象是「技術」——具體、可觀察、屬於運動的範疇。跟「意志力超乎常人」比較：一個讚美專業，一個讚美存在。"},
+{q:"「這堂課讓我以後看到身障朋友會主動去幫助他們。」",
+ r:"<b>兩者並存。</b>行為意圖是正向的，但「主動幫助」預設了對方需要幫助——想想個案裡的育安與小蓁：未經詢問的幫助，常是最溫柔的排除。更好的版本是「先問需不需要」。"}];
+let Q2=0;
+function renderQ2(){ document.getElementById("qno2").textContent=(Q2+1)+" / "+QS2.length;
+  document.getElementById("qline2").textContent=QS2[Q2].q;
+  const rv=document.getElementById("rv2"); rv.classList.remove("show"); rv.innerHTML=QS2[Q2].r;
+  document.querySelectorAll("#v2 .opt").forEach(o=>o.classList.remove("pick")); }
+function pick2(el){ document.querySelectorAll("#v2 .opt").forEach(o=>o.classList.remove("pick")); el.classList.add("pick"); }
+function qgo(d){ Q2=Math.max(0,Math.min(QS2.length-1,Q2+d)); renderQ2(); }
+
+function tab(i){ document.querySelectorAll(".tab").forEach((t,j)=>t.classList.toggle("on",i===j));
+  document.querySelectorAll(".view").forEach((v,j)=>v.classList.toggle("on",i===j)); }
+document.addEventListener("keydown",e=>{ if(e.key==="ArrowRight"){ if(document.getElementById("v0").classList.contains("on"))go(1); else hgo(1);} 
+  if(e.key==="ArrowLeft"){ if(document.getElementById("v0").classList.contains("on"))go(-1); else hgo(-1);} 
+  if(e.key===" "&&document.getElementById("v1").classList.contains("on")){e.preventDefault();flip();} });
+renderR(); renderH(); renderQ2();
+</script></body></html>

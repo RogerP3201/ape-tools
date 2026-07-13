@@ -1,0 +1,160 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>視覺計時器｜分站輪換</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f2f4f7;color:#16202b;min-height:100vh}
+header{background:linear-gradient(135deg,#173F63,#0F766E);color:#fff;padding:18px;text-align:center}
+h1{font-size:1.3rem;font-weight:900;letter-spacing:.04em}
+header p{font-size:.8rem;opacity:.9;margin-top:4px}
+.wrap{max-width:560px;margin:0 auto;padding:16px}
+.card{background:#fff;border:1px solid #e5e9ee;border-radius:16px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:14px}
+.card h2{font-size:.9rem;color:#4a564f;margin-bottom:12px}
+.f{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.f label{font-size:.9rem;font-weight:900;color:#5b6773;flex:0 0 96px}
+.f input{flex:1;font:inherit;font-weight:900;padding:10px 12px;border:1.5px solid #e0e4e9;border-radius:10px;text-align:center}
+.f .u{font-size:.8rem;color:#8a97a0}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.presets button{font:inherit;font-size:.82rem;font-weight:900;padding:8px 14px;border-radius:999px;border:1.5px solid #e0e4e9;background:#fff;color:#1F4E79;cursor:pointer}
+.names{width:100%;font:inherit;padding:10px 12px;border:1.5px solid #e0e4e9;border-radius:10px;resize:vertical;min-height:60px}
+.start{width:100%;font:inherit;font-weight:900;font-size:1.15rem;padding:15px;border-radius:14px;border:none;background:#0F766E;color:#fff;cursor:pointer}
+/* run screen */
+#run{display:none;position:fixed;inset:0;z-index:20;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;color:#fff;transition:background .3s}
+#run.on{display:flex}
+#run.work{background:#0F766E}#run.rest{background:#B45309}#run.prep{background:#173F63}#run.done{background:#0e1621}
+.phase{font-size:clamp(1.6rem,7vw,2.4rem);font-weight:900;letter-spacing:.1em}
+.ringwrap{position:relative;width:min(72vw,320px);height:min(72vw,320px);margin:8px 0}
+.ringwrap svg{transform:rotate(-90deg);width:100%;height:100%}
+.count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(3.5rem,20vw,7rem);font-weight:900;font-variant-numeric:tabular-nums}
+.meta{font-size:clamp(1.1rem,4.5vw,1.6rem);font-weight:900;margin:2px 0}
+.next{font-size:.95rem;opacity:.85;margin-top:2px}
+.dots{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 4px;max-width:90vw}
+.dots i{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.3)}
+.dots i.done{background:#fff}.dots i.cur{background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.35)}
+.ctrl{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+.ctrl button{font:inherit;font-weight:900;font-size:1.05rem;padding:14px 30px;border-radius:14px;border:none;cursor:pointer;background:rgba(255,255,255,.18);color:#fff}
+.ctrl .main{background:#fff;color:#16202b}
+.exit{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:999px;padding:8px 16px;font:inherit;font-weight:900;font-size:.82rem;cursor:pointer}
+.spk{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:999px;padding:8px 16px;font:inherit;font-weight:900;font-size:.82rem;cursor:pointer}
+</style></head><body>
+<header><h1>⏱ 視覺計時器</h1><p>循環訓練・分站輪換｜大字倒數＋顏色＋提示音</p></header>
+<div class="wrap">
+<div class="card"><h2>快速設定</h2>
+  <div class="presets" id="presets"></div>
+</div>
+<div class="card"><h2>自訂</h2>
+  <div class="f"><label>運動時間</label><input id="work" type="number" min="1" value="30"><span class="u">秒</span></div>
+  <div class="f"><label>休息時間</label><input id="rest" type="number" min="0" value="15"><span class="u">秒</span></div>
+  <div class="f"><label>回合／站數</label><input id="rounds" type="number" min="1" value="6"><span class="u">次</span></div>
+  <div class="f"><label>預備</label><input id="prep" type="number" min="0" value="5"><span class="u">秒</span></div>
+  <h2 style="margin-top:6px">各站名稱（每行一站，可留白）</h2>
+  <textarea class="names" id="stnames" placeholder="深蹲&#10;伏地挺身&#10;彈力帶划船…"></textarea>
+</div>
+<button class="start" onclick="startTimer()">▶ 開始</button>
+</div>
+
+<div id="run">
+  <button class="spk" id="spk" onclick="toggleSpeak()">🔊 語音開</button>
+  <button class="exit" onclick="exitTimer()">✕ 結束</button>
+  <div class="phase" id="phase">預備</div>
+  <div class="ringwrap"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="92" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="14"/><circle id="ring" cx="100" cy="100" r="92" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/></svg><div class="count" id="count">5</div></div>
+  <div class="meta" id="meta"></div>
+  <div class="next" id="next"></div>
+  <div class="dots" id="dots"></div>
+  <div class="ctrl">
+    <button class="main" id="pausebtn" onclick="togglePause()">⏸ 暫停</button>
+    <button onclick="skipPhase()">⏭ 跳過</button>
+    <button onclick="resetTimer()">↺ 重來</button>
+  </div>
+</div>
+<script>
+const PRESETS=[
+ {label:"Tabata 20/10 ×8",work:20,rest:10,rounds:8,prep:5},
+ {label:"30/15 ×6",work:30,rest:15,rounds:6,prep:5},
+ {label:"45/15 ×5",work:45,rest:15,rounds:5,prep:5},
+ {label:"60/30 ×5",work:60,rest:30,rounds:5,prep:10},
+ {label:"分站 40/20 ×8",work:40,rest:20,rounds:8,prep:10}
+];
+const R=92, CIRC=2*Math.PI*R;
+let seq=[], idx=0, remain=0, total=0, timer=null, paused=false, endAt=0, speakOn=true, names=[];
+document.getElementById("ring").style.strokeDasharray=CIRC;
+function buildPresets(){
+  document.getElementById("presets").innerHTML=PRESETS.map((p,i)=>`<button onclick="applyPreset(${i})">${p.label}</button>`).join("");
+}
+function applyPreset(i){const p=PRESETS[i];work.value=p.work;rest.value=p.rest;rounds.value=p.rounds;prep.value=p.prep;}
+function say(t){if(!speakOn)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="zh-TW";u.rate=1;speechSynthesis.speak(u);}catch(e){}}
+function toggleSpeak(){speakOn=!speakOn;document.getElementById("spk").textContent=speakOn?"🔊 語音開":"🔇 語音關";if(!speakOn)speechSynthesis.cancel();}
+// beep
+let ac=null;
+function beep(freq,dur,vol){try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=freq;o.type="sine";g.gain.value=vol||.2;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+dur);}catch(e){}}
+function startTimer(){
+  const w=+work.value||30, r=+rest.value||0, n=Math.max(1,+rounds.value||1), pr=+prep.value||0;
+  names=document.getElementById("stnames").value.split("\n").map(s=>s.trim()).filter(Boolean);
+  seq=[];
+  if(pr>0) seq.push({type:"prep",sec:pr,label:"預備",round:0});
+  for(let i=1;i<=n;i++){
+    seq.push({type:"work",sec:w,label:"運動",round:i,station:names[i-1]||("第 "+i+" 站")});
+    if(r>0 && i<n) seq.push({type:"rest",sec:r,label:"休息",round:i});
+  }
+  idx=0; document.getElementById("run").classList.add("on");
+  buildDots(n); enterPhase();
+}
+function buildDots(n){document.getElementById("dots").innerHTML=Array.from({length:n},()=>'<i></i>').join("");}
+function curRound(){return seq[idx]?seq[idx].round:0;}
+function updateDots(){
+  const ds=document.querySelectorAll(".dots i");const cr=curRound();
+  ds.forEach((d,i)=>{d.className="";const rn=i+1;if(rn<cr)d.classList.add("done");else if(rn===cr&&seq[idx].type==="work")d.classList.add("cur");else if(rn===cr)d.classList.add("done");});
+}
+function enterPhase(){
+  const p=seq[idx];const run=document.getElementById("run");
+  run.className="on "+p.type;
+  document.getElementById("phase").textContent=p.label;
+  let meta="", nxt="";
+  const totalRounds=seq.filter(s=>s.type==="work").length;
+  if(p.type==="work"){meta=p.station+"　("+p.round+"/"+totalRounds+")";const nx=seq.slice(idx+1).find(s=>s.type==="work");nxt=nx?"下一站："+nx.station:"最後一站！";say(p.station+"，開始");}
+  else if(p.type==="rest"){meta="休息一下";const nx=seq.slice(idx+1).find(s=>s.type==="work");nxt=nx?"下一站："+nx.station:"";say("休息");}
+  else {meta="準備開始";const nx=seq.find(s=>s.type==="work");nxt=nx?"第一站："+nx.station:"";say("預備");}
+  document.getElementById("meta").textContent=meta;
+  document.getElementById("next").textContent=nxt;
+  updateDots();
+  remain=p.sec; total=p.sec; paused=false;
+  document.getElementById("pausebtn").textContent="⏸ 暫停";
+  beep(p.type==="work"?880:660,.18);
+  endAt=Date.now()+remain*1000;
+  tick();
+  clearInterval(timer); timer=setInterval(loop,100);
+}
+function loop(){
+  if(paused){endAt=Date.now()+remain*1000;return;}
+  remain=Math.max(0,(endAt-Date.now())/1000);
+  tick();
+  if(remain<=0.05){ clearInterval(timer); nextPhase(); }
+}
+let lastWhole=-1;
+function tick(){
+  const shown=Math.ceil(remain);
+  document.getElementById("count").textContent=shown;
+  const frac=total>0?remain/total:0;
+  document.getElementById("ring").style.strokeDashoffset=CIRC*(1-frac);
+  if(shown!==lastWhole){ if(shown<=3&&shown>0) beep(1000,.1,.25); lastWhole=shown; }
+}
+function nextPhase(){
+  idx++;
+  if(idx>=seq.length){ finish(); return; }
+  enterPhase();
+}
+function finish(){
+  clearInterval(timer);
+  document.getElementById("run").className="on done";
+  document.getElementById("phase").textContent="完成！";
+  document.getElementById("count").textContent="🏆";
+  document.getElementById("ring").style.strokeDashoffset=0;
+  document.getElementById("meta").textContent="全部做完了，做得好！";
+  document.getElementById("next").textContent="";
+  beep(660,.15);setTimeout(()=>beep(880,.25),180);say("全部完成，做得好");
+}
+function togglePause(){paused=!paused;document.getElementById("pausebtn").textContent=paused?"▶ 繼續":"⏸ 暫停";if(paused)speechSynthesis.cancel();}
+function skipPhase(){clearInterval(timer);nextPhase();}
+function resetTimer(){clearInterval(timer);idx=0;const n=seq.filter(s=>s.type==="work").length;buildDots(n);enterPhase();}
+function exitTimer(){clearInterval(timer);speechSynthesis.cancel();document.getElementById("run").classList.remove("on");document.getElementById("run").className="";}
+buildPresets();
+</script></body></html>

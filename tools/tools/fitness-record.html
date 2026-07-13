@@ -1,0 +1,265 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>適應體育班體適能紀錄</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f2f4f7;color:#16202b;padding-bottom:60px}
+header{background:linear-gradient(135deg,#173F63,#0F766E);color:#fff;padding:18px;text-align:center}
+h1{font-size:1.3rem;font-weight:900}
+header p{font-size:.78rem;opacity:.85;margin-top:3px}
+.wrap{max-width:1060px;margin:0 auto;padding:14px}
+.topbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+select,input[type=text],input[type=number],input[type=date]{font:inherit;font-size:.9rem;padding:8px 10px;border:1.5px solid #dde2e8;border-radius:9px;background:#fff;max-width:100%}
+input[type=number]{width:90px}
+button{font:inherit;font-weight:900;font-size:.88rem;padding:9px 18px;border-radius:10px;border:none;cursor:pointer;background:#1F4E79;color:#fff}
+button.ghost{background:#fff;color:#1F4E79;border:1.5px solid #1F4E79}
+button.warn{background:#fff;color:#B91C1C;border:1.5px solid #B91C1C}
+.sec{background:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.sec h2{font-size:1rem;font-weight:900;color:#1F4E79;margin-bottom:12px;border-left:5px solid #1F4E79;padding-left:10px}
+.row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;align-items:center}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:.75rem;font-weight:900;color:#5b6773}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{border:1px solid #e3e7ec;padding:7px 8px;text-align:center;vertical-align:middle}
+th{background:#eef2f6;font-weight:900;font-size:.8rem}
+td.name{text-align:left;font-weight:700;min-width:150px}
+td input{width:80px;text-align:center;padding:5px}
+.avg{font-weight:900;color:#0F766E}
+.delta{font-weight:900}
+.delta.up{color:#15803D}.delta.down{color:#B91C1C}
+.na{background:#fcfdfe}
+.na td.name::after{content:"　⚠ 依施測參考分類可能不適用（僅供參考）";font-size:.68rem;color:#B45309;font-weight:900}
+.tagrow{display:flex;gap:8px;flex-wrap:wrap}
+.dtag{border:1.5px solid #dde2e8;border-radius:999px;padding:5px 14px;font-size:.82rem;font-weight:700;cursor:pointer;color:#5b6773;background:#fff}
+.dtag.on{background:#0F766E;border-color:#0F766E;color:#fff}
+.gm{font-size:.78rem;color:#5b6773;line-height:1.7;background:#f6f8fa;border-radius:10px;padding:8px 12px;margin-top:6px}
+.hint{font-size:.75rem;color:#8b97a3;margin-top:4px}
+.appl{font-size:.7rem;color:#B45309;font-weight:900}
+@media print{header .no-print,.topbar,button{display:none!important}body{background:#fff}.sec{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}}
+</style></head><body>
+<header><h1>適應體育班體適能紀錄</h1><p>潘正宸製表（數位版）・前測／後測並列・資料存於本機瀏覽器</p></header>
+<div class="wrap">
+<div class="topbar">
+  <select id="stuSel" onchange="loadStu()"></select>
+  <input type="text" id="newName" placeholder="新學生姓名">
+  <button onclick="addStu()">＋ 新增學生</button>
+  <button class="ghost" onclick="exportCSV()">⬇ 匯出全部 CSV</button>
+  <button class="ghost" onclick="window.print()">🖨 列印本頁</button>
+  <button class="warn" onclick="delStu()">刪除此學生</button>
+</div>
+
+<div class="sec"><h2>個人基本資料</h2>
+<div class="row">
+  <div class="f"><label>學號</label><input type="text" id="sid" style="width:120px"></div>
+  <div class="f"><label>性別</label><select id="sex"><option></option><option>男</option><option>女</option></select></div>
+  <div class="f"><label>年級／科系</label><input type="text" id="grade" style="width:140px"></div>
+  <div class="f"><label>年齡</label><input type="number" id="age"></div>
+  <div class="f"><label>前測日期</label><input type="date" id="dpre"></div>
+  <div class="f"><label>後測日期</label><input type="date" id="dpost"></div>
+</div>
+<div class="row">
+  <div class="f"><label>身分類別</label>
+    <select id="stype">
+      <option value=""></option>
+      <option>具特殊教育身分</option>
+      <option>短期傷病（暫時無法上一般體育課）</option>
+      <option>生理狀況（未達特教鑑定）</option>
+      <option>無</option>
+    </select></div>
+  <div class="f" style="flex:1"><label>特殊教育法障礙類別（可複選；勾選後系統會「建議」施測分類）</label>
+    <div class="tagrow" id="spedTags"></div></div>
+</div>
+<div class="row">
+  <div class="f" style="flex:1"><label>施測參考分類（僅為建議標示，不會鎖住任何欄位，可自行增減）</label>
+  <div class="tagrow" id="disTags"></div></div>
+</div>
+<div class="row">
+  <div class="f"><label>障礙程度</label><select id="sev"><option></option><option>無</option><option>輕度</option><option>中度</option><option>重度</option><option>極重度</option></select></div>
+  <div class="f" style="flex:1"><label>GMFCS 粗大動作功能分類（腦性麻痺適用）</label>
+    <select id="gmfcs" onchange="gmNote()">
+      <option value="">不適用／未評</option>
+      <option value="I">第 I 級</option><option value="II">第 II 級</option><option value="III">第 III 級</option>
+      <option value="IV">第 IV 級</option><option value="V">第 V 級</option>
+    </select>
+    <div class="gm" id="gmtxt">選擇級別後顯示說明。</div>
+  </div>
+</div>
+<div class="row">
+  <div class="f" style="flex:1"><label>生理狀況／傷病描述（自陳：如膝關節過度鬆弛、脊椎術後、骨折復原中…）</label><input type="text" id="other" style="width:100%"></div>
+  <div class="f" style="flex:1"><label>用藥（用途）</label><input type="text" id="med" style="width:100%"></div>
+</div>
+</div>
+
+<div class="sec"><h2>身體組成及血壓</h2><table id="tBody"></table>
+<div class="hint">BMI、WHR、WHtR 由系統自動計算。</div></div>
+
+<div class="sec"><h2>柔軟度（三次試作，自動取平均）</h2><table id="tFlex"></table>
+<div class="hint">坐姿體前彎請註記是否穿鞋：<label><input type="checkbox" id="shoePre">前測穿鞋</label>　<label><input type="checkbox" id="shoePost">後測穿鞋</label>　目標伸展測驗（TST）見下表。</div>
+<table id="tTST" style="margin-top:10px"></table></div>
+
+<div class="sec"><h2>心肺適能</h2><table id="tCardio"></table></div>
+<div class="sec"><h2>肌肉適能</h2><table id="tMusc"></table></div>
+<div class="sec"><h2>備註</h2>
+<textarea id="note" rows="4" style="width:100%;font:inherit;font-size:.9rem;padding:10px;border:1.5px solid #dde2e8;border-radius:10px" placeholder="施測當日狀況、器材調整、中斷原因、需要追蹤的事項……"></textarea>
+</div>
+<div class="hint" style="margin:0 4px 20px">測驗適用代號：a 心智障礙、b 脊髓損傷、c 腦性麻痺、d 視覺障礙（依 Winnick & Short, 2014; Marks et al., 2008; Edelman Bos et al., 2022）。系統只做「建議標示」（⚠），不會鎖住或反灰任何欄位——最終施測判斷由教師決定。</div>
+</div>
+<script>
+const GM={"I":"第 I 級：能不受限制行走；進階動作技巧（跑、跳）速度與協調受限。",
+"II":"第 II 級：能行走但在長距離、不平地面或人群中受限；上下樓梯需扶手。",
+"III":"第 III 級：使用手持行動輔具（拐杖、助行器）行走；長距離常使用輪式行動裝置。",
+"IV":"第 IV 級：自我移動受限；多使用電動行動裝置或由他人協助推行。",
+"V":"第 V 級：以人力推送之輪椅移動；頭部與軀幹姿勢控制受限。"};
+const DIS=[["a","心智障礙"],["b","脊髓損傷"],["c","腦性麻痺"],["d","視覺障礙"]];
+const SPED=["智能障礙","視覺障礙","聽覺障礙","語言障礙","肢體障礙","腦性麻痺","身體病弱","情緒行為障礙","學習障礙","自閉症","多重障礙","發展遲緩","其他障礙"];
+const SPEDMAP={"智能障礙":"a","腦性麻痺":"c","視覺障礙":"d","肢體障礙":"b"};
+// items: [key, 名稱, 單位, 適用代號(空=全部), trials(1或3), 高分較好true/低分較好false]
+const BODY=[["h","身高","公分","",1,null],["w","體重","公斤","",1,null],["fat","體脂肪","%","d",1,false],
+ ["waist","腰圍","公分","",1,false],["hip","臀圍","公分","",1,null],["sbp","收縮壓","mmHg","",1,null],["dbp","舒張壓","mmHg","",1,null]];
+const FLEX=[["sr","坐姿體前彎","公分","ad",3,true],["shL","肩部柔軟度（左）","公分","bcd",3,true],["shR","肩部柔軟度（右）","公分","bcd",3,true]];
+const TST=[["wristL","腕伸展（左）"],["wristR","腕伸展（右）"],["elbowL","肘伸展（左）"],["elbowR","肘伸展（右）"],["shoExtL","肩伸展（左）"],["shoExtR","肩伸展（右）"]];
+const CARDIO=[["6mwt","6 分鐘走路測驗 6MWT","公尺","a",1,true],["pacer","PACER","趟數","a",1,true],["6mfrt","6 分鐘輪椅推行 6MFRT","公尺","bc",1,true]];
+const MUSC=[["curl","捲腹","次數","ad",1,true],["grip","握力","kg","acd",1,true],["push","伏地挺身","次數","d",1,true],
+ ["dip","立姿挺身（輪椅使用者）","秒數","bc",1,true],["sts","一分鐘坐到站","次數","",1,true],["jump","立定跳遠","公分","",1,true]];
+const ALL={tBody:BODY,tFlex:FLEX,tCardio:CARDIO,tMusc:MUSC};
+
+let db=JSON.parse(localStorage.getItem("fitdb")||"{}");
+let cur=null;
+function saveDB(){ localStorage.setItem("fitdb",JSON.stringify(db)); }
+function stuNames(){ return Object.keys(db); }
+function refreshSel(){
+  const s=document.getElementById("stuSel");
+  s.innerHTML=stuNames().map(n=>'<option'+(n===cur?' selected':'')+'>'+n+'</option>').join('');
+  if(!stuNames().length) s.innerHTML='<option>（尚無學生）</option>';
+}
+function addStu(){
+  const n=document.getElementById("newName").value.trim();
+  if(!n) return;
+  if(!db[n]) db[n]={dis:[],v:{}};
+  cur=n; document.getElementById("newName").value="";
+  saveDB(); refreshSel(); loadStu();
+}
+function delStu(){ if(!cur) return; if(!confirm("確定刪除「"+cur+"」的所有紀錄？")) return;
+  delete db[cur]; cur=stuNames()[0]||null; saveDB(); refreshSel(); loadStu(); }
+function loadStu(){
+  const sel=document.getElementById("stuSel");
+  if(stuNames().length && sel.value && db[sel.value]) cur=sel.value;
+  const d=cur?db[cur]:{dis:[],v:{}};
+  ["sid","sex","grade","age","dpre","dpost","sev","gmfcs","other","med","stype","note"].forEach(k=>{
+    document.getElementById(k).value=d[k]||""; });
+  document.getElementById("shoePre").checked=!!d.shoePre;
+  document.getElementById("shoePost").checked=!!d.shoePost;
+  gmNote(); renderDis(); renderTables();
+}
+function field(k){ const d=db[cur]; return d.v[k]||{}; }
+function setV(k,slot,val){ if(!cur)return; db[cur].v[k]=db[cur].v[k]||{}; db[cur].v[k][slot]=val; saveDB(); renderTables(); }
+function meta(){ if(!cur)return;
+  ["sid","sex","grade","age","dpre","dpost","sev","gmfcs","other","med","stype","note"].forEach(k=>{ db[cur][k]=document.getElementById(k).value; });
+  db[cur].shoePre=document.getElementById("shoePre").checked;
+  db[cur].shoePost=document.getElementById("shoePost").checked;
+  saveDB();
+}
+document.addEventListener("change",e=>{ if(["sid","sex","grade","age","dpre","dpost","sev","gmfcs","other","med","stype","note","shoePre","shoePost"].includes(e.target.id)) meta(); });
+function gmNote(){ const v=document.getElementById("gmfcs").value;
+  document.getElementById("gmtxt").textContent=GM[v]||"選擇級別後顯示說明。"; }
+function renderSped(){
+  const d=cur?db[cur]:{sped:[]}; const sp=d.sped||[];
+  document.getElementById("spedTags").innerHTML=SPED.map(x=>
+   '<span class="dtag'+(sp.includes(x)?' on':'')+'" onclick="togSped(&quot;'+x+'&quot;)">'+x+'</span>').join('');
+}
+function togSped(c){ if(!cur)return; const d=db[cur]; d.sped=d.sped||[];
+  if(d.sped.includes(c)){ d.sped=d.sped.filter(x=>x!==c); }
+  else { d.sped.push(c);
+    const m=SPEDMAP[c]; if(m && !(d.dis||[]).includes(m)){ d.dis=[...(d.dis||[]),m]; } }
+  saveDB(); renderDis(); renderTables(); }
+function renderDis(){ renderSped();
+  const d=cur?db[cur]:{dis:[]};
+  document.getElementById("disTags").innerHTML=DIS.map(x=>
+   '<span class="dtag'+(d.dis.includes(x[0])?' on':'')+'" onclick="togDis(\''+x[0]+'\')">'+x[0]+'　'+x[1]+'</span>').join('');
+}
+function togDis(c){ if(!cur)return; const d=db[cur];
+  d.dis=d.dis.includes(c)?d.dis.filter(x=>x!==c):[...d.dis,c]; saveDB(); renderDis(); renderTables(); }
+function applicable(codes){ if(!codes) return true; if(!cur) return true;
+  const d=db[cur].dis||[]; if(!d.length) return true;
+  return d.some(x=>codes.includes(x)); }
+function num(x){ const f=parseFloat(x); return isNaN(f)?null:f; }
+function tin(k,slot,val){ return '<input type="number" step="0.1" value="'+(val==null?'':val)+'" onchange="setV(\''+k+'\',\''+slot+'\',this.value)">'; }
+function trialCells(k,slot){
+  const v=field(k)[slot]||{}; let cells='';
+  for(let i=1;i<=3;i++) cells+='<td>'+ '<input type="number" step="0.1" value="'+(v["t"+i]==null?'':v["t"+i])+'" onchange="setT(\''+k+'\',\''+slot+'\','+i+',this.value)">'+'</td>';
+  const arr=[v.t1,v.t2,v.t3].map(num).filter(x=>x!=null);
+  const avg=arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length):null;
+  return {cells:cells, avg:avg};
+}
+function setT(k,slot,i,val){ if(!cur)return; db[cur].v[k]=db[cur].v[k]||{}; db[cur].v[k][slot]=db[cur].v[k][slot]||{};
+  db[cur].v[k][slot]["t"+i]=val; saveDB(); renderTables(); }
+function deltaCell(pre,post,better){
+  if(pre==null||post==null) return '<td>—</td>';
+  const d=post-pre; const good = better==null? null : (better? d>0 : d<0);
+  const cls = good==null?'':(good?'up':(d===0?'':'down'));
+  return '<td class="delta '+cls+'">'+(d>0?'+':'')+d.toFixed(1)+(good==null?'':(good?' ▲':(d===0?'':' ▼')))+'</td>';
+}
+function renderTables(){
+  if(!cur){ ["tBody","tFlex","tCardio","tMusc","tTST"].forEach(id=>document.getElementById(id).innerHTML=""); return; }
+  for(const [tid,items] of Object.entries(ALL)){
+    let html='<tr><th style="text-align:left">測驗項目</th><th>前測</th><th>後測</th><th>變化</th></tr>';
+    items.forEach(it=>{
+      const [k,name,unit,codes,trials,better]=it;
+      const ap=applicable(codes);
+      const cls=ap?'':' class="na"';
+      if(trials===3){
+        const p=trialCells(k,"pre"), q=trialCells(k,"post");
+        html+='<tr'+cls+'><td class="name">'+name+'（'+unit+'）'+(codes?' <span class="appl">'+codes+'</span>':'')+'<div class="hint">三次試作</div></td>'
+          +'<td><table style="border:none"><tr>'+p.cells+'</tr></table><div class="avg">平均 '+(p.avg==null?'—':p.avg.toFixed(1))+'</div></td>'
+          +'<td><table style="border:none"><tr>'+q.cells+'</tr></table><div class="avg">平均 '+(q.avg==null?'—':q.avg.toFixed(1))+'</div></td>'
+          +deltaCell(p.avg,q.avg,better)+'</tr>';
+      } else {
+        const v=field(k);
+        html+='<tr'+cls+'><td class="name">'+name+'（'+unit+'）'+(codes?' <span class="appl">'+codes+'</span>':'')+'</td>'
+          +'<td>'+tin(k,"pre",v.pre)+'</td><td>'+tin(k,"post",v.post)+'</td>'
+          +deltaCell(num(v.pre),num(v.post),better)+'</tr>';
+      }
+    });
+    if(tid==="tBody"){
+      const g=k=>num((field(k)||{}).pre), g2=k=>num((field(k)||{}).post);
+      const mk=(label,f)=>{
+        const a=f(g), b=f(g2);
+        return '<tr><td class="name">'+label+'（自動計算）</td><td class="avg">'+(a==null?'—':a.toFixed(2))+'</td><td class="avg">'+(b==null?'—':b.toFixed(2))+'</td>'+deltaCell(a,b,false)+'</tr>';
+      };
+      html+=mk("BMI",gv=>{const h=gv("h"),w=gv("w");return(h&&w)?w/((h/100)**2):null;});
+      html+=mk("WHR 腰臀比",gv=>{const a=gv("waist"),b=gv("hip");return(a&&b)?a/b:null;});
+      html+=mk("WHtR 腰身高比",gv=>{const a=gv("waist"),b=gv("h");return(a&&b)?a/b:null;});
+    }
+    document.getElementById(tid).innerHTML=html;
+  }
+  // TST
+  let t='<tr><th style="text-align:left">目標伸展測驗 TST（0–2 分）<span class="appl"> bc</span></th><th>前測</th><th>後測</th><th>變化</th></tr>';
+  TST.forEach(([k,name])=>{
+    const v=field("tst_"+k);
+    const selHtml=slot=>{const cv=v[slot];return '<select onchange="setV(\'tst_'+k+'\',\''+slot+'\',this.value)"><option value=""></option>'+[0,1,2].map(x=>'<option'+(cv==x?' selected':'')+'>'+x+'</option>').join('')+'</select>';};
+    t+='<tr'+(applicable("bc")?'':' class="na"')+'><td class="name">'+name+'</td><td>'+selHtml("pre")+'</td><td>'+selHtml("post")+'</td>'+deltaCell(num(v.pre),num(v.post),true)+'</tr>';
+  });
+  document.getElementById("tTST").innerHTML=t;
+}
+function exportCSV(){
+  const items=[...BODY,...FLEX,...CARDIO,...MUSC];
+  let head=["姓名","學號","性別","年級","年齡","身分類別","特教類別","施測分類","狀況描述","障礙程度","GMFCS","前測日期","後測日期","備註"];
+  items.forEach(i=>{ head.push(i[1]+"_前測",i[1]+"_後測"); });
+  TST.forEach(i=>{ head.push("TST_"+i[1]+"_前測","TST_"+i[1]+"_後測"); });
+  let rows=[head.join(",")];
+  for(const n of stuNames()){
+    const d=db[n]; const r=[n,d.sid||"",d.sex||"",d.grade||"",d.age||"",d.stype||"",(d.sped||[]).join("+"),(d.dis||[]).join("+"),d.other||"",d.sev||"",d.gmfcs||"",d.dpre||"",d.dpost||"",d.note||""];
+    items.forEach(i=>{
+      const v=(d.v||{})[i[0]]||{};
+      if(i[4]===3){
+        const m=slot=>{const s=v[slot]||{};const arr=[s.t1,s.t2,s.t3].map(x=>parseFloat(x)).filter(x=>!isNaN(x));return arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):"";};
+        r.push(m("pre"),m("post"));
+      } else r.push(v.pre||"",v.post||"");
+    });
+    TST.forEach(i=>{ const v=(d.v||{})["tst_"+i[0]]||{}; r.push(v.pre||"",v.post||""); });
+    rows.push(r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(","));
+  }
+  const blob=new Blob(["﻿"+rows.join("\n")],{type:"text/csv"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="體適能紀錄_全部學生.csv"; a.click();
+}
+cur=stuNames()[0]||null; refreshSel(); loadStu();
+</script></body></html>

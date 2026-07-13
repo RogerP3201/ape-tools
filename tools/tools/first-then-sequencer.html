@@ -1,0 +1,146 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>動作分解 First-Then 序列器</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:#f2f4f7;color:#16202b;min-height:100vh;padding-bottom:24px}
+header{background:linear-gradient(135deg,#173F63,#0F766E);color:#fff;padding:18px;text-align:center}
+h1{font-size:1.28rem;font-weight:900;letter-spacing:.03em}
+header p{font-size:.8rem;opacity:.9;margin-top:4px}
+.wrap{max-width:640px;margin:0 auto;padding:14px}
+.sec{margin-bottom:10px;font-size:.9rem;font-weight:900;color:#4a564f}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #e5e9ee;border-radius:16px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card h3{font-size:1.05rem;font-weight:900;margin-bottom:4px}
+.card .cnt{font-size:.78rem;color:#8a97a0;margin-bottom:10px}
+.card .peek{font-size:1.5rem;margin-bottom:10px;letter-spacing:2px}
+.crow{display:flex;gap:8px}
+.crow button{flex:1;font:inherit;font-weight:900;font-size:.92rem;padding:10px;border-radius:10px;border:none;cursor:pointer}
+.go{background:#0F766E;color:#fff}.edit{background:#eef2f6;color:#1F4E79}
+.add{width:100%;margin-top:14px;font:inherit;font-weight:900;font-size:1rem;padding:13px;border-radius:12px;border:2px dashed #c3ccd3;background:#fff;color:#1F4E79;cursor:pointer}
+/* editor */
+#editor,#player{display:none}#editor.on,#player.on{display:block}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:.82rem;font-weight:900;color:#5b6773;margin-bottom:5px}
+.field input{width:100%;font:inherit;padding:10px 12px;border:1.5px solid #e0e4e9;border-radius:10px}
+.step{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.step .ic{flex:0 0 56px}.step .ic input{width:100%;text-align:center;font-size:1.3rem}
+.step .tx{flex:1}
+.step .mv{display:flex;flex-direction:column;gap:2px}
+.step .mv button,.step .del{font:inherit;font-weight:900;border:none;border-radius:8px;cursor:pointer;background:#eef2f6;color:#5b6773;padding:4px 8px}
+.step .del{background:#fde8e8;color:#B91C1C;padding:8px 10px}
+.ebar{display:flex;gap:8px;margin-top:14px}
+.ebar button{flex:1;font:inherit;font-weight:900;font-size:1rem;padding:13px;border-radius:12px;border:none;cursor:pointer}
+.save{background:#0F766E;color:#fff}.cancel{background:#fff;color:#5b6773;border:1.5px solid #e0e4e9!important}
+.addstep{width:100%;font:inherit;font-weight:900;padding:10px;border-radius:10px;border:2px dashed #c3ccd3;background:#fff;color:#1F4E79;cursor:pointer;margin-top:4px}
+/* player */
+#player{padding:14px;max-width:640px;margin:0 auto}
+.pdots{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:6px 0 14px}
+.pdots i{width:12px;height:12px;border-radius:50%;background:#dde3e8}
+.pdots i.done{background:#0F766E}.pdots i.cur{background:#0F766E;box-shadow:0 0 0 4px rgba(15,118,110,.25)}
+.now{background:#0F766E;color:#fff;border-radius:22px;padding:26px 20px;text-align:center;box-shadow:0 6px 20px rgba(15,118,110,.3)}
+.now .lab{font-size:.9rem;font-weight:900;opacity:.85;letter-spacing:.2em}
+.now .ic{font-size:5rem;margin:8px 0;line-height:1}
+.now .tx{font-size:clamp(1.5rem,6vw,2.1rem);font-weight:900}
+.now .k{font-size:.85rem;opacity:.85;margin-top:6px}
+.then{background:#fff;border:2px solid #e5e9ee;border-radius:18px;padding:14px 18px;text-align:center;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:12px}
+.then .lab{font-size:.8rem;font-weight:900;color:#8a97a0;letter-spacing:.15em}
+.then .ic{font-size:2.2rem}.then .tx{font-size:1.15rem;font-weight:900;color:#4a564f}
+.pbar{display:flex;gap:10px;margin-top:18px}
+.pbar button{font:inherit;font-weight:900;font-size:1.05rem;padding:15px;border-radius:14px;border:none;cursor:pointer}
+.next{flex:2;background:#0F766E;color:#fff}.prev{flex:1;background:#eef2f6;color:#5b6773}
+.ptop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ptop b{font-size:1rem}.ptop button{font:inherit;font-weight:900;font-size:.82rem;background:#eef2f6;color:#5b6773;border:none;border-radius:999px;padding:8px 14px;cursor:pointer}
+.done-screen{text-align:center;padding:30px 10px}
+.done-screen .em{font-size:4.5rem}.done-screen h2{font-size:1.6rem;font-weight:900;margin:8px 0}
+</style></head><body>
+<header><h1>🧩 動作分解 First-Then</h1><p>把動作拆成一步一步・現在做什麼、接下來做什麼，一看就懂</p></header>
+
+<div id="home" class="wrap">
+  <div class="sec">現成範本</div>
+  <div class="grid" id="tpl"></div>
+  <div class="sec" style="margin-top:18px">我的序列</div>
+  <div class="grid" id="mine"></div>
+  <button class="add" onclick="newSeq()">＋ 新增一個序列</button>
+</div>
+
+<div id="editor" class="wrap">
+  <div class="field"><label>序列名稱</label><input id="etitle" placeholder="例：雙手接球"></div>
+  <div class="sec">步驟（圖示可用 emoji，文字簡短）</div>
+  <div id="esteps"></div>
+  <button class="addstep" onclick="addStep()">＋ 加一步</button>
+  <div class="ebar"><button class="cancel" onclick="go('home')">取消</button><button class="save" onclick="saveSeq()">✔ 儲存</button></div>
+</div>
+
+<div id="player">
+  <div class="ptop"><b id="ptitle"></b><button onclick="go('home')">✕ 結束</button></div>
+  <div class="pdots" id="pdots"></div>
+  <div id="pbody"></div>
+</div>
+<script>
+const TEMPLATES=[
+ {id:"t_warm",title:"熱身流程",steps:[{i:"🏃",t:"原地踏步 30 秒"},{i:"🙆",t:"肩膀繞環 10 圈"},{i:"🤸",t:"體側伸展 左右各 5"},{i:"🦵",t:"高抬膝 走 10 步"},{i:"💧",t:"喝一口水"}]},
+ {id:"t_catch",title:"雙手接球",steps:[{i:"👀",t:"眼睛看著球"},{i:"🙌",t:"雙手張開準備"},{i:"🤲",t:"接住、抱到胸前"},{i:"🔁",t:"再做一次"}]},
+ {id:"t_throw",title:"原地投擲",steps:[{i:"🦶",t:"雙腳站穩"},{i:"🎯",t:"眼睛看目標"},{i:"💪",t:"手臂往後拉"},{i:"🚀",t:"往前丟出去"},{i:"👏",t:"完成，撿球"}]},
+ {id:"t_change",title:"換運動服",steps:[{i:"👕",t:"脫掉上衣"},{i:"🎽",t:"穿上運動服"},{i:"👖",t:"換運動褲"},{i:"👟",t:"穿好鞋子"},{i:"🎒",t:"收好衣物"}]},
+ {id:"t_pack",title:"器材收拾",steps:[{i:"🧺",t:"撿起器材"},{i:"🔢",t:"數對數量"},{i:"📦",t:"放回箱子"},{i:"🧹",t:"整理場地"},{i:"🙋",t:"回到座位"}]}
+];
+let mine=JSON.parse(localStorage.getItem("ft_seqs")||"[]");
+let editIdx=null, playSeq=null, pi=0;
+function go(v){["home","editor","player"].forEach(s=>document.getElementById(s).classList.toggle("on",s===v));document.getElementById("home").style.display=v==="home"?"block":"none";}
+function card(seq,isTpl){
+  const peek=seq.steps.slice(0,5).map(s=>s.i).join(" ");
+  return `<div class="card"><h3>${seq.title}</h3><div class="cnt">${seq.steps.length} 步</div><div class="peek">${peek}</div>
+   <div class="crow"><button class="go" onclick="play('${isTpl?'t':'m'}','${seq.id}')">▶ 開始</button>
+   <button class="edit" onclick="${isTpl?`copyTpl('${seq.id}')`:`editSeq('${seq.id}')`}">${isTpl?'✎ 複製改':'✎ 編輯'}</button></div></div>`;
+}
+function renderHome(){
+  document.getElementById("tpl").innerHTML=TEMPLATES.map(s=>card(s,true)).join("");
+  document.getElementById("mine").innerHTML=mine.length?mine.map(s=>card(s,false)).join(""):'<div style="color:#9aa39d;font-size:.85rem">還沒有自訂序列。可以「新增」或把範本「複製改」。</div>';
+}
+// editor
+let draft=null;
+function newSeq(){draft={id:"m_"+Date.now(),title:"",steps:[{i:"1️⃣",t:""}]};editIdx=null;openEditor();}
+function editSeq(id){const s=mine.find(x=>x.id===id);draft=JSON.parse(JSON.stringify(s));editIdx=id;openEditor();}
+function copyTpl(id){const s=TEMPLATES.find(x=>x.id===id);draft=JSON.parse(JSON.stringify(s));draft.id="m_"+Date.now();draft.title=s.title+"（我的）";editIdx=null;openEditor();}
+function openEditor(){document.getElementById("etitle").value=draft.title;renderSteps();go("editor");}
+function renderSteps(){
+  document.getElementById("esteps").innerHTML=draft.steps.map((s,i)=>`<div class="step">
+   <span class="ic"><input value="${s.i.replace(/"/g,'&quot;')}" onchange="setStep(${i},'i',this.value)"></span>
+   <span class="tx"><input class="tx" style="width:100%" value="${(s.t||'').replace(/"/g,'&quot;')}" placeholder="這一步做什麼" onchange="setStep(${i},'t',this.value)"></span>
+   <span class="mv"><button onclick="move(${i},-1)">▲</button><button onclick="move(${i},1)">▼</button></span>
+   <button class="del" onclick="delStep(${i})">刪</button></div>`).join("");
+}
+function setStep(i,k,v){draft.steps[i][k]=v;}
+function addStep(){draft.steps.push({i:"➕",t:""});renderSteps();}
+function delStep(i){if(draft.steps.length<=1)return;draft.steps.splice(i,1);renderSteps();}
+function move(i,d){const j=i+d;if(j<0||j>=draft.steps.length)return;[draft.steps[i],draft.steps[j]]=[draft.steps[j],draft.steps[i]];renderSteps();}
+function saveSeq(){
+  draft.title=document.getElementById("etitle").value.trim()||"未命名序列";
+  draft.steps=draft.steps.filter(s=>(s.t||"").trim()||s.i);
+  if(!draft.steps.length){alert("至少要有一步！");return;}
+  if(editIdx){const k=mine.findIndex(x=>x.id===editIdx);mine[k]=draft;}else{mine.push(draft);}
+  localStorage.setItem("ft_seqs",JSON.stringify(mine));renderHome();go("home");
+}
+// player
+function play(kind,id){playSeq=kind==="t"?TEMPLATES.find(x=>x.id===id):mine.find(x=>x.id===id);pi=0;renderPlay();go("player");}
+function step(d){pi+=d;renderPlay();}
+function restart(){pi=0;renderPlay();}
+function renderPlay(){
+  document.getElementById("ptitle").textContent=playSeq.title;
+  const steps=playSeq.steps,n=steps.length;
+  document.getElementById("pdots").innerHTML=steps.map((_,i)=>`<i class="${i<pi?'done':i===pi?'cur':''}"></i>`).join("");
+  const body=document.getElementById("pbody");
+  if(pi>=n){
+    body.innerHTML=`<div class="done-screen"><div class="em">🎉</div><h2>全部完成！</h2>
+     <p style="color:#5b6773">你完成了「${playSeq.title}」的 ${n} 個步驟。</p>
+     <div class="pbar"><button class="prev" onclick="restart()">↺ 再做一次</button><button class="next" onclick="go('home')">回首頁</button></div></div>`;
+    return;
+  }
+  const cur=steps[pi], nx=steps[pi+1];
+  body.innerHTML=`<div class="now"><div class="lab">現在做</div><div class="ic">${cur.i}</div><div class="tx">${cur.t||""}</div><div class="k">第 ${pi+1} 步 / 共 ${n} 步</div></div>
+   <div class="then"><span class="lab">接下來</span>${nx?`<span class="ic">${nx.i}</span><span class="tx">${nx.t||""}</span>`:'<span class="tx">🏁 這是最後一步</span>'}</div>
+   <div class="pbar">${pi>0?'<button class="prev" onclick="step(-1)">← 上一步</button>':''}
+   <button class="next" onclick="step(1)">${nx?'✔ 完成這步':'✔ 全部完成'}</button></div>`;
+}
+renderHome();go("home");
+</script></body></html>

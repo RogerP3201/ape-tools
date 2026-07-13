@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UDL × DI × STEP 三層規劃器</title>
+<style>
+  :root{
+    --bg:#eef1f5;--card:#fff;--ink:#1f2933;--muted:#6b7280;--line:#e2e6ea;
+    --udl:#2563eb;--udlbg:#eff4ff;--di:#0f9d58;--dibg:#eafaf1;--step:#b45309;--stepbg:#fff7ea;
+    --band:#1e293b;--red:#dc2626;--redbg:#fef2f2;--ok:#059669;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:900px;margin:0 auto;padding:0 14px 90px}
+  header.top{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;padding:20px 18px;border-radius:0 0 14px 14px}
+  header.top h1{margin:0;font-size:20px}
+  header.top p{margin:5px 0 0;font-size:12.5px;opacity:.88}
+  .flow{display:flex;gap:8px;align-items:stretch;margin-top:14px;flex-wrap:wrap}
+  .flow .step-box{flex:1;min-width:150px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .flow .step-box b{font-size:13px}.flow .step-box span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+  .flow .u{border-top:3px solid var(--udl)}.flow .d{border-top:3px solid var(--di)}.flow .s{border-top:3px solid var(--step)}
+  .flow .arrow{display:flex;align-items:center;color:var(--muted);font-size:20px}
+  @media(max-width:640px){.flow .arrow{transform:rotate(90deg)}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:14px}
+  .sec{border-radius:12px;padding:16px;margin-top:14px;border:1px solid var(--line);background:#fff}
+  .sec h2{margin:0 0 3px;font-size:16px;display:flex;align-items:center;gap:8px}
+  .sec .lv{font-size:11px;font-weight:800;color:#fff;padding:2px 9px;border-radius:20px}
+  .sec .desc{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+  .sec.udl{border-top:4px solid var(--udl)} .sec.udl .lv{background:var(--udl)}
+  .sec.di{border-top:4px solid var(--di)} .sec.di .lv{background:var(--di)}
+  .sec.step{border-top:4px solid var(--step)} .sec.step .lv{background:var(--step)}
+  label{font-size:13px;font-weight:600;display:block;margin:10px 0 4px}
+  label .hint{font-weight:400;color:var(--muted);font-size:12px}
+  input,select,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px;font-size:13.5px;font-family:inherit;line-height:1.5}
+  textarea{min-height:66px;resize:vertical}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media(max-width:640px){.meta{grid-template-columns:1fr}}
+  .prin{border:1px solid var(--line);border-left:3px solid var(--udl);border-radius:0 8px 8px 0;padding:10px 12px;margin-top:10px;background:#fafbff}
+  .prin b{font-size:13.5px;color:#132e57}
+  .prin .eg{font-size:11.8px;color:var(--muted);margin:3px 0 0}
+  .di-block{border:1px solid var(--line);border-left:3px solid var(--di);border-radius:0 8px 8px 0;padding:10px 12px;margin-top:10px;background:#fafffb}
+  .di-block b{font-size:13.5px;color:#0b5e39}.di-block .eg{font-size:11.8px;color:var(--muted);margin:3px 0 0}
+  .stepitem{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px;background:#fffdf8;position:relative}
+  .stepitem .rm{position:absolute;top:8px;right:10px;color:var(--red);cursor:pointer;font-size:12px;font-weight:700;border:0;background:none}
+  .knobs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+  .knob{border:1px solid var(--line);border-radius:18px;padding:4px 12px;font-size:12px;cursor:pointer;background:#fff;font-weight:600;color:var(--muted)}
+  .knob.on{background:var(--step);color:#fff;border-color:var(--step)}
+  .link-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}@media(max-width:640px){.link-row{grid-template-columns:1fr}}
+  .addbtn{margin-top:12px;background:var(--stepbg);color:var(--step);border:1px dashed var(--step);border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;width:100%}
+  .warn{background:var(--redbg);border:1px solid #f3c0c0;color:#a11;border-radius:8px;padding:8px 11px;font-size:12.5px;margin-top:8px;display:none}
+  .warn.show{display:block}
+  .guard label.chk{display:flex;gap:9px;align-items:flex-start;font-weight:500;font-size:13px;margin:9px 0;cursor:pointer}
+  .guard input{width:auto;margin-top:3px;flex:none}
+  .guard .g-red{color:#7a1d1d}
+  .bar{position:sticky;top:0;z-index:20;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:14px;padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .bar .spacer{flex:1}.bar .ttl{font-weight:700;font-size:14px}
+  .bar button{border:1px solid var(--line);background:#f8fafc;border-radius:8px;padding:8px 13px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .bar button.pri{background:var(--udl);color:#fff;border-color:var(--udl)}
+  .foot{font-size:11.5px;color:var(--muted);margin-top:18px;padding:12px;border-top:1px solid var(--line);line-height:1.7}
+  @media print{.bar{position:static;box-shadow:none}.addbtn,.knob:not(.on){display:none}header.top{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>UDL × DI × STEP 三層規劃器</h1>
+    <p>融合式體育課的層級式教學設計工具：從課程設計 → 教學實施 → 活動調整，一以貫之。</p>
+    <div class="flow">
+      <div class="step-box u"><b>UDL｜課程設計</b><span>為什麼改、要達成什麼教育目的</span></div>
+      <div class="arrow">→</div>
+      <div class="step-box d"><b>DI｜教學實施</b><span>因應群體/個別差異的動態決策</span></div>
+      <div class="arrow">→</div>
+      <div class="step-box s"><b>STEP｜活動調整</b><span>用哪個旋鈕落地：空間/任務/器材/人員</span></div>
+    </div>
+  </header>
+
+  <div class="bar">
+    <span class="ttl">我的融合式體育單元設計</span>
+    <span class="spacer"></span>
+    <button class="pri" onclick="copyAll()">複製全部</button>
+    <button onclick="downloadDoc()">下載 Word</button>
+    <button onclick="window.print()">列印</button>
+    <button onclick="resetAll()">清空</button>
+  </div>
+
+  <div class="card">
+    <div class="meta">
+      <div><label>單元名稱 <span class="hint">如：融合式籃球</span></label><input id="m_unit" placeholder="單元 / 活動主題"></div>
+      <div><label>年段</label><input id="m_grade" placeholder="如：國中 14–16 歲"></div>
+      <div><label>規劃者</label><input id="m_planner" placeholder="教師 / 師培生姓名"></div>
+      <div><label>日期</label><input id="m_date" type="date"></div>
+    </div>
+    <label>班級組成與多樣性 <span class="hint">描述班級的異質性，作為「為全班而設計」的真實依據——不是要為某類學生做專屬版</span></label>
+    <textarea id="m_class" placeholder="如：全班 28 人，含 2 名輪椅使用者、1 名上肢功能受限學生；動作能力與參與經驗差異大。"></textarea>
+    <label>單元學習目標</label>
+    <textarea id="m_goal" placeholder="這個單元希望所有學生達成什麼？（能力、參與、社會互動）"></textarea>
+  </div>
+
+  <!-- LEVEL 1 UDL -->
+  <div class="sec udl">
+    <h2><span class="lv">層次一</span>UDL｜課程設計層次</h2>
+    <p class="desc">單元規劃時就建立彈性的整體結構。以三大原則為「重疊的透鏡」思考——同一個設計常同時觸動多條原則，不必硬分類。設計要對「全班所有學生皆可選擇」。</p>
+
+    <div class="prin">
+      <b>多元參與投入（Engagement）</b>
+      <p class="eg">範例：設計球員、教練、計分員、裁判等角色，採合作性計分（助攻、團隊配合、得分並列），讓不同動作能力學生都能對團隊成績有實質貢獻。</p>
+      <textarea id="udl_engage" placeholder="這個單元怎麼讓所有學生都有動機、都能投入並獲得勝任感？"></textarea>
+    </div>
+    <div class="prin">
+      <b>多元表徵（Representation）</b>
+      <p class="eg">範例：準備影片示範、口語提示、肢體引導及視覺化球場區域，供學生依需求選用。</p>
+      <textarea id="udl_repr" placeholder="用哪些不同型態呈現同一份訊息（視覺/聽覺/觸覺/動覺）？"></textarea>
+    </div>
+    <div class="prin">
+      <b>多元行動與表達（Action &amp; Expression）</b>
+      <p class="eg">範例：學生依自身情況選擇參與實際比賽、影片分析或建立動作檔案集等不同方式呈現學習。</p>
+      <textarea id="udl_action" placeholder="學生可以用哪些不同方式參與、展現學習成果？"></textarea>
+    </div>
+  </div>
+
+  <!-- LEVEL 2 DI -->
+  <div class="sec di">
+    <h2><span class="lv">層次二</span>DI｜教學實施層次</h2>
+    <p class="desc">把上位設計轉化為課堂當下、因應群體或個別差異的動態決策。依 Tomlinson，針對學生的準備度、興趣、學習特質調整內容 / 歷程 / 成果 / 環境。</p>
+
+    <div class="di-block">
+      <b>依準備度（分層任務）</b>
+      <p class="eg">範例：投籃練習依準備度設不同距離與籃框高度；動作功能受限較大者，以觸及籃板或投入地面籃框為目標。</p>
+      <textarea id="di_ready" placeholder="同一活動如何做出難度分層，讓每個學生都在自己的近側發展區內挑戰？"></textarea>
+    </div>
+    <div class="di-block">
+      <b>依興趣（提供選擇）</b>
+      <p class="eg">範例：比賽形式由學生興趣選擇——全場競賽、半場三對三、技巧挑戰站等。</p>
+      <textarea id="di_interest" placeholder="哪些環節可以讓學生依興趣做選擇？"></textarea>
+    </div>
+    <div class="di-block">
+      <b>依學習特質（調整支持方式）</b>
+      <p class="eg">範例：口語提示與身體協助的方式與頻率，依學生學習特質調整。</p>
+      <textarea id="di_profile" placeholder="對不同學習特質的學生，提示、鷹架與支持要怎麼調整？"></textarea>
+    </div>
+  </div>
+
+  <!-- LEVEL 3 STEP -->
+  <div class="sec step">
+    <h2><span class="lv">層次三</span>STEP｜活動調整層次</h2>
+    <p class="desc">把教學決策落實為動作情境中可操作的調整。每一項調整都要指出「用哪個旋鈕」以及「服務哪條 UDL 原則」——STEP 從屬於 UDL，不是與它並列。</p>
+    <div id="stepList"></div>
+    <button class="addbtn" onclick="addStep()">＋ 新增一項 STEP 調整</button>
+    <div class="warn" id="linkWarn">有 STEP 調整還沒指定「服務哪條 UDL 原則」。每項調整都應能對應到一條原則。</div>
+  </div>
+
+  <!-- GUARDRAILS -->
+  <div class="sec guard" style="border-top:4px solid var(--red)">
+    <h2><span class="lv" style="background:var(--red)">紅線自檢</span>調整品質與歸屬感</h2>
+    <p class="desc">送出前逐條自檢。這幾條來自身心障礙學生的主觀經驗研究——調整的品質直接影響歸屬感。</p>
+    <label class="chk"><input type="checkbox" id="g1"><span>每一項 STEP 調整都能對應到一條 UDL 原則（STEP 從屬於 UDL，不是並列的抽屜）。</span></label>
+    <label class="chk"><input type="checkbox" id="g2"><span>所有調整採「所有學生皆可選擇」取向，不是只為某類障礙生單獨設計（避免隱性排除）。</span></label>
+    <label class="chk"><input type="checkbox" id="g3"><span class="g-red">未使用任何障礙體驗模擬（disability simulation，如讓學生蒙眼/坐輪椅「體驗障礙」）——研究證實會強化 ableism。</span></label>
+    <label class="chk"><input type="checkbox" id="g4"><span>已檢視這些調整不會讓學生感到被分隔、被降低期望，或被邊緣化。</span></label>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+const PRINCIPLES = ["多元參與投入","多元表徵","多元行動與表達"];
+const KNOBS = [["S","空間 Space"],["T","任務 Task"],["E","器材 Equipment"],["P","人員 People"]];
+const STEP_EG = {
+  S:"如：彩色膠帶標示活動場域，為輪椅使用者劃定較適中的防守區。",
+  T:"如：放寬運球規則（輪椅使用者不需運球即可持球移動）。",
+  E:"如：提供較輕球體、高度可調籃框、加寬邊界標誌。",
+  P:"如：同儕夥伴制度、裁判角色輪換、教師助理必要時協助。"
+};
+let stepSeq=0;
+function addStep(desc){
+  const id=++stepSeq;
+  const box=document.createElement('div');box.className='stepitem';box.id='step'+id;
+  box.innerHTML=`
+    <button class="rm" onclick="document.getElementById('step${id}').remove();checkLinks()">✕ 移除</button>
+    <label style="margin-top:0">調整內容</label>
+    <textarea data-f="desc" placeholder="這個調整具體怎麼做？">${desc||''}</textarea>
+    <label>用哪個旋鈕 <span class="hint">可複選</span></label>
+    <div class="knobs">${KNOBS.map(k=>`<span class="knob" data-k="${k[0]}" onclick="this.classList.toggle('on')">${k[1]}</span>`).join('')}</div>
+    <div class="link-row">
+      <div><label style="margin:0">服務哪條 UDL 原則 <span class="hint">必填</span></label>
+        <select data-f="prin" onchange="checkLinks()"><option value="">— 請選 —</option>${PRINCIPLES.map(p=>`<option>${p}</option>`).join('')}</select></div>
+      <div><label style="margin:0">回應哪個 DI 決策 <span class="hint">選填</span></label>
+        <select data-f="di"><option value="">—</option><option>依準備度</option><option>依興趣</option><option>依學習特質</option></select></div>
+    </div>`;
+  document.getElementById('stepList').appendChild(box);
+  checkLinks();
+}
+function checkLinks(){
+  const items=document.querySelectorAll('.stepitem');
+  let missing=false;
+  items.forEach(it=>{ if(!it.querySelector('[data-f=prin]').value) missing=true; });
+  document.getElementById('linkWarn').classList.toggle('show', items.length>0 && missing);
+}
+function val(id){return (document.getElementById(id)||{}).value?document.getElementById(id).value.trim():'';}
+function collectSteps(){
+  return [...document.querySelectorAll('.stepitem')].map(it=>({
+    desc:it.querySelector('[data-f=desc]').value.trim(),
+    knobs:[...it.querySelectorAll('.knob.on')].map(k=>k.textContent),
+    prin:it.querySelector('[data-f=prin]').value,
+    di:it.querySelector('[data-f=di]').value
+  })).filter(s=>s.desc||s.knobs.length);
+}
+function planText(){
+  const g=id=>document.getElementById(id).checked?'✓':'☐';
+  const steps=collectSteps();
+  const stepTxt = steps.length? steps.map((s,i)=>
+    `  ${i+1}. ${s.desc}\n     旋鈕：${s.knobs.join('、')||'—'}｜服務 UDL 原則：${s.prin||'（未指定）'}｜回應 DI：${s.di||'—'}`).join('\n') : '  （尚無）';
+  return `融合式體育單元設計｜UDL × DI × STEP 三層規劃
+單元：${val('m_unit')||'—'}　年段：${val('m_grade')||'—'}
+規劃者：${val('m_planner')||'—'}　日期：${val('m_date')||'—'}
+班級組成：${val('m_class')||'—'}
+單元目標：${val('m_goal')||'—'}
+━━━━━━━━━━━━━━━━━━━━━━
+【層次一 UDL｜課程設計】
+· 多元參與投入：${val('udl_engage')||'—'}
+· 多元表徵：${val('udl_repr')||'—'}
+· 多元行動與表達：${val('udl_action')||'—'}
+
+【層次二 DI｜教學實施】
+· 依準備度（分層任務）：${val('di_ready')||'—'}
+· 依興趣（提供選擇）：${val('di_interest')||'—'}
+· 依學習特質（調整支持）：${val('di_profile')||'—'}
+
+【層次三 STEP｜活動調整】（每項對應一條 UDL 原則）
+${stepTxt}
+━━━━━━━━━━━━━━━━━━━━━━
+【紅線自檢】
+${g('g1')} 每項 STEP 都對應一條 UDL 原則
+${g('g2')} 所有學生皆可選擇（非只為障礙生單獨設計）
+${g('g3')} 未使用障礙體驗模擬
+${g('g4')} 已檢視不會造成分隔/降低期望/邊緣化
+
+—— 依據：潘正宸、掌慶維、林靜萍（投稿中）。UDL、DI 與 STEP 在適應體育中的應用：層級式整合架構。並參 潘正宸（2021），臺灣體育學術研究，71，41–58。`;
+}
+function copyAll(){navigator.clipboard.writeText(planText()).then(()=>toast('已複製整份設計')).catch(()=>{
+  const t=document.createElement('textarea');t.value=planText();document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();toast('已複製整份設計');});}
+function downloadDoc(){
+  const html=`<html xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"></head><body><pre style="font-family:Microsoft JhengHei,PMingLiU,sans-serif;font-size:13px;white-space:pre-wrap">${planText().replace(/</g,'&lt;')}</pre></body></html>`;
+  const b=new Blob(['﻿',html],{type:'application/msword'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download=`UDL-DI-STEP_${val('m_unit')||'設計'}_${val('m_date')||''}.doc`;a.click();}
+function resetAll(){if(!confirm('確定清空整份設計？'))return;
+  document.querySelectorAll('input,textarea,select').forEach(e=>{if(e.type==='checkbox')e.checked=false;else e.value='';});
+  document.getElementById('stepList').innerHTML='';checkLinks();addStep();}
+let tt;function toast(m){clearTimeout(tt);let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:22px;font-size:13px;z-index:99;box-shadow:0 4px 16px rgba(0,0,0,.25)';document.body.appendChild(t);}
+  t.textContent=m;t.style.opacity='1';tt=setTimeout(()=>t.style.opacity='0',1700);}
+document.getElementById('foot').innerHTML='依據：潘正宸、掌慶維、林靜萍（投稿中）。全方位課程設計、差異化教學與 STEP 調整在適應體育中的應用：敘事性文獻回顧。並參 潘正宸（2021）。全方位課程設計在體育課程發展的觀點。臺灣體育學術研究，71，41–58。';
+addStep();
+</script>
+</body>
+</html>
