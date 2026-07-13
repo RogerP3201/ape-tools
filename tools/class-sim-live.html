@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>帶好這一班（即時版）｜十八週不等你</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#141a2e;--panel:#1d2540;--line:#2f3a5c;--ink:#eaf0f8;--dim:#93a2c0;--ok:#4ade80;--warn:#fbbf24;--no:#f87171;--blue:#60a5fa}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex;justify-content:center;padding:14px 10px 70px;line-height:1.6}
+.wrap{width:100%;max-width:620px}
+h1{font-size:1.3rem;font-weight:900}
+.tag{color:var(--dim);font-size:.84rem;margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.card h2{font-size:1.05rem;margin-bottom:6px}
+.card p{color:#c6d2e6;font-size:.92rem}
+.prep{border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;margin-top:9px;cursor:pointer;background:#161d33}
+.prep.sel{border-color:var(--blue);background:#1b2a4a}
+.prep b{font-size:.98rem}
+.prep .d{color:var(--dim);font-size:.82rem;margin-top:3px}
+button.go{width:100%;background:var(--blue);color:#0a1122;border:0;border-radius:10px;padding:13px;font:inherit;font-weight:900;cursor:pointer;margin-top:12px}
+button.go:disabled{background:#39486b;color:#8fa0c4;cursor:not-allowed}
+button.ghost{width:100%;background:none;border:1px solid var(--line);color:var(--dim);border-radius:10px;padding:11px;font:inherit;cursor:pointer;margin-top:8px}
+.week{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:var(--dim);margin-bottom:6px}
+.week b{color:var(--ink);font-size:1.05rem}
+.wbar{height:6px;background:#111731;border-radius:99px;overflow:hidden;margin-bottom:10px}
+.wfill{height:100%;background:var(--blue);width:0;transition:width .2s linear}
+.meters{display:grid;gap:8px;margin-bottom:10px}
+.m{background:#161d33;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.m .t{display:flex;justify-content:space-between;font-size:.78rem;color:var(--dim);margin-bottom:5px}
+.track{height:10px;background:#0f1428;border-radius:99px;overflow:hidden}
+.fill{height:100%;transition:width .3s}
+.drops{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.drop{border:1.5px dashed var(--line);border-radius:12px;padding:14px 10px;text-align:center;font-size:.86rem;color:var(--dim);min-height:74px;display:flex;flex-direction:column;justify-content:center}
+.drop.hot{border-color:var(--ok);background:#12291f;color:var(--ok)}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tool{background:#182240;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:.84rem;cursor:grab;user-select:none;touch-action:none}
+.tool b{display:block;font-size:.9rem;margin-bottom:2px}
+.tool .c{font-size:.74rem;color:var(--dim)}
+.tool.cool{opacity:.45;cursor:not-allowed}
+.tool.drag{opacity:.6}
+.ev{background:#2a1f2c;border:1.5px solid #7a4a5c;border-radius:12px;padding:13px;margin:10px 0}
+.ev .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ev .h b{color:var(--warn)}
+.ev .cd{font-weight:900;color:var(--no)}
+.ev p{font-size:.9rem;color:#e4d6dc}
+.opt{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-top:7px;cursor:pointer;font-size:.88rem;background:#1b2038}
+.opt:hover{border-color:var(--blue)}
+.log{font-size:.82rem;color:var(--dim);margin-top:8px;min-height:20px}
+.hide{display:none}
+.foot{color:var(--dim);font-size:.74rem;margin-top:16px;text-align:center;line-height:1.7}
+.share{background:#111731;border:1px dashed var(--line);border-radius:10px;padding:12px;font-size:.84rem;color:#c6d2e6;white-space:pre-wrap;margin-top:10px}
+.badge{display:inline-block;font-size:.72rem;color:var(--ok);border:1px solid #2c6b4d;background:#12291f;border-radius:99px;padding:1px 8px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>帶好這一班（即時版）</h1>
+  <div class="tag">十八週。時間會自己走，事件不會等你。</div>
+
+  <!-- 開學準備 -->
+  <div id="intro">
+    <div class="card">
+      <h2>開學前，先把哪兩件事做起來？</h2>
+      <p>每件要先花 15 點教師能量，那是你開學前的幾個晚上。</p>
+      <p style="margin-top:6px">準備過的事，會在學期中真的出狀況的那一刻，讓你<b>多出一條可以走的路</b>。沒準備的那些狀況，畫面上只會有兩個都不好的做法讓你挑。</p>
+      <p style="margin-top:6px;color:var(--dim)">你只能選兩件。選哪兩件，決定這學期哪些時刻你走得過去。</p>
+      <div id="preps"></div>
+      <button class="go" id="startBtn" disabled onclick="startTerm()">開學（已選 0／2）</button>
+    </div>
+    <div class="card">
+      <h2>玩法</h2>
+      <p>時間自己走，一週約三秒。事件會突然彈出來，倒數六秒，<b>你不選，它就自己壞掉</b>。</p>
+      <p style="margin-top:6px">畫面下方有四張調整卡，<b>用拖的</b>丟到「全班」或「三位學生」上，效果立刻反映在量表。每張卡有冷卻時間，也要花能量。</p>
+      <p style="margin-top:6px">撐到第十八週，看你的學期成績單。</p>
+    </div>
+  </div>
+
+  <!-- 進行中 -->
+  <div id="game" class="hide">
+    <div class="week">
+      <div>第 <b id="wk">1</b> ／ 18 週</div>
+      <div id="prepTags"></div>
+      <div>分數 <b id="score">0</b></div>
+    </div>
+    <div class="wbar"><div class="wfill" id="wfill"></div></div>
+
+    <div class="meters">
+      <div class="m"><div class="t"><span>全班學習</span><span id="t1">50</span></div><div class="track"><div class="fill" id="b1"></div></div></div>
+      <div class="m"><div class="t"><span>三位學生（阿澤、芸芸、大牛）</span><span id="t2">50</span></div><div class="track"><div class="fill" id="b2"></div></div></div>
+      <div class="m"><div class="t"><span>教師能量</span><span id="t3">70</span></div><div class="track"><div class="fill" id="b3"></div></div></div>
+    </div>
+
+    <div id="evBox"></div>
+
+    <div class="drops">
+      <div class="drop" id="dropAll">丟到<br><b>全班</b></div>
+      <div class="drop" id="dropThree">丟到<br><b>三位學生</b></div>
+    </div>
+    <div class="cards" id="tools"></div>
+    <div class="log" id="log"></div>
+    <button class="ghost" onclick="togglePause()" id="pauseBtn">暫停</button>
+  </div>
+
+  <!-- 結算 -->
+  <div id="end" class="hide">
+    <div class="card">
+      <h2 id="endTitle"></h2>
+      <p id="endBody"></p>
+      <div class="log" id="endStats" style="color:#c6d2e6;margin-top:10px"></div>
+      <div class="share" id="shareText"></div>
+      <button class="ghost" onclick="copyShare()">複製這段文字</button>
+      <button class="go" onclick="location.reload()">再帶一班</button>
+    </div>
+  </div>
+
+  <div class="foot">
+    教學用遊戲，非正式評量，人物情境為虛構，不收集任何資料。<br>
+    潘正宸　臺灣師範大學體育與運動科學系｜CC BY-NC-ND 4.0
+  </div>
+</div>
+
+<script>
+/* ---------- 開學準備 ---------- */
+const PREPS = [
+  {id:"visual", n:"🚩 視覺提示系統", d:"手勢卡、舉牌、視覺計時器。全班統一用看的就懂。"},
+  {id:"tier",   n:"🎯 分層挑戰站",   d:"每個單元三種難度，學生自己挑做得到的版本。"},
+  {id:"peer",   n:"🤝 同儕小老師制度", d:"公開招募、訓練、輪替，講清楚界線。"},
+  {id:"assess", n:"📋 多元評量與替代測驗", d:"看個人進步；體適能檢測先備好替代方案。"}
+];
+/* ---------- 調整卡（可拖） ---------- */
+const TOOLS = [
+  {id:"cue",  n:"視覺提示", cost:5, cd:9,  all:[2,0],  three:[0,5]},
+  {id:"step", n:"分層任務", cost:6, cd:10, all:[4,1],  three:[1,4]},
+  {id:"buddy",n:"同儕支援", cost:4, cd:11, all:[2,2],  three:[1,6]},
+  {id:"rest", n:"喘口氣",   cost:0, cd:16, all:[-1,-1], three:[0,0], energy:12}
+];
+/* ---------- 事件庫（抽 8） ---------- */
+const EVENTS = [
+  { t:"體適能檢測週", p:"行政通知下週全校檢測，沒有替代方案。",
+    o:[{n:"照原訂做完",      e:[-4,-12,-3]},
+       {n:"熬夜做替代方案",  e:[1,6,-12]},
+       {n:"拿出既有的替代測驗", need:"assess", e:[3,10,-2], tag:"準備派上用場"}] },
+  { t:"阿澤在換場地時崩潰", p:"哨音一響，他摀住耳朵不肯動。",
+    o:[{n:"先把他帶出場外",   e:[0,-10,-2]},
+       {n:"當場口頭安撫全班",  e:[-2,-3,-6]},
+       {n:"舉起視覺提示卡",   need:"visual", e:[2,8,-1], tag:"準備派上用場"}] },
+  { t:"你發燒請假", p:"代課老師只拿到一張課表。",
+    o:[{n:"讓代課自由發揮",   e:[-6,-8,2]},
+       {n:"發燒也去上",       e:[1,1,-16]},
+       {n:"分層挑戰站照常跑", need:"tier", e:[2,3,4], tag:"準備派上用場"}] },
+  { t:"家長來電", p:"「我兒子每節課都在旁邊看，這叫融合嗎？」",
+    o:[{n:"解釋班上人太多",   e:[-1,-6,-4]},
+       {n:"承諾下週一定改",   e:[0,2,-8]},
+       {n:"拿出同儕小老師的紀錄", need:"peer", e:[2,7,-1], tag:"準備派上用場"}] },
+  { t:"大牛的隊友抱怨", p:"「有他在我們一定輸。」",
+    o:[{n:"叫他們別計較",     e:[-3,-7,-2]},
+       {n:"把大牛換到別組",   e:[-1,-9,-1]},
+       {n:"改成分層任務，各組比自己的進步", need:"tier", e:[4,8,-2], tag:"準備派上用場"}] },
+  { t:"芸芸的體力撐不住", p:"她做了十分鐘就臉色發白。",
+    o:[{n:"讓她休息看完整節", e:[0,-8,0]},
+       {n:"要她再撐一下",     e:[-2,-11,-2]},
+       {n:"用多元評量改記錄她的策略與觀察", need:"assess", e:[2,7,-2], tag:"準備派上用場"}] },
+  { t:"公開觀課通知", p:"下週有教學觀摩，長官要看「亮點」。",
+    o:[{n:"排練一節漂亮的展示課", e:[2,-6,-10]},
+       {n:"照平常上",            e:[3,4,-3]},
+       {n:"直接展示分層挑戰站",   need:"tier", e:[5,5,-2], tag:"準備派上用場"}] },
+  { t:"期中，全班進度落後", p:"你只剩三週要教完排球。",
+    o:[{n:"加快進度，跟不上的自己想辦法", e:[3,-12,-3]},
+       {n:"全班一起放慢",                e:[-3,4,-2]},
+       {n:"開分層路徑，各走各的速度",     need:"tier", e:[5,6,-3], tag:"準備派上用場"}] },
+  { t:"你今天很累", p:"第三節課，你只想把球發下去就好。",
+    o:[{n:"發球，讓他們自己玩", e:[-5,-8,3]},
+       {n:"硬撐著照計畫上",     e:[2,2,-10]},
+       {n:"讓同儕小老師接手一段", need:"peer", e:[2,4,2], tag:"準備派上用場"}] },
+  { t:"新來的轉學生", p:"他坐輪椅，下週開始上你的課，沒有人事先通知你。",
+    o:[{n:"先讓他在旁邊看兩週", e:[-2,-12,-1]},
+       {n:"臨時抓一個同學顧他", e:[-1,-6,-4]},
+       {n:"套用現有的分層與同儕制度", need:"peer", e:[3,9,-2], tag:"準備派上用場"}] }
+];
+
+let prepSel=[], learn=50, three=50, energy=70, week=1, score=0, running=false, paused=false;
+let evQueue=[], curEv=null, evTimer=0, tickH=null, cool={}, log=[], usedPrep=[];
+
+/* ---------- 準備選擇 ---------- */
+function drawPreps(){
+  document.getElementById("preps").innerHTML = PREPS.map(p=>`
+    <div class="prep${prepSel.includes(p.id)?" sel":""}" onclick="togglePrep('${p.id}')">
+      <b>${p.n}</b><div class="d">${p.d}</div>
+    </div>`).join("");
+  const b=document.getElementById("startBtn");
+  b.disabled = prepSel.length!==2;
+  b.textContent = `開學（已選 ${prepSel.length}／2）`;
+}
+function togglePrep(id){
+  const i=prepSel.indexOf(id);
+  if(i>=0) prepSel.splice(i,1);
+  else if(prepSel.length<2) prepSel.push(id);
+  drawPreps();
+}
+
+/* ---------- 開始 ---------- */
+function startTerm(){
+  energy -= 30;
+  document.getElementById("intro").classList.add("hide");
+  document.getElementById("game").classList.remove("hide");
+  document.getElementById("prepTags").innerHTML =
+    prepSel.map(id=>`<span class="badge">${PREPS.find(p=>p.id===id).n}</span>`).join("");
+  // 七個事件，週次固定不重疊（第 2、4、6、8、11、14、17 週），內容每次隨機
+  const WEEKS=[2,4,6,8,11,14,17];
+  evQueue = EVENTS.slice().sort(()=>Math.random()-0.5).slice(0,WEEKS.length)
+    .map((e,i)=>({...e, week: WEEKS[i]}));
+  running=true;
+  drawTools(); hud();
+  tickH = setInterval(tick, 100);
+}
+
+/* ---------- 主迴圈：每 100ms ---------- */
+let sub=0;
+function tick(){
+  if(!running || paused) return;
+  // 事件倒數
+  if(curEv){
+    evTimer -= 0.1;
+    document.getElementById("evCd").textContent = Math.max(0, evTimer).toFixed(1);
+    if(evTimer<=0){ resolveEvent(-1); }
+  }
+  // 冷卻
+  Object.keys(cool).forEach(k=>{ cool[k]=Math.max(0, cool[k]-0.1); });
+  drawTools();
+
+  sub += 0.1;
+  document.getElementById("wfill").style.width = (sub/3.2*100)+"%";
+  if(sub < 3.2) return;
+  sub = 0;
+  nextWeek();
+}
+function nextWeek(){
+  // 每週自然衰退：有準備的話衰退比較慢
+  let dl = -1.2, dt = -2.2, de = -1.6;
+  if(prepSel.includes("visual")) { dt += 0.8; de += 0.3; }
+  if(prepSel.includes("tier"))   { dl += 1.0; dt += 0.5; }
+  if(prepSel.includes("peer"))   { dt += 0.7; de += 0.6; }
+  if(prepSel.includes("assess")) { dl += 0.5; }
+  apply(dl, dt, de);
+  score += Math.round((learn+three)/12);
+
+  week++;
+  if(week>18){ finish("學期結束"); return; }
+  document.getElementById("wk").textContent = week;
+
+  const ev = evQueue.find(e=>e.week===week);
+  if(ev && !curEv) openEvent(ev);
+  hud();
+}
+
+/* ---------- 事件 ---------- */
+function openEvent(ev){
+  curEv=ev; evTimer=6;
+  const opts = ev.o.filter(o=>!o.need || prepSel.includes(o.need));
+  curEv._opts = opts;
+  document.getElementById("evBox").innerHTML = `
+    <div class="ev">
+      <div class="h"><b>第 ${week} 週：${ev.t}</b><span class="cd" id="evCd">6.0</span></div>
+      <p>${ev.p}</p>
+      ${opts.map((o,i)=>`<div class="opt" onclick="resolveEvent(${i})">${o.n}${o.tag?` <span class="badge">${o.tag}</span>`:""}</div>`).join("")}
+    </div>`;
+}
+function resolveEvent(i){
+  if(!curEv) return;
+  const opts=curEv._opts;
+  let o;
+  if(i<0){ // 沒選，自動壞掉
+    o = {n:"（你沒有決定，事情自己壞掉了）", e:[-3,-6,-4]};
+    say("第 "+week+" 週你沒有做決定："+curEv.t);
+  } else {
+    o = opts[i];
+    say("第 "+week+" 週：" + o.n);
+    if(o.tag) score += 60;
+  }
+  log.push({week, t:curEv.t, choice:o.n, prep:!!o.tag});
+  apply(o.e[0], o.e[1], o.e[2]);
+  document.getElementById("evBox").innerHTML="";
+  curEv=null; hud();
+}
+
+/* ---------- 卡片與拖曳 ---------- */
+function drawTools(){
+  document.getElementById("tools").innerHTML = TOOLS.map(t=>{
+    const cd = cool[t.id]||0;
+    return `<div class="tool${cd>0?" cool":""}" data-id="${t.id}">
+      <b>${t.n}</b><span class="c">${cd>0?`冷卻 ${cd.toFixed(0)} 秒`:(t.energy?`回復能量 +${t.energy}`:`花費 ${t.cost} 能量`)}</span>
+    </div>`;
+  }).join("");
+  bindDrag();
+}
+let dragging=null;
+function bindDrag(){
+  document.querySelectorAll(".tool").forEach(el=>{
+    el.onpointerdown = e=>{
+      const id=el.dataset.id;
+      if((cool[id]||0)>0) return;
+      dragging={id, el};
+      el.classList.add("drag");
+      el.setPointerCapture(e.pointerId);
+    };
+    el.onpointermove = e=>{
+      if(!dragging) return;
+      const t=document.elementFromPoint(e.clientX,e.clientY);
+      hot(t && t.closest("#dropAll"), t && t.closest("#dropThree"));
+    };
+    el.onpointerup = e=>{
+      if(!dragging) return;
+      const t=document.elementFromPoint(e.clientX,e.clientY);
+      const all = t && t.closest("#dropAll"), th = t && t.closest("#dropThree");
+      dragging.el.classList.remove("drag");
+      if(all) useTool(dragging.id,"all");
+      else if(th) useTool(dragging.id,"three");
+      dragging=null; hot(false,false);
+    };
+  });
+}
+function hot(a,b){
+  document.getElementById("dropAll").classList.toggle("hot", !!a);
+  document.getElementById("dropThree").classList.toggle("hot", !!b);
+}
+function useTool(id, where){
+  const t=TOOLS.find(x=>x.id===id);
+  if((cool[id]||0)>0) return;
+  if(t.energy){ apply(t.all[0], t.all[1], t.energy); say("你喘了一口氣。"); }
+  else {
+    if(energy < t.cost){ say("能量不夠，先喘口氣。"); return; }
+    const e = where==="all" ? t.all : t.three;
+    apply(e[0], e[1], -t.cost);
+    say(`${t.n} → ${where==="all"?"全班":"三位學生"}`);
+    score += 15;
+  }
+  cool[id]=t.cd;
+  hud(); drawTools();
+}
+
+/* ---------- 共用 ---------- */
+function apply(dl,dt,de){
+  learn=Math.max(0,Math.min(100,learn+dl));
+  three=Math.max(0,Math.min(100,three+dt));
+  energy=Math.max(0,Math.min(100,energy+de));
+  if(energy<=0) finish("你燒完了");
+  else if(three<=0) finish("他們只是坐在旁邊看");
+  else if(learn<=0) finish("這堂課只剩集合、發球、解散");
+}
+function hud(){
+  document.getElementById("t1").textContent=Math.round(learn);
+  document.getElementById("t2").textContent=Math.round(three);
+  document.getElementById("t3").textContent=Math.round(energy);
+  document.getElementById("score").textContent=score;
+  [["b1",learn],["b2",three],["b3",energy]].forEach(([id,v])=>{
+    const el=document.getElementById(id);
+    el.style.width=v+"%";
+    el.style.background = v>=55?"var(--ok)":(v>=30?"var(--warn)":"var(--no)");
+  });
+}
+function say(t){ document.getElementById("log").textContent=t; }
+function togglePause(){
+  paused=!paused;
+  document.getElementById("pauseBtn").textContent = paused?"繼續":"暫停";
+}
+
+/* ---------- 結算 ---------- */
+function finish(reason){
+  if(!running) return;
+  running=false; clearInterval(tickH);
+  score += Math.round(learn*2 + three*3 + energy);
+  document.getElementById("game").classList.add("hide");
+  document.getElementById("end").classList.remove("hide");
+  const t=document.getElementById("endTitle"), b=document.getElementById("endBody");
+  const used = log.filter(x=>x.prep).length;
+
+  const prepNames = prepSel.map(id=>PREPS.find(p=>p.id===id).n.replace(/^\S+\s/,"")).join("、");
+  const helpLine = used>0
+    ? `這學期有 <b>${used}</b> 個事件，因為你開學前準備了「${prepNames}」，畫面上多出一個原本不存在的選項。沒有那項準備，那幾格你只能在兩個都不好的做法裡挑一個。`
+    : `這學期沒有任何一個事件用得上你的準備。不是你的準備沒有價值，是這一輪抽到的事件剛好落在別的地方。換一組準備再帶一次，你會看到差別。`;
+
+  if(reason==="學期結束" && three>=55 && learn>=55){
+    t.textContent="這一班，你帶住了";
+    b.innerHTML=`十八週走完，全班學習 ${Math.round(learn)}、三位學生 ${Math.round(three)}、你還剩 ${Math.round(energy)} 的能量。<br><br>
+      ${helpLine}<br><br>
+      <b>這就是事先設計的意思：它不是多做一件事，是把選項先準備好，讓你在最忙的那一刻還有路可以走。</b>`;
+  } else if(reason==="你燒完了"){
+    t.textContent="能量見底了";
+    b.innerHTML=`撐到第 ${week} 週。<br><br>
+      這不是你不夠努力，是這個設計把所有事情都壓在你一個人身上。<b>一個人扛整班，本來就撐不完十八週。</b><br><br>
+      再帶一次時，注意「同儕小老師制度」與「分層挑戰站」：它們是唯二會**替你分擔**的準備，其他兩項只會讓學生受益，不會讓你變輕鬆。`;
+  } else if(reason==="他們只是坐在旁邊看"){
+    t.textContent="三位學生的參與掉到底了";
+    b.innerHTML=`第 ${week} 週。阿澤、芸芸、大牛還在教室裡，但他們只是在場，沒有在學。<br><br>
+      成績單上不會出現這件事，所以它很容易被忽略。<b>這也是為什麼「有沒有真的參與」需要被單獨看一條線，而不是混在全班平均裡。</b><br><br>
+      ${helpLine}`;
+  } else if(reason==="這堂課只剩集合、發球、解散"){
+    t.textContent="全班的學習掉到底了";
+    b.innerHTML=`第 ${week} 週。<br><br>
+      顧住三個人卻丟掉二十六個人，也不是融合。<b>融合不是把資源全部移到少數人身上，是讓同一個設計接得住所有人。</b><br><br>
+      分層挑戰站與多元評量是同時照顧兩邊的那一類準備，下次可以試試。`;
+  } else {
+    t.textContent="十八週，你撐完了";
+    b.innerHTML=`全班學習 ${Math.round(learn)}、三位學生 ${Math.round(three)}、能量 ${Math.round(energy)}。<br><br>
+      學期走完了，但多數時候你是在事情發生之後才處理。<b>這不是能力問題，是準備的位置問題：救火需要你在場，設計不需要。</b><br><br>
+      ${helpLine}`;
+  }
+  document.getElementById("endStats").innerHTML =
+    log.map(x=>`第 ${x.week} 週　${x.t} → ${x.choice}${x.prep?" ✅":""}`).join("<br>") || "這學期沒有事件找上你。";
+  document.getElementById("shareText").textContent =
+`我帶了一班 26 人的融合式體育課，十八週。
+開學前準備了：${prepNames}
+結果：全班學習 ${Math.round(learn)}、三位學生 ${Math.round(three)}、教師能量 ${Math.round(energy)}，分數 ${score}。
+
+這學期有 ${used} 個突發事件，因為開學前做過準備，我多出一個原本不存在的選項可以走。
+
+事先設計不是多做一件事，是把選項先準備好，
+讓你在最忙的那一刻，還有路可以走。`;
+}
+function copyShare(){
+  navigator.clipboard.writeText(document.getElementById("shareText").textContent).then(()=>alert("已複製。"));
+}
+drawPreps();
+</script>
+</body>
+</html>
