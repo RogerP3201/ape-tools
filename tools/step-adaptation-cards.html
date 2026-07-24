@@ -38,6 +38,11 @@ header p{font-size:.8rem;opacity:.92;margin-top:4px}
 .bar button{font:inherit;font-weight:900;font-size:.9rem;padding:10px 18px;border-radius:10px;border:none;cursor:pointer;background:#0F766E;color:#fff}
 .bar button.ghost{background:#fff;color:#1F4E79;border:1.5px solid #1F4E79}
 @media print{header,.panel,.bar{display:none!important}body{background:#fff;padding:0}.sportcard,.bcard{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}}
+/* ── 放大字體（可讀性） ── */
+.panel h2{font-size:1.1rem}.chip{font-size:1rem}.line{font-size:1.02rem}.step .txt{font-size:1.02rem}
+.bcard .prin{font-size:.92rem}.lenshd{font-size:.94rem}.banner{font-size:.98rem}.sub{font-size:.84rem}
+.bcard h3{font-size:1.16rem}header h1{font-size:1.45rem}header p{font-size:.88rem}
+.step .tag{font-size:.78rem}
 </style></head><body>
 <header><h1>🧩 STEP 調整卡產生器</h1><p>師培思考鷹架｜選運動 × UDL 三透鏡，練習用「全班皆可選」的眼睛設計一堂融合式體育課</p></header>
 <div class="wrap">
@@ -56,6 +61,12 @@ header p{font-size:.8rem;opacity:.92;margin-top:4px}
   <div class="lenshd lensR">Ⓡ 多元表徵　資訊怎麼被接收與理解</div><div class="chips" id="barR"></div>
   <div class="lenshd lensA">Ⓐ 多元行動與表達　怎麼動、怎麼表現學會</div><div class="chips" id="barA"></div>
   <div class="lenshd lensE">Ⓔ 多元參與投入　動機與情緒（自主／勝任／關係）</div><div class="chips" id="barE"></div>
+</div>
+<div class="panel">
+  <h2>③ 這一刻，面對一位真實學生（DI 教學判斷）</h2>
+  <div class="sub" style="margin-top:2px">同一張調整卡，面對不同學生會有不同做法——工具替你起頭，判斷要看著真實學生（Tomlinson：內容／歷程／成果／環境）。可複選：</div>
+  <div class="chips" id="diChips"></div>
+  <div id="diOut" style="margin-top:10px"></div>
 </div>
 <div class="out" id="out"><div class="empty">先選一個運動，下面就會長出調整卡。</div></div>
 <div class="bar">
@@ -174,6 +185,7 @@ function render(){
   const miss=["R","A","E"].filter(L=>!lensSel[L]).map(L=>LENSNAME[L]);
   let ref='<div class="bcard" style="border-left:5px solid #7E22CE"><span class="lensbadge" style="background:#7E22CE">🤔 想一想</span><h3 style="color:#7E22CE">師培思考鷹架（這是提問，不是標準答案）</h3><div style="margin-top:8px">';
   ref+='<div class="line">・你剛選的調整，是「全班都能選」，還是其實只服務某一類學生？——這就是「調整 vs 重構」的分水嶺。</div>';
+  ref+='<div class="line" style="color:#a11">・<b>紅線</b>：不使用障礙體驗模擬（蒙眼／坐輪椅「體驗障礙」）——研究證實會強化 ableism（Pan, Ng &amp; Legg, 2026《Beyond adaptation》, SES）。</div>';
   if(selBar.size>0 && miss.length>0){ ref+='<div class="line">・你打開的路徑還沒碰到：<b>'+miss.join("、")+'</b>。同一個設計能不能也照顧到這幾條？</div>'; }
   else if(selBar.size===0){ ref+='<div class="line">・先勾一條 UDL 路徑，想想這個運動最該先打開哪一條？為什麼？</div>'; }
   if(lensSel.E){ ref+='<div class="line">・你選的動機槓桿（Ⓔ）主要餵養哪個 SDT 需求——自主、勝任、還是關係？三個都顧到了嗎？</div>'; }
@@ -191,7 +203,28 @@ function copyText(){
   });});
   navigator.clipboard.writeText(t).then(()=>alert("已複製，可貼進教案／Word。")).catch(()=>alert("複製失敗，請手動選取。"));
 }
-buildSports(); buildBars(); render();
+/* ── DI 教學判斷層（同一張卡，不同學生怎麼調） ── */
+const DI_MOVES={
+ '高焦慮／需結構':{face:'歷程',moves:'先示範一次、給流程圖卡、放慢口令，確認理解再開始'},
+ '輪椅／移動受限':{face:'成果／角色',moves:'以發球／計分／守門角色參與、坐姿版動作，成果用參與紀錄呈現'},
+ '能力佳／易分心':{face:'內容',moves:'加挑戰：限定落點才得分、擔任裁判輪值、縮小得分區'},
+ '動作協調較弱':{face:'環境',moves:'站點式定點練習、縮短來回距離、由同儕餵球'},
+ '握力／上肢受限':{face:'內容',moves:'簡化持拍、改推送或滾動、加粗握把'},
+ '低視力／全盲':{face:'歷程',moves:'口語描述＋觸覺引導、對比色或有聲器材、固定站位與動線'},
+ '聽覺需求':{face:'歷程',moves:'手勢卡與燈號取代哨音、面對面示範、視覺計時器'}
+};
+const diSel=new Set();
+function buildDI(){const box=document.getElementById("diChips");Object.keys(DI_MOVES).forEach(t=>{const b=document.createElement("button");b.className="chip";b.textContent=t;
+  b.onclick=()=>{diSel.has(t)?diSel.delete(t):diSel.add(t);b.classList.toggle("on");renderDI();};box.appendChild(b);});}
+function renderDI(){const o=document.getElementById("diOut");
+  if(diSel.size===0){o.innerHTML='<div class="empty" style="padding:14px">選一個以上的學生特質，看同一張卡怎麼因人而調。</div>';return;}
+  let h="";diSel.forEach(t=>{const m=DI_MOVES[t];
+    h+='<div class="bcard"><span class="lensbadge" style="background:#7E22CE">DI</span><h3>'+t+'</h3><span class="sdt">面向：'+m.face+'</span><div class="prin" style="margin-top:8px">這一刻怎麼做：'+m.moves+'</div></div>';});
+  h+='<div class="bcard" style="border-left:5px solid #7E22CE"><h3 style="color:#7E22CE">助理員／家長角色界線</h3>'+
+     '<div class="line" style="margin-top:6px"><b>該做：</b>溝通期待與安全底線、給提示語與腳本、示範後逐步淡出、明確化安全督導。</div>'+
+     '<div class="line"><b>不要：</b>把教學責任丟給助理／同儕、因有助理就降低期待、替學生決定、長時間貼身剝奪同儕互動。</div></div>';
+  o.innerHTML=h;}
+buildSports(); buildBars(); buildDI(); render(); renderDI();
 </script><div style="position:fixed;left:0;right:0;bottom:0;z-index:9999;pointer-events:none;padding:16px 10px 7px;text-align:center;font-size:10.5px;line-height:1.5;color:#93a4b2;background:linear-gradient(180deg,rgba(8,12,18,0),rgba(8,12,18,.55) 45%,rgba(8,12,18,.8));font-family:'Microsoft JhengHei',system-ui,sans-serif">
 潘正宸　臺灣師範大學體育與運動科學系｜適應體育教學工具箱　rogerp3201.github.io/ape-tools<br>
 CC BY-NC-ND 4.0：歡迎使用與分享，請標示作者，不得用於商業用途，不得改作。
