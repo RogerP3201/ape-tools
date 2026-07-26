@@ -35,12 +35,18 @@ button.ghost{width:100%;background:none;border:1px solid var(--line);color:var(-
 .drop.hot{border-color:var(--ok);background:#12291f;color:var(--ok);cursor:pointer}
 .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .tool{background:#182240;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:.84rem;cursor:grab;user-select:none;touch-action:none}
-.tool b{display:block;font-size:.9rem;margin-bottom:2px}
+.tool b{display:block;font-size:.92rem;margin-bottom:3px}
+.tool .fx{display:block;font-size:.74rem;color:#aeb9cf;line-height:1.5;margin-bottom:3px}
 .tool .c{font-size:.74rem;color:var(--dim)}
 .tool.cool{opacity:.45;cursor:not-allowed}
 .tool.drag{opacity:.6}
 .tool.armed{border-color:var(--ok);box-shadow:0 0 0 2px rgba(74,222,128,.35)}
 .hintline{font-size:.78rem;color:var(--dim);text-align:center;margin-top:8px}
+.advisor{border-radius:12px;padding:11px 14px;margin-bottom:10px;font-size:.92rem;line-height:1.6;border:1.5px solid}
+.advisor.ok{background:#12291f;border-color:#2c6b4d;color:#bde6cd}
+.advisor.warn{background:#2a2410;border-color:#7a6320;color:#f2dd9e}
+.advisor.bad{background:#2a1518;border-color:#7a3b38;color:#f6bcbc}
+.advisor b{font-weight:900}
 .ev{background:#2a1f2c;border:1.5px solid #7a4a5c;border-radius:12px;padding:13px;margin:10px 0}
 .ev .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .ev .h b{color:var(--warn)}
@@ -93,6 +99,7 @@ button.ghost{width:100%;background:none;border:1px solid var(--line);color:var(-
       <div class="m"><div class="t"><span>教師能量</span><span id="t3">70</span></div><div class="track"><div class="fill" id="b3"></div></div></div>
     </div>
 
+    <div id="advisor" class="advisor"></div>
     <div id="evBox"></div>
 
     <div class="drops">
@@ -133,11 +140,22 @@ const PREPS = [
 ];
 /* ---------- 調整卡（可拖） ---------- */
 const TOOLS = [
-  {id:"cue",  n:"視覺提示", cost:5, cd:9,  all:[2,0],  three:[0,5]},
-  {id:"step", n:"分層任務", cost:6, cd:10, all:[4,1],  three:[1,4]},
-  {id:"buddy",n:"同儕支援", cost:4, cd:11, all:[2,2],  three:[1,6]},
-  {id:"rest", n:"喘口氣",   cost:0, cd:16, all:[-1,-1], three:[0,0], energy:12}
+  {id:"cue",  n:"視覺提示", cost:5, cd:9,  all:[2,0],  three:[0,5], best:"three"},
+  {id:"step", n:"分層任務", cost:6, cd:10, all:[4,1],  three:[1,4], best:"all"},
+  {id:"buddy",n:"同儕支援", cost:4, cd:11, all:[2,2],  three:[1,6], best:"three"},
+  {id:"rest", n:"喘口氣",   cost:0, cd:16, all:[-1,-1], three:[0,0], energy:12, best:"rest"}
 ];
+// 把一張卡的效果寫成一句人看得懂的話
+function effectText(t){
+  if(t.energy) return "教師能量 +"+t.energy+"（但全班與三位學生會各降一點）";
+  const fmt=(a)=>{
+    const parts=[];
+    if(a[0]) parts.push("全班學習 "+(a[0]>0?"+":"")+a[0]);
+    if(a[1]) parts.push("三位學生 "+(a[1]>0?"+":"")+a[1]);
+    return parts.join("、")||"沒有變化";
+  };
+  return "丟給全班 → "+fmt(t.all)+"　｜　丟給三位學生 → "+fmt(t.three);
+}
 /* ---------- 事件庫（抽 8） ---------- */
 const EVENTS = [
   { t:"體適能檢測週", p:"行政通知下週全校檢測，沒有替代方案。",
@@ -264,6 +282,7 @@ function nextWeek(){
 /* ---------- 事件 ---------- */
 function openEvent(ev){
   curEv=ev; evTimer=6;
+  const a=document.getElementById("advisor"); if(a){ a.textContent=""; a.className="advisor"; }
   const opts = ev.o.filter(o=>!o.need || prepSel.includes(o.need));
   curEv._opts = opts;
   document.getElementById("evBox").innerHTML = `
@@ -298,7 +317,9 @@ function toolLabel(t){
 }
 function drawTools(){
   document.getElementById("tools").innerHTML = TOOLS.map(t=>
-    `<div class="tool" data-id="${t.id}"><b>${t.n}</b><span class="c">${toolLabel(t)}</span></div>`
+    `<div class="tool" data-id="${t.id}"><b>${t.n}</b>`
+    + `<span class="fx">${effectText(t)}</span>`
+    + `<span class="c">${toolLabel(t)}</span></div>`
   ).join("");
   bindDrag();
   refreshTools();
@@ -416,6 +437,30 @@ function hud(){
     el.style.width=v+"%";
     el.style.background = v>=55?"var(--ok)":(v>=30?"var(--warn)":"var(--no)");
   });
+  updateAdvisor();
+}
+// 讀三條量表，告訴玩家「現在最該處理什麼」，把安靜的衰退變成看得見的問題
+function updateAdvisor(){
+  const a=document.getElementById("advisor");
+  if(!a || curEv){ if(a) a.textContent=""; return; }
+  let cls, msg;
+  if(energy<=30){
+    cls="bad"; msg="<b>你快沒力了。</b>先把「喘口氣」丟出來回一點能量，不然接下來的事件會壓垮你。";
+  } else if(three<=35){
+    cls="bad"; msg="<b>阿澤、芸芸、大牛開始脫隊了。</b>把「同儕支援」或「分層任務」丟給<b>三位學生</b>，把他們拉回課堂。";
+  } else if(learn<=35){
+    cls="bad"; msg="<b>全班的節奏散了。</b>把「分層任務」丟給<b>全班</b>，讓每個人都有做得到的版本。";
+  } else if(three<=50){
+    cls="warn"; msg="三位學生的參與在往下掉。趁還沒脫隊，丟一張卡給<b>三位學生</b>。";
+  } else if(learn<=50){
+    cls="warn"; msg="全班的學習在往下掉。丟一張卡給<b>全班</b>撐住。";
+  } else if(energy<=45){
+    cls="warn"; msg="你的能量偏低了。找個空檔丟「喘口氣」，才有本錢應付事件。";
+  } else {
+    cls="ok"; msg="現在還算穩。<b>趁這時候先投資</b>：丟一張卡先把量表墊高，等一下的事件就更好應付。";
+  }
+  a.className="advisor "+cls;
+  a.innerHTML = msg;
 }
 function say(t){ document.getElementById("log").textContent=t; }
 function togglePause(){
