@@ -43,6 +43,18 @@ header p{font-size:.8rem;opacity:.92;margin-top:4px}
 .bcard .prin{font-size:.92rem}.lenshd{font-size:.94rem}.banner{font-size:.98rem}.sub{font-size:.84rem}
 .bcard h3{font-size:1.16rem}header h1{font-size:1.45rem}header p{font-size:.88rem}
 .step .tag{font-size:.78rem}
+/* ── 同儕支持：提示階梯 ── */
+.rung{display:flex;gap:10px;margin:6px 0;align-items:flex-start;padding:8px 10px;border-radius:9px;background:#faf8fc;border:1px solid #ece4f5}
+.rung .lv{flex:0 0 104px;font-size:.76rem;font-weight:900;color:#fff;border-radius:7px;padding:5px 4px;text-align:center;line-height:1.35}
+.rung .lv small{display:block;font-size:.66rem;font-weight:700;opacity:.88}
+.rung .txt{font-size:1rem;line-height:1.65;flex:1}
+.rung.r1 .lv{background:#15803D}.rung.r2 .lv{background:#0F766E}.rung.r3 .lv{background:#1F4E79}
+.rung.r4 .lv{background:#B45309}.rung.r5 .lv{background:#7E22CE}
+.fbrow{display:flex;gap:10px;margin:6px 0;font-size:.98rem;line-height:1.65}
+.fbrow .k{flex:0 0 86px;font-weight:900;color:#0F766E}
+.ex{font-size:.95rem;line-height:1.6;margin:4px 0;padding:7px 10px;border-radius:8px}
+.ex.good{background:#eef7f1;border-left:4px solid #15803D}
+.ex.bad{background:#fdf1f1;border-left:4px solid #b91c1c}
 </style></head><body>
 <header><h1>🧩 STEP 調整卡產生器</h1><p>師培思考鷹架｜選運動 × UDL 三透鏡，練習用「全班皆可選」的眼睛設計一堂融合式體育課</p></header>
 <div class="wrap">
@@ -67,6 +79,11 @@ header p{font-size:.8rem;opacity:.92;margin-top:4px}
   <div class="sub" style="margin-top:2px">同一張調整卡，面對不同學生會有不同做法——工具替你起頭，判斷要看著真實學生（Tomlinson：內容／歷程／成果／環境）。可複選：</div>
   <div class="chips" id="diChips"></div>
   <div id="diOut" style="margin-top:10px"></div>
+</div>
+<div class="panel">
+  <h2>④ 同儕怎麼支持（提示與回饋）</h2>
+  <div class="sub" style="margin-top:2px">STEP 的「人員 People」寫的是「由同儕協助」，但協助不等於教學。這一區把那句話拆成看得出來的動作：先給最少的支持，給得出具體的回饋，做得到就退開。不計分，練的是把支持做對。</div>
+  <div id="peerOut" style="margin-top:10px"></div>
 </div>
 <div class="out" id="out"><div class="empty">先選一個運動，下面就會長出調整卡。</div></div>
 <div class="bar">
@@ -147,7 +164,7 @@ let curSport=null; const selBar=new Set();
 function buildSports(){
   for(const k in SPORTS){const s=SPORTS[k];
     const b=document.createElement("button");b.className="chip sport";b.textContent=s.name;b.dataset.k=k;
-    b.onclick=()=>{curSport=k;document.querySelectorAll(".chip.sport").forEach(x=>x.classList.toggle("on",x.dataset.k===k));render();};
+    b.onclick=()=>{curSport=k;document.querySelectorAll(".chip.sport").forEach(x=>x.classList.toggle("on",x.dataset.k===k));render();renderPeer();};
     document.getElementById("g"+s.g).appendChild(b);}
 }
 function buildBars(){
@@ -201,6 +218,11 @@ function copyText(){
   ["R","A","E"].forEach(L=>{FOCUS.filter(f=>selBar.has(f.id)&&f.lens===L).forEach(f=>{
     t+="\n\n〔"+LENSNAME[L]+"｜"+f.label+"〕"+(f.sdt?"(SDT："+f.sdt+")":"")+"\n"+f.prin+"\n・空間："+f.S+"\n・任務："+f.T+"\n・器材："+f.E+"\n・人員："+f.P;
   });});
+  t+="\n\n〔同儕支持｜提示由少到多〕";
+  RUNGS.forEach((r,i)=>{t+="\n・"+r.n+" "+r.t+"："+r.d;});
+  t+="\n・往下退一級的判準：他不用你講就做出來了，下一次就少給一級。不必數次數，但也不要看一次就決定，同一個動作至少讓他試過三次以上再判斷。退了之後又卡住就再加回來，加回來以後一樣看得到就再退。";
+  t+="\n〔同儕支持｜回饋三要件〕\n・即時：動作剛結束就講。\n・具體：說得出動作的哪一個部分。\n・針對行為：講他做了什麼，不講他是什麼樣的人。";
+  t+="\n〔同儕支持｜角色界線〕\n・該做：先讓他試、給最少的支持、示範完退開、把他做對的地方講清楚、需要碰觸前先問。\n・不要：替他完成動作、整堂貼身不離、只陪不教、替他決定要不要參加、把他的表現拿去跟別人比。";
   navigator.clipboard.writeText(t).then(()=>alert("已複製，可貼進教案／Word。")).catch(()=>alert("複製失敗，請手動選取。"));
 }
 /* ── DI 教學判斷層（同一張卡，不同學生怎麼調） ── */
@@ -224,7 +246,47 @@ function renderDI(){const o=document.getElementById("diOut");
      '<div class="line" style="margin-top:6px"><b>該做：</b>溝通期待與安全底線、給提示語與腳本、示範後逐步淡出、明確化安全督導。</div>'+
      '<div class="line"><b>不要：</b>把教學責任丟給助理／同儕、因有助理就降低期待、替學生決定、長時間貼身剝奪同儕互動。</div></div>';
   o.innerHTML=h;}
-buildSports(); buildBars(); buildDI(); render(); renderDI();
+/* ── 同儕支持層（提示階梯與回饋，不計分） ── */
+const RUNGS=[
+ {n:"第 1 級",t:"先不給",d:"先讓他自己試一次。看得到他卡在哪一步，才知道該給什麼。急著出手，等於把練習的機會拿走。"},
+ {n:"第 2 級",t:"口語提示",d:"用一句話點名關鍵，講完就等。一次一句，不要連珠炮。"},
+ {n:"第 3 級",t:"手勢或位置",d:"比出方向或範圍，或站到他該看的位置。手可以指，不要替他做。"},
+ {n:"第 4 級",t:"動作示範",d:"自己做一次給他看，邊做邊說出你正在做的那一件事，做完退開，讓他做。"},
+ {n:"第 5 級",t:"肢體協助",d:"碰觸之前先問。只扶最少必要的部位，能放手就放手。"}
+];
+function renderPeer(){
+  const o=document.getElementById("peerOut");
+  if(!curSport){o.innerHTML='<div class="empty" style="padding:14px">先選一個運動，這一區會用那個項目的教學提示，長出同儕講得出口的話。</div>';return;}
+  const s=SPORTS[curSport];
+  const c0=s.cues[0], c1=s.cues.length>1?s.cues[1]:s.cues[0];
+  let h='<div class="bcard" style="border-left:5px solid #7E22CE"><span class="lensbadge" style="background:#7E22CE">階梯</span><h3 style="color:#7E22CE">提示由少到多（'+s.name+'）</h3>'+
+        '<div class="prin" style="margin-top:8px">原則是先給最少的支持，不夠再往上一級。上得去，也要下得來。</div>';
+  RUNGS.forEach((r,i)=>{
+    let d=r.d;
+    if(i===1) d+='　這個項目可以講：「'+c0+'」。';
+    if(i===3) d+='　示範時說出重點，例如「'+c1+'」。';
+    h+='<div class="rung r'+(i+1)+'"><span class="lv">'+r.n+'<small>'+r.t+'</small></span><span class="txt">'+d+'</span></div>';
+  });
+  h+='<div class="line" style="margin-top:10px"><b>什麼時候往下退一級：</b>他不用你講就做出來了，下一次就少給一級。不必數次數，但也不要看一次就決定，同一個動作至少讓他試過三次以上再判斷，避免他只是剛好那一下做對。退了之後又卡住，就再加回來，加回來以後一樣看得到就再退。</div></div>';
+
+  h+='<div class="bcard" style="border-left:5px solid #0F766E"><span class="lensbadge lb-A">回饋</span><h3 style="color:#0F766E">回饋的三個要件</h3>'+
+     '<div class="fbrow"><span class="k">即時</span><span>動作剛結束就講，不要等整輪打完才講。</span></div>'+
+     '<div class="fbrow"><span class="k">具體</span><span>說得出動作的哪一個部分，而不是給一個總評。</span></div>'+
+     '<div class="fbrow"><span class="k">針對行為</span><span>講他做了什麼，不講他是什麼樣的人。</span></div>'+
+     '<div class="ex good">✔「這一次你做到了'+c0+'，所以動作才穩住。」</div>'+
+     '<div class="ex bad">✘「你很棒」「你不行啦，我幫你做」。前者他不知道自己做對什麼，後者把練習收走了。</div></div>';
+
+  h+='<div class="bcard" style="border-left:5px solid #B45309"><span class="lensbadge lb-E">界線</span><h3 style="color:#B45309">同儕的角色界線</h3>'+
+     '<div class="line" style="margin-top:6px"><b>該做：</b>先讓他試、給最少的支持、示範完退開、把他做對的地方講清楚、需要碰觸前先問。</div>'+
+     '<div class="line"><b>不要：</b>替他完成動作、整堂貼身不離、只陪不教、替他決定要不要參加、把他的表現拿去跟別人比。</div></div>';
+
+  h+='<div class="bcard" style="border-left:5px solid #7E22CE"><span class="lensbadge" style="background:#7E22CE">🤔 演練後</span><h3 style="color:#7E22CE">自問三題（寫進反思日誌，不計分）</h3><div style="margin-top:8px">'+
+     '<div class="line">・我這一次用到第幾級，能不能再少一級？</div>'+
+     '<div class="line">・我給的回饋，說得出動作的哪一個部分嗎？</div>'+
+     '<div class="line">・他做得到之後，我有沒有退開？</div></div></div>';
+  o.innerHTML=h;
+}
+buildSports(); buildBars(); buildDI(); render(); renderDI(); renderPeer();
 </script><div style="position:fixed;left:0;right:0;bottom:0;z-index:9999;pointer-events:none;padding:16px 10px 7px;text-align:center;font-size:10.5px;line-height:1.5;color:#93a4b2;background:linear-gradient(180deg,rgba(8,12,18,0),rgba(8,12,18,.55) 45%,rgba(8,12,18,.8));font-family:'Microsoft JhengHei',system-ui,sans-serif">
 潘正宸　臺灣師範大學體育與運動科學系｜適應體育教學工具箱　rogerp3201.github.io/ape-tools<br>
 CC BY-NC-ND 4.0：歡迎使用與分享，請標示作者，不得用於商業用途，不得改作。
