@@ -32,13 +32,15 @@ button.ghost{width:100%;background:none;border:1px solid var(--line);color:var(-
 .fill{height:100%;transition:width .3s}
 .drops{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 .drop{border:1.5px dashed var(--line);border-radius:12px;padding:14px 10px;text-align:center;font-size:.86rem;color:var(--dim);min-height:74px;display:flex;flex-direction:column;justify-content:center}
-.drop.hot{border-color:var(--ok);background:#12291f;color:var(--ok)}
+.drop.hot{border-color:var(--ok);background:#12291f;color:var(--ok);cursor:pointer}
 .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .tool{background:#182240;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:.84rem;cursor:grab;user-select:none;touch-action:none}
 .tool b{display:block;font-size:.9rem;margin-bottom:2px}
 .tool .c{font-size:.74rem;color:var(--dim)}
 .tool.cool{opacity:.45;cursor:not-allowed}
 .tool.drag{opacity:.6}
+.tool.armed{border-color:var(--ok);box-shadow:0 0 0 2px rgba(74,222,128,.35)}
+.hintline{font-size:.78rem;color:var(--dim);text-align:center;margin-top:8px}
 .ev{background:#2a1f2c;border:1.5px solid #7a4a5c;border-radius:12px;padding:13px;margin:10px 0}
 .ev .h{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .ev .h b{color:var(--warn)}
@@ -94,10 +96,11 @@ button.ghost{width:100%;background:none;border:1px solid var(--line);color:var(-
     <div id="evBox"></div>
 
     <div class="drops">
-      <div class="drop" id="dropAll">丟到<br><b>全班</b></div>
-      <div class="drop" id="dropThree">丟到<br><b>三位學生</b></div>
+      <div class="drop" id="dropAll" onclick="dropClick('all')">丟到<br><b>全班</b></div>
+      <div class="drop" id="dropThree" onclick="dropClick('three')">丟到<br><b>三位學生</b></div>
     </div>
     <div class="cards" id="tools"></div>
+    <div class="hintline" id="opHint">把下面的卡片拖到上面兩格，或先點卡片再點目標。</div>
     <div class="log" id="log"></div>
     <button class="ghost" onclick="togglePause()" id="pauseBtn">暫停</button>
   </div>
@@ -216,6 +219,7 @@ function startTerm(){
 }
 
 /* ---------- 主迴圈：每 100ms ---------- */
+const WEEK_SECS = 15;   // 每一週給你多少秒思考與操作（可調）
 let sub=0;
 function tick(){
   if(!running || paused) return;
@@ -225,13 +229,16 @@ function tick(){
     document.getElementById("evCd").textContent = Math.max(0, evTimer).toFixed(1);
     if(evTimer<=0){ resolveEvent(-1); }
   }
-  // 冷卻
+  // 冷卻（只更新文字與狀態，不重建 DOM，才不會打斷拖曳）
   Object.keys(cool).forEach(k=>{ cool[k]=Math.max(0, cool[k]-0.1); });
-  drawTools();
+  refreshTools();
+
+  // 有事件待處理時，週進度暫停，讓你有完整時間思考
+  if(curEv) return;
 
   sub += 0.1;
-  document.getElementById("wfill").style.width = (sub/3.2*100)+"%";
-  if(sub < 3.2) return;
+  document.getElementById("wfill").style.width = (sub/WEEK_SECS*100)+"%";
+  if(sub < WEEK_SECS) return;
   sub = 0;
   nextWeek();
 }
@@ -284,38 +291,72 @@ function resolveEvent(i){
   curEv=null; hud();
 }
 
-/* ---------- 卡片與拖曳 ---------- */
-function drawTools(){
-  document.getElementById("tools").innerHTML = TOOLS.map(t=>{
-    const cd = cool[t.id]||0;
-    return `<div class="tool${cd>0?" cool":""}" data-id="${t.id}">
-      <b>${t.n}</b><span class="c">${cd>0?`冷卻 ${cd.toFixed(0)} 秒`:(t.energy?`回復能量 +${t.energy}`:`花費 ${t.cost} 能量`)}</span>
-    </div>`;
-  }).join("");
-  bindDrag();
+/* ---------- 卡片：建立一次，之後只輕量更新 ---------- */
+function toolLabel(t){
+  const cd = cool[t.id]||0;
+  return cd>0 ? `冷卻 ${cd.toFixed(0)} 秒` : (t.energy ? `回復能量 +${t.energy}` : `花費 ${t.cost} 能量`);
 }
-let dragging=null;
+function drawTools(){
+  document.getElementById("tools").innerHTML = TOOLS.map(t=>
+    `<div class="tool" data-id="${t.id}"><b>${t.n}</b><span class="c">${toolLabel(t)}</span></div>`
+  ).join("");
+  bindDrag();
+  refreshTools();
+}
+// 只改文字與冷卻狀態，不動 DOM 結構，拖曳中也安全
+function refreshTools(){
+  TOOLS.forEach(t=>{
+    const el = document.querySelector(`.tool[data-id="${t.id}"]`);
+    if(!el) return;
+    const cd = cool[t.id]||0;
+    el.classList.toggle("cool", cd>0);
+    if(el.dataset.id!==armed) el.classList.toggle("armed", false);
+    const span = el.querySelector(".c");
+    if(span) span.textContent = toolLabel(t);
+  });
+}
+
+let dragging=null, ghost=null, armed=null;
 function bindDrag(){
   document.querySelectorAll(".tool").forEach(el=>{
+    const id = el.dataset.id;
     el.onpointerdown = e=>{
-      const id=el.dataset.id;
       if((cool[id]||0)>0) return;
-      dragging={id, el};
-      el.classList.add("drag");
+      e.preventDefault();
+      dragging = { id, startX:e.clientX, startY:e.clientY, moved:false };
       el.setPointerCapture(e.pointerId);
     };
     el.onpointermove = e=>{
-      if(!dragging) return;
-      const t=document.elementFromPoint(e.clientX,e.clientY);
-      hot(t && t.closest("#dropAll"), t && t.closest("#dropThree"));
+      if(!dragging || dragging.id!==id) return;
+      const dx=e.clientX-dragging.startX, dy=e.clientY-dragging.startY;
+      if(!dragging.moved && Math.hypot(dx,dy)>8){
+        dragging.moved = true;
+        ghost = el.cloneNode(true);
+        ghost.style.cssText = "position:fixed;z-index:9999;pointer-events:none;opacity:.9;width:"+el.offsetWidth+"px;transform:scale(1.05)";
+        document.body.appendChild(ghost);
+        el.style.opacity=".35";
+      }
+      if(dragging.moved){
+        ghost.style.left = (e.clientX-ghost.offsetWidth/2)+"px";
+        ghost.style.top  = (e.clientY-24)+"px";
+        const over = document.elementFromPoint(e.clientX,e.clientY);
+        hot(over && over.closest("#dropAll"), over && over.closest("#dropThree"));
+      }
     };
     el.onpointerup = e=>{
-      if(!dragging) return;
-      const t=document.elementFromPoint(e.clientX,e.clientY);
-      const all = t && t.closest("#dropAll"), th = t && t.closest("#dropThree");
-      dragging.el.classList.remove("drag");
-      if(all) useTool(dragging.id,"all");
-      else if(th) useTool(dragging.id,"three");
+      if(!dragging || dragging.id!==id) return;
+      el.style.opacity="";
+      if(dragging.moved){
+        const over = document.elementFromPoint(e.clientX,e.clientY);
+        const all = over && over.closest("#dropAll"), th = over && over.closest("#dropThree");
+        if(all) useTool(id,"all");
+        else if(th) useTool(id,"three");
+        else say("放到「全班」或「三位學生」上才會生效");
+        if(ghost){ ghost.remove(); ghost=null; }
+      } else {
+        // 沒有拖動 = 點一下：改用「先選卡、再點目標」的備援方式
+        armCard(id);
+      }
       dragging=null; hot(false,false);
     };
   });
@@ -323,6 +364,22 @@ function bindDrag(){
 function hot(a,b){
   document.getElementById("dropAll").classList.toggle("hot", !!a);
   document.getElementById("dropThree").classList.toggle("hot", !!b);
+}
+// 備援操作：先點卡片選起來，兩個投放區亮起，再點其中一個
+function armCard(id){
+  if((cool[id]||0)>0){ say("這張卡還在冷卻"); return; }
+  armed = (armed===id) ? null : id;
+  document.querySelectorAll(".tool").forEach(el=>el.classList.toggle("armed", el.dataset.id===armed));
+  hot(!!armed, !!armed);
+  const t=TOOLS.find(x=>x.id===id);
+  say(armed ? `已選「${t.n}」，再點「全班」或「三位學生」` : "取消選取");
+}
+function dropClick(where){
+  if(!armed) return;
+  const id=armed;
+  armed=null;
+  document.querySelectorAll(".tool").forEach(el=>el.classList.remove("armed"));
+  useTool(id, where);
 }
 function useTool(id, where){
   const t=TOOLS.find(x=>x.id===id);
@@ -336,6 +393,7 @@ function useTool(id, where){
     score += 15;
   }
   cool[id]=t.cd;
+  hot(false,false);
   hud(); drawTools();
 }
 
