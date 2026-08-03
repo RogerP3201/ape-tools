@@ -36,11 +36,20 @@
   .scene.on { background:var(--green); border-color:var(--green); color:#fff; font-weight:700; }
   .searchrow { display:flex; gap:10px; margin-top:12px; }
   .searchrow input { flex:1; padding:10px 12px; border:1px solid #cfd8d5; border-radius:9px; font-size:.95rem; font-family:inherit; }
+  .clear { font-family:inherit; font-size:.9rem; padding:10px 16px; border-radius:9px; border:1.5px solid var(--line);
+           background:#fff; color:var(--sub); cursor:pointer; white-space:nowrap; }
+  .clear:hover { border-color:var(--green); color:var(--green); }
+  .clear.hide { display:none; }
+  .empty b { color:var(--ink); }
+  .empty .fix { display:inline-block; margin-top:10px; font-size:.9rem; padding:9px 16px; border-radius:9px;
+                border:0; background:var(--green); color:#fff; cursor:pointer; font-family:inherit; }
   .count { font-size:.88rem; color:var(--sub); margin-top:10px; }
   .count b { color:var(--green); }
   .newhere { margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:.9rem; color:var(--sub); line-height:1.85; }
   .newhere b { color:var(--ink); }
-  .empty { text-align:center; color:var(--sub); padding:30px 10px; font-size:.95rem; }
+  .empty { text-align:center; color:var(--sub); font-size:.95rem; line-height:1.9;
+           background:var(--card); border-radius:14px; padding:26px 20px; box-shadow:0 1px 4px rgba(0,0,0,.07);
+           margin-top:-8px; }
   .sec.hide, .grid.hide { display:none; }
 </style>
 </head>
@@ -53,7 +62,8 @@
     <div class="lead">你現在想做什麼？</div>
     <div class="scenes" id="scenes"></div>
     <div class="searchrow">
-      <input id="q" placeholder="或直接搜尋工具名稱與用途，例如「計時」「IEP」「輪椅」" oninput="applyFilter()">
+      <input id="q" placeholder="或直接搜尋，例如「輪椅」「計時」「IEP」「遊戲」「體適能」" oninput="applyFilter()">
+      <button class="clear hide" id="clearBtn" onclick="clearAll()">清除條件</button>
     </div>
     <div class="count" id="count"></div>
     <div class="newhere" id="newhere">
@@ -83,7 +93,7 @@
     <div class="grid" id="classTools"></div>
   </div>
 
-  <div class="empty hide" id="empty">這個條件下沒有工具。換一個情境，或把搜尋字清掉。</div>
+  <div class="empty hide" id="empty"></div>
 
   <div class="note">
     行動裝置掃描 QR code 即可直接開啟工具。<br>
@@ -109,41 +119,41 @@ const SCENES = [
 
 // ===== 工具清單（部署後把 url 填入即可；留空會顯示「即將上線」） =====
 const APPS_SCRIPT_TOOLS = [
-  { name:"調整判讀學習工具", tags:["study","train"], desc:"UDL／DI／STEP 結構調整與語言框架判讀，對照專家判定看一致率。", url:"https://script.google.com/macros/s/AKfycbxt_S_nyaJtj8yoBWDSJNOYROjf6fGPPrNmfWgdDX-vkeVH8cRVU-eqtbQxTHF2vKKO/exec" },
-  { name:"IEP 適應體育檢核", tags:["prep","data"], desc:"IEP 體育課程品質檢核，含分區診斷與判讀線索。", url:"https://script.google.com/macros/s/AKfycbwFDtFkWkYpWK85vuAkIieUeyIT6sl5SSFOU9XX8jtYUHPOcdPKyVY6JIpFNzRoKhSMCA/exec" },
-  { name:"LIRSPE 融合式體育評量", tags:["data","teach"], desc:"融合式體育課堂觀察評量，資料自動彙整。", url:"https://script.google.com/macros/s/AKfycbyKEOA6GeWbvoyrSAWxP4cfbhCBCVCo7kctAQ52A49cxPHZQXPl1KMfdCrwICCQoSwRTQ/exec" },
-  { name:"UDL-DI-STEP 三層規劃器", tags:["prep"], desc:"從課程設計到活動調整的三層教學規劃。", url:"https://script.google.com/macros/s/AKfycbxOK84uc2ph3_2ocjqf0P-EnBrqpnTmigEpw3yX2uVrQ5xFm5eO0kyC3R5CbEhN8RpR/exec" },
-  { name:"UDL-CDT 教學靈感工具", tags:["prep"], desc:"輸入體育單元，AI 生成全班取向的教學設計與教學目標。", url:"https://script.google.com/macros/s/AKfycbzWTWP5eVuxfQoQ0V09y0iqrRzeqz_2mNU-S2jL_gYhxwcFS1rZjGIWWGPHjmB1XRx1OA/exec" },
-  { name:"這節課的感受（課前課後對照）", tags:["teach","data"], desc:"PAAS 十二題，課前填一次、課後再填一次，看這節課把學生的感受帶往哪個方向：起勁想動、放鬆安穩、難受挫折、累了沒力。預設不上傳，學生按下「送出給老師」才會送出（學號後四碼、課程、單元與作答，不含姓名與完整學號）。", url:"tools/paas-lesson-affect.html" },
-  { name:"課堂感受・教師端（需通行碼）", tags:["data"], desc:"讀上面那支工具送出的資料。一句話總結這堂課、四向度平均變化、四象限分布、自動標記需要關心的學生（挫折訊號、幾乎沒動），可比較單元、匯出 CSV。沒有真實資料時可先看示範資料。", url:"tools/paas-teacher.html" },
+  { name:"調整判讀學習工具", tags:["study","train"], kw:"UDL DI STEP 調整 判讀 師培", desc:"UDL／DI／STEP 結構調整與語言框架判讀，對照專家判定看一致率。", url:"https://script.google.com/macros/s/AKfycbxt_S_nyaJtj8yoBWDSJNOYROjf6fGPPrNmfWgdDX-vkeVH8cRVU-eqtbQxTHF2vKKO/exec" },
+  { name:"IEP 適應體育檢核", tags:["prep","data"], kw:"IEP 個別化教育計畫 檢核 品質 評量", desc:"IEP 體育課程品質檢核，含分區診斷與判讀線索。", url:"https://script.google.com/macros/s/AKfycbwFDtFkWkYpWK85vuAkIieUeyIT6sl5SSFOU9XX8jtYUHPOcdPKyVY6JIpFNzRoKhSMCA/exec" },
+  { name:"LIRSPE 融合式體育評量", tags:["data","teach"], kw:"觀察 評量 融合 課堂 量表", desc:"融合式體育課堂觀察評量，資料自動彙整。", url:"https://script.google.com/macros/s/AKfycbyKEOA6GeWbvoyrSAWxP4cfbhCBCVCo7kctAQ52A49cxPHZQXPl1KMfdCrwICCQoSwRTQ/exec" },
+  { name:"UDL-DI-STEP 三層規劃器", tags:["prep"], kw:"UDL 備課 教案 規劃 差異化", desc:"從課程設計到活動調整的三層教學規劃。", url:"https://script.google.com/macros/s/AKfycbxOK84uc2ph3_2ocjqf0P-EnBrqpnTmigEpw3yX2uVrQ5xFm5eO0kyC3R5CbEhN8RpR/exec" },
+  { name:"UDL-CDT 教學靈感工具", tags:["prep"], kw:"UDL AI 教案 備課 靈感", desc:"輸入體育單元，AI 生成全班取向的教學設計與教學目標。", url:"https://script.google.com/macros/s/AKfycbzWTWP5eVuxfQoQ0V09y0iqrRzeqz_2mNU-S2jL_gYhxwcFS1rZjGIWWGPHjmB1XRx1OA/exec" },
+  { name:"這節課的感受（課前課後對照）", tags:["teach","data"], kw:"PAAS 情緒 感受 心情 前後測 量表", desc:"PAAS 十二題，課前填一次、課後再填一次，看這節課把學生的感受帶往哪個方向：起勁想動、放鬆安穩、難受挫折、累了沒力。預設不上傳，學生按下「送出給老師」才會送出（學號後四碼、課程、單元與作答，不含姓名與完整學號）。", url:"tools/paas-lesson-affect.html" },
+  { name:"課堂感受・教師端（需通行碼）", tags:["data"], kw:"PAAS 儀表板 資料 統計 情緒 感受", desc:"讀上面那支工具送出的資料。一句話總結這堂課、四向度平均變化、四象限分布、自動標記需要關心的學生（挫折訊號、幾乎沒動），可比較單元、匯出 CSV。沒有真實資料時可先看示範資料。", url:"tools/paas-teacher.html" },
 ];
 const SELF_STUDY_TOOLS = [
-  { name:"適應體育個案自學（中文版）", tags:["study","train"], desc:"個案情境自學與判斷練習。", url:"tools/ape-selfstudy-zh.html" },
-  { name:"APE Case Self-Study (EMI)", tags:["study","train"], desc:"English-medium case-based self-study.", url:"tools/ape-selfstudy-emi.html" },
-  { name:"IEP 體育課程品質檢核（師培版）", tags:["study","train","prep"], desc:"演講／課堂用單機版檢核練習。", url:"tools/iep-quality-check.html" },
-  { name:"STEP 調整卡（師培思考鷹架）", tags:["prep","study","train"], desc:"選運動 × UDL 三透鏡，練習用「全班皆可選」設計融合式體育課，附反思提問。", url:"tools/step-adaptation-cards.html" },
-  { name:"適應性身體活動個案自學（中文版）", tags:["study","train"], desc:"25 個走出校門的批判思考個案：權利政策、社區轉銜、健康行為、競技帕拉、醫療倫理、觀賞平權。延伸文獻附 DOI 連結。", url:"tools/apa-selfstudy-zh.html" },
-  { name:"APA Case Self-Study (EMI)", tags:["study","train"], desc:"25 critical-thinking cases beyond the school gate: rights & policy, community, health behavior, Para sport, ethics, spectatorship.", url:"tools/apa-selfstudy-emi.html" },
+  { name:"適應體育個案自學（中文版）", tags:["study","train"], kw:"個案 批判思考 案例 自學", desc:"個案情境自學與判斷練習。", url:"tools/ape-selfstudy-zh.html" },
+  { name:"APE Case Self-Study (EMI)", tags:["study","train"], kw:"case study EMI 英語 個案 雙語", desc:"English-medium case-based self-study.", url:"tools/ape-selfstudy-emi.html" },
+  { name:"IEP 體育課程品質檢核（師培版）", tags:["study","train","prep"], kw:"IEP 檢核 師培 單機", desc:"演講／課堂用單機版檢核練習。", url:"tools/iep-quality-check.html" },
+  { name:"STEP 調整卡（師培思考鷹架）", tags:["prep","study","train"], kw:"STEP 調整 備課 UDL 器材 空間 任務", desc:"選運動 × UDL 三透鏡，練習用「全班皆可選」設計融合式體育課，附反思提問。", url:"tools/step-adaptation-cards.html" },
+  { name:"適應性身體活動個案自學（中文版）", tags:["study","train"], kw:"APA 個案 CRPD 政策 社區 帕拉 觀賞平權", desc:"25 個走出校門的批判思考個案：權利政策、社區轉銜、健康行為、競技帕拉、醫療倫理、觀賞平權。延伸文獻附 DOI 連結。", url:"tools/apa-selfstudy-zh.html" },
+  { name:"APA Case Self-Study (EMI)", tags:["study","train"], kw:"APA case EMI 英語 CRPD policy", desc:"25 critical-thinking cases beyond the school gate: rights & policy, community, health behavior, Para sport, ethics, spectatorship.", url:"tools/apa-selfstudy-emi.html" },
 ];
 const GAME_TOOLS = [
-  { name:"調整判讀挑戰", tags:["train","study"], desc:"六個現場案例，每案限時選出三個支持策略，守住有意義的參與、安全與歸屬感，結束後依你踩過的陷阱給回饋。僅供教學討論，非正式評量。", url:"tools/adaptation-challenge.html" },
-  { name:"IEP 找碴", tags:["train","study"], desc:"三份虛構 IEP 體育摘要，限時標出寫壞的句子：不可測目標、目標偷換、祝福式轉銜、未經調整的全校檢測。結束後依漏掉的類型給判讀線索。", url:"tools/iep-spot-challenge.html" },
-  { name:"同儕小教練（學生版＋師培版）", tags:["train","study","teach"], desc:"協助不是代勞。學生版扮演小老師陪同學練排球 13 幕；師培版從招募到輪替建置同儕指導制度 10 幕。附中英對照句型，結尾自動結算自我檢查表。", url:"tools/peer-coach-story.html" },
-  { name:"無障礙偵察隊", tags:["train","study"], desc:"三個校園場景（走廊、體育館、操場）藏著 18 個環境障礙，限時找出來。每個障礙附「誰被擋住了」與「怎麼改」。該被克服的是環境，不是身體。", url:"tools/barrier-scout.html" },
-  { name:"調整補給站（迷宮）", tags:["train","study"], desc:"你是體育老師，在校園裡收集六種調整策略，帶回體育課部署，同時繞開五種做壞的做法。全班參與度與教師能量兩條儀表即時變動。公開版，另站。", url:"https://rogerp3201.github.io/adaptation-maze/" },
-  { name:"帶好這一班（即時版）", tags:["train"], desc:"同一個班，但時間會自己走。十八週約一分鐘，七個事件突然彈出、倒數六秒，不選就自己壞掉。開學前的準備會長出原本不存在的選項；四張調整卡用拖的丟給全班或三位學生。適合研習開場與體感教學。", url:"tools/class-sim-live.html" },
-  { name:"帶好這一班（學期模擬）", tags:["train","study"], desc:"帶 26 人的班級走完 18 週。開學先選兩項準備（視覺提示、分層挑戰站、同儕小老師、多元評量），看它們在學期中的關鍵時刻派上用場。含兩難回合與學期軌跡回顧，適合師培與深度研習。", url:"tools/class-sim.html" },
+  { name:"調整判讀挑戰", tags:["train","study"], kw:"遊戲 案例 決策 排行榜 調整", desc:"六個現場案例，每案限時選出三個支持策略，守住有意義的參與、安全與歸屬感，結束後依你踩過的陷阱給回饋。僅供教學討論，非正式評量。", url:"tools/adaptation-challenge.html" },
+  { name:"IEP 找碴", tags:["train","study"], kw:"遊戲 IEP 目標 找碴 排行榜", desc:"三份虛構 IEP 體育摘要，限時標出寫壞的句子：不可測目標、目標偷換、祝福式轉銜、未經調整的全校檢測。結束後依漏掉的類型給判讀線索。", url:"tools/iep-spot-challenge.html" },
+  { name:"同儕小教練（學生版＋師培版）", tags:["train","study","teach"], kw:"遊戲 同儕 小老師 排球 籃球 協助 代勞", desc:"協助不是代勞。學生版扮演小老師陪同學練排球 13 幕；師培版從招募到輪替建置同儕指導制度 10 幕。附中英對照句型，結尾自動結算自我檢查表。", url:"tools/peer-coach-story.html" },
+  { name:"無障礙偵察隊", tags:["train","study"], kw:"遊戲 輪椅 無障礙 環境 社會模式 坡道 校園", desc:"三個校園場景（走廊、體育館、操場）藏著 18 個環境障礙，限時找出來。每個障礙附「誰被擋住了」與「怎麼改」。該被克服的是環境，不是身體。", url:"tools/barrier-scout.html" },
+  { name:"調整補給站（迷宮）", tags:["train","study"], kw:"遊戲 迷宮 調整 策略", desc:"你是體育老師，在校園裡收集六種調整策略，帶回體育課部署，同時繞開五種做壞的做法。全班參與度與教師能量兩條儀表即時變動。公開版，另站。", url:"https://rogerp3201.github.io/adaptation-maze/" },
+  { name:"帶好這一班（即時版）", tags:["train"], kw:"遊戲 模擬 UDL 學期 即時 研習", desc:"同一個班，但時間會自己走。十八週約一分鐘，七個事件突然彈出、倒數六秒，不選就自己壞掉。開學前的準備會長出原本不存在的選項；四張調整卡用拖的丟給全班或三位學生。適合研習開場與體感教學。", url:"tools/class-sim-live.html" },
+  { name:"帶好這一班（學期模擬）", tags:["train","study"], kw:"遊戲 模擬 UDL 學期 兩難 師培", desc:"帶 26 人的班級走完 18 週。開學先選兩項準備（視覺提示、分層挑戰站、同儕小老師、多元評量），看它們在學期中的關鍵時刻派上用場。含兩難回合與學期軌跡回顧，適合師培與深度研習。", url:"tools/class-sim.html" },
 ];
 const CLASS_TOOLS = [
-  { name:"帕拉演講互動", tags:["train"], desc:"分級師與標題翻轉互動。", url:"tools/para-interactive.html" },
-  { name:"平均的謊言（演講版）", tags:["train"], desc:"演講演示：一場「成功」的活動，平均值上升，但有人被推往反方向。講者按鍵推進。", url:"tools/average-lie.html" },
-  { name:"平均的謊言（互動版）", tags:["train","study"], desc:"你來設計一堂投籃課。照班級平均設計，報表很好看，但把平均攤開來，有人整節課投不到兩球，有人太簡單等於沒上。公開版，另站。", url:"https://rogerp3201.github.io/average-lie/" },
-  { name:"抽案輪盤", tags:["train","teach"], desc:"課堂抽案討論輪盤。雙題庫（校園 APE 與校門外 APA）、中文與 EMI 切換，抽案後可展開情境並直達完整個案。", url:"tools/case-roulette.html" },
-  { name:"肌力體能選擇板", tags:["teach"], desc:"肌力體能課選擇板。", url:"tools/strength-choice-board.html" },
-  { name:"體適能紀錄（數位版）", tags:["teach","data"], desc:"體適能檢測數位紀錄。", url:"tools/fitness-record.html" },
-  { name:"自覺用力量表（Borg CR10）", tags:["teach"], desc:"運動後用臉譜量表回報疲累程度，可記錄與朗讀。", url:"tools/rpe-borg-scale.html" },
-  { name:"視覺計時器（分站輪換）", tags:["teach"], desc:"循環訓練大字倒數＋顏色＋提示音，自動輪換分站。", url:"tools/station-timer.html" },
-  { name:"動作分解 First-Then", tags:["teach"], desc:"把動作拆成一步步，現在做／接下來，逐步完成。", url:"tools/first-then-sequencer.html" },
+  { name:"帕拉演講互動", tags:["train"], kw:"帕拉 帕運 分級 輪椅 演講", desc:"分級師與標題翻轉互動。", url:"tools/para-interactive.html" },
+  { name:"平均的謊言（演講版）", tags:["train"], kw:"平均 數據 演講 差異", desc:"演講演示：一場「成功」的活動，平均值上升，但有人被推往反方向。講者按鍵推進。", url:"tools/average-lie.html" },
+  { name:"平均的謊言（互動版）", tags:["train","study"], kw:"平均 數據 投籃 差異 互動", desc:"你來設計一堂投籃課。照班級平均設計，報表很好看，但把平均攤開來，有人整節課投不到兩球，有人太簡單等於沒上。公開版，另站。", url:"https://rogerp3201.github.io/average-lie/" },
+  { name:"抽案輪盤", tags:["train","teach"], kw:"個案 討論 分組 輪盤 EMI 隨機", desc:"課堂抽案討論輪盤。雙題庫（校園 APE 與校門外 APA）、中文與 EMI 切換，抽案後可展開情境並直達完整個案。", url:"tools/case-roulette.html" },
+  { name:"肌力體能選擇板", tags:["teach"], kw:"肌力 重訓 體能 選擇板 坐姿", desc:"肌力體能課選擇板。", url:"tools/strength-choice-board.html" },
+  { name:"體適能紀錄（數位版）", tags:["teach","data"], kw:"體適能 檢測 PACER 捲腹 坐姿體前彎 紀錄", desc:"體適能檢測數位紀錄。", url:"tools/fitness-record.html" },
+  { name:"自覺用力量表（Borg CR10）", tags:["teach"], kw:"RPE 疲累 強度 自覺 Borg 量表", desc:"運動後用臉譜量表回報疲累程度，可記錄與朗讀。", url:"tools/rpe-borg-scale.html" },
+  { name:"視覺計時器（分站輪換）", tags:["teach"], kw:"計時 分站 循環 輪換 視覺提示", desc:"循環訓練大字倒數＋顏色＋提示音，自動輪換分站。", url:"tools/station-timer.html" },
+  { name:"動作分解 First-Then", tags:["teach"], kw:"動作分解 視覺提示 自閉症 步驟 先做", desc:"把動作拆成一步步，現在做／接下來，逐步完成。", url:"tools/first-then-sequencer.html" },
 ];
 
 const LISTS = [
@@ -160,7 +170,7 @@ function render(listId, tools){
     const card = document.createElement("div");
     card.className = "card";
     card.dataset.tags = (t.tags || []).join(" ");
-    card.dataset.search = (t.name + " " + t.desc).toLowerCase();
+    card.dataset.search = (t.name + " " + t.desc + " " + (t.kw || "")).toLowerCase();
     const live = !!t.url;
     card.innerHTML = `<b>${t.name}</b><p>${t.desc}</p>
       <div class="row">
@@ -187,6 +197,27 @@ function renderScenes(){
   });
 }
 
+function countHits(sceneKey, kw){
+  let n = 0;
+  LISTS.forEach(([id]) => {
+    [...document.getElementById(id).children].forEach(card => {
+      const okScene = !sceneKey || card.dataset.tags.split(" ").includes(sceneKey);
+      const okKw = !kw || card.dataset.search.includes(kw);
+      if (okScene && okKw) n++;
+    });
+  });
+  return n;
+}
+
+function clearAll(){
+  scene = "";
+  document.getElementById("q").value = "";
+  renderScenes();
+  applyFilter();
+}
+function clearKw(){ document.getElementById("q").value = ""; applyFilter(); }
+function clearScene(){ scene = ""; renderScenes(); applyFilter(); }
+
 function applyFilter(){
   const kw = (document.getElementById("q").value || "").trim().toLowerCase();
   let shown = 0;
@@ -202,11 +233,36 @@ function applyFilter(){
     });
     document.getElementById("sec-" + id).classList.toggle("hide", secShown === 0);
   });
+
   const total = LISTS.reduce((n, [, arr]) => n + arr.length, 0);
+  const sceneLabel = (SCENES.find(s => s.k === scene) || {}).label || "";
+  const active = !!(scene || kw);
+
   document.getElementById("count").innerHTML =
-    (scene || kw) ? `符合條件的工具：<b>${shown}</b> 個（全站共 ${total} 個）` : `全站共 <b>${total}</b> 個工具`;
-  document.getElementById("empty").classList.toggle("hide", shown > 0);
-  document.getElementById("newhere").style.display = (scene || kw) ? "none" : "";
+    active ? `符合條件的工具：<b>${shown}</b> 個（全站共 ${total} 個）` : `全站共 <b>${total}</b> 個工具`;
+  document.getElementById("clearBtn").classList.toggle("hide", !active);
+  document.getElementById("newhere").style.display = active ? "none" : "";
+
+  // 沒有結果時，說清楚是哪個條件擋住的，並給一鍵解法
+  const emptyBox = document.getElementById("empty");
+  emptyBox.classList.toggle("hide", shown > 0);
+  if (shown === 0) {
+    if (scene && kw) {
+      const onlyKw = countHits("", kw);
+      const onlyScene = countHits(scene, "");
+      emptyBox.innerHTML =
+        `你同時用了兩個條件：情境「<b>${sceneLabel}</b>」加上搜尋「<b>${kw}</b>」，兩者沒有交集。<br>` +
+        `單看搜尋「${kw}」有 <b>${onlyKw}</b> 個工具，單看「${sceneLabel}」有 <b>${onlyScene}</b> 個。<br>` +
+        `<button class="fix" onclick="clearScene()">只留搜尋「${kw}」</button>　` +
+        `<button class="fix" onclick="clearKw()">只留「${sceneLabel}」</button>`;
+    } else if (kw) {
+      emptyBox.innerHTML = `沒有工具的名稱或說明包含「<b>${kw}</b>」。換個關鍵字，例如「IEP」「輪椅」「遊戲」「評量」。<br>` +
+        `<button class="fix" onclick="clearAll()">看全部 ${total} 個工具</button>`;
+    } else {
+      emptyBox.innerHTML = `「<b>${sceneLabel}</b>」目前沒有工具。<br>` +
+        `<button class="fix" onclick="clearAll()">看全部 ${total} 個工具</button>`;
+    }
+  }
 }
 
 LISTS.forEach(([id, arr]) => render(id, arr));
