@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>課堂感受・教師端｜PAAS 結果速看</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--green:#0d4d43;--bg:#f4f6f5;--card:#fff;--ink:#22312d;--sub:#5a6a64;
+ --pos:#2f8f6f;--neg:#c05c4a;--fat:#b08341;--tra:#4a7fb0;--line:#e2e8e6}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:20px 14px 60px;line-height:1.6}
+.wrap{max-width:920px;margin:0 auto}
+h1{font-size:1.35rem;color:var(--green)}
+.tag{color:var(--sub);font-size:.86rem;margin-bottom:16px}
+.card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 1px 5px rgba(0,0,0,.07);margin-bottom:14px}
+h2{font-size:1rem;color:var(--green);margin-bottom:10px}
+.ctrl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.ctrl label{display:block;font-size:.8rem;color:var(--sub);margin-bottom:3px}
+.ctrl input,.ctrl select{width:100%;padding:9px 10px;border:1px solid #cfd8d5;border-radius:8px;font-size:.92rem;font-family:inherit;background:#fff}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+button{font-family:inherit;font-size:.92rem;font-weight:700;padding:11px 20px;border-radius:9px;border:0;cursor:pointer;background:var(--green);color:#fff}
+button.ghost{background:#fff;color:var(--green);border:1px solid #c6d0cd}
+button:disabled{background:#b9c4c0;cursor:not-allowed}
+.msg{font-size:.86rem;margin-top:10px;color:var(--sub)}
+.msg.err{color:#a8483a}
+.headline{font-size:1.12rem;font-weight:700;line-height:1.9}
+.headline .hi{color:var(--neg)}
+.headline .ok{color:var(--pos)}
+.statrow{display:flex;gap:22px;flex-wrap:wrap;margin-top:10px;font-size:.88rem;color:var(--sub)}
+.statrow b{font-size:1.3rem;color:var(--ink);display:block;font-variant-numeric:tabular-nums}
+.bar{margin:12px 0}
+.bl{display:flex;justify-content:space-between;font-size:.88rem;margin-bottom:4px}
+.bl .v{font-weight:700;font-variant-numeric:tabular-nums}
+.track{height:22px;background:#eef2f1;border-radius:6px;position:relative;overflow:hidden}
+.zero{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#c8d2cf}
+.fill{position:absolute;top:3px;bottom:3px;border-radius:4px;transition:.4s}
+.scale{display:flex;justify-content:space-between;font-size:.72rem;color:var(--sub);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{padding:8px 6px;text-align:left;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;color:var(--sub);font-weight:600;cursor:pointer;user-select:none}
+th:hover{color:var(--green)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.flag-frus{background:#fdf2ef}
+tr.flag-idle{background:#fbf7ee}
+.pill{display:inline-block;font-size:.74rem;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.p-frus{background:#f6ded7;color:#a8483a}
+.p-idle{background:#f5ebd6;color:#8a6420}
+.p-good{background:#dcece5;color:#1f6b52}
+.p-ok{background:#eef2f1;color:var(--sub)}
+.up{color:var(--pos)}.down{color:var(--neg)}
+.quad{display:block;width:100%;height:auto;max-width:520px;margin:0 auto}
+.legend{font-size:.78rem;color:var(--sub);margin-top:6px;line-height:1.8}
+.guide h3{font-size:.92rem;color:var(--green);margin:14px 0 4px}
+.guide p{font-size:.88rem;margin-bottom:6px}
+.guide b{color:var(--ink)}
+.note{font-size:.78rem;color:var(--sub);line-height:1.8;margin-top:18px}
+.hide{display:none}
+.empty{text-align:center;color:var(--sub);font-size:.9rem;padding:26px 10px}
+@media(max-width:560px){.mobhide{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>課堂感受・教師端</h1>
+  <div class="tag">讀「這節課的感受（PAAS）」送出的資料。下課十分鐘，看懂這堂課把學生帶往哪裡。</div>
+
+  <div class="card">
+    <h2>選一堂課</h2>
+    <div class="ctrl">
+      <div><label>教師通行碼</label><input id="pin" type="password" inputmode="numeric" placeholder="四到八位數字"></div>
+      <div><label>課程</label><select id="course"><option value="">全部</option></select></div>
+      <div><label>班級</label><select id="cls"><option value="">全部</option></select></div>
+      <div><label>單元</label><select id="unit"><option value="">全部</option></select></div>
+      <div><label>時間範圍</label><select id="days">
+        <option value="1">今天</option><option value="7">近 7 天</option>
+        <option value="30" selected>近 30 天</option><option value="180">近半年</option>
+        <option value="3650">全部</option></select></div>
+    </div>
+    <div class="btns">
+      <button id="loadBtn" onclick="loadData()">讀取資料</button>
+      <button class="ghost" onclick="loadDemo()">看示範資料</button>
+      <button class="ghost" id="csvBtn" onclick="exportCsv()" disabled>匯出 CSV</button>
+    </div>
+    <div class="msg" id="msg">先輸入通行碼再按讀取。還沒有真實資料時，可以按「看示範資料」了解這頁怎麼讀。</div>
+  </div>
+
+  <div id="report" class="hide">
+    <div class="card">
+      <h2>這堂課發生了什麼</h2>
+      <div class="headline" id="headline"></div>
+      <div class="statrow" id="stats"></div>
+    </div>
+
+    <div class="card">
+      <h2>全班四個向度的平均變化</h2>
+      <div id="bars"></div>
+      <div class="legend">數字是課後減課前的平均（量尺 0 到 4）。<b>起勁想動</b>與<b>放鬆安穩</b>往右是好事；<b>難受挫折</b>往右要注意；<b>累了沒力</b>往右不一定是壞事，代表這節課的運動量足夠。</div>
+    </div>
+
+    <div class="card">
+      <h2>全班分布</h2>
+      <svg class="quad" id="quad" viewBox="0 0 460 380" role="img" aria-label="學生感受變化四象限圖"></svg>
+      <div class="legend">每個點是一位學生。橫軸是起勁想動的變化，縱軸是難受挫折的變化。<b>右下角</b>是這節課接住了他，<b>左上角</b>要找他聊聊，<b>靠近原點</b>代表這節課對他幾乎沒有影響。</div>
+    </div>
+
+    <div class="card">
+      <h2>學生清單</h2>
+      <div style="overflow-x:auto"><table id="tbl">
+        <thead><tr>
+          <th onclick="sortBy('flag')">狀態</th>
+          <th onclick="sortBy('code')">代碼</th>
+          <th class="mobhide" onclick="sortBy('unit')">單元</th>
+          <th class="num" onclick="sortBy('pos')">起勁想動</th>
+          <th class="num" onclick="sortBy('neg')">難受挫折</th>
+          <th class="num mobhide" onclick="sortBy('fat')">累了沒力</th>
+          <th class="num mobhide" onclick="sortBy('tra')">放鬆安穩</th>
+          <th class="mobhide" onclick="sortBy('t')">時間</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table></div>
+      <div class="legend">點欄位標題可以排序。預設把需要關心的排在最前面。表格裡的數字是變化量，不是分數高低。</div>
+    </div>
+
+    <div class="card hide" id="unitCard">
+      <h2>單元比較</h2>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>單元</th><th class="num">人次</th><th class="num">起勁想動</th><th class="num">難受挫折</th><th class="num">累了沒力</th><th class="num">需關心</th></tr></thead>
+        <tbody id="unitBody"></tbody>
+      </table></div>
+      <div class="legend">同一門課裡，哪個單元讓學生的感受往上走？這一欄比體適能成績更接近「他還想不想來上課」。</div>
+    </div>
+  </div>
+
+  <div class="card guide">
+    <h2>怎麼讀這一頁</h2>
+    <h3>三種需要你多看一眼的模式</h3>
+    <p><b>挫折訊號</b>：起勁想動掉下來，同時難受挫折升上去。這節課對他來說不是累，是難受。先別急著調難度，先問他卡在哪一步。</p>
+    <p><b>好像沒有真的參與</b>：四個向度幾乎都沒動，特別是累了沒力也沒動。身體沒有被啟動，心情也沒有。這通常不是態度問題，是任務對他來說沒有入口。</p>
+    <p><b>累得很值得</b>：累了沒力升上去，起勁想動也升上去。這是一堂好課的樣子，不要因為看到疲勞上升就以為出了問題。</p>
+    <h3>用在融合式體育的兩個場合</h3>
+    <p><b>調整前後對照</b>：同一個單元，做調整之前測一次、之後測一次。你會拿到「這個調整有沒有讓他感受變好」的證據，而不只是「他有沒有做完」。</p>
+    <p><b>找出被課程漏掉的人</b>：體適能數據好看的班級裡，仍然可能有兩三個學生每次都落在左上角。那幾個人平常不會舉手說話。</p>
+    <h3>這份資料的界線</h3>
+    <p>這是<b>教學回饋</b>，不是研究資料，也不是評分依據。資料只有學號後四碼，沒有姓名，但你手上有名冊可以回推，所以它是假名資料而不是匿名資料。要拿來做研究（包含先導研究），需要先過 IRB 與知情同意，並說明對照表由誰保管、存在哪裡、何時銷毀。</p>
+  </div>
+
+  <div class="note">
+    量表來源：Physical Activity Affect Scale（Lox, Jackson, Tuholski, Wasley, &amp; Treasure, 2000），12 題四向度。<br>
+    本頁只讀取資料，不修改也不刪除。要清除資料請直接到 Google Sheet 操作。<br>
+    通行碼只擋「網址被轉出去之後有人亂看」，不是資安等級的保護。真正的保護在於：這裡沒有姓名。
+  </div>
+</div>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbxCCp-Mflzy6Enazv-FH4Bt9xhyzGECv3WJacyOv-MWjiy20k9ahVrhoHXZZ82lna18/exec";
+const SUBS=[
+ {k:"pos",zh:"起勁想動",sci:"正向情感",color:"var(--pos)",good:true},
+ {k:"tra",zh:"放鬆安穩",sci:"平靜",color:"var(--tra)",good:true},
+ {k:"neg",zh:"難受挫折",sci:"負向情感",color:"var(--neg)",good:false},
+ {k:"fat",zh:"累了沒力",sci:"疲勞",color:"var(--fat)",good:false}
+];
+let ROWS=[], SORT={key:"flag",asc:true}, DEMO=false;
+const $=id=>document.getElementById(id);
+const esc=t=>String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const r1=x=>Math.round(x*10)/10;
+const fmt=x=>x==null?"":(x>0?"+":"")+r1(x).toFixed(1);
+
+/* 判讀規則：與教師指引的三種模式一致 */
+function flagOf(r){
+  if(!r.paired) return {k:"nopre",label:"只有課後",cls:"p-ok",rank:4};
+  const d=r.d;
+  if(d.pos<=-0.5 && d.neg>=0.5) return {k:"frus",label:"挫折訊號",cls:"p-frus",rank:0};
+  if(Math.abs(d.fat)<0.3 && Math.abs(d.pos)<0.3 && Math.abs(d.neg)<0.3) return {k:"idle",label:"幾乎沒動",cls:"p-idle",rank:1};
+  if(d.pos>=0.3) return {k:"good",label:"感受變好",cls:"p-good",rank:3};
+  return {k:"ok",label:"一般",cls:"p-ok",rank:2};
+}
+
+async function api(params){
+  const q=new URLSearchParams(Object.assign({kind:"paas"},params));
+  const res=await fetch(API_URL+"?"+q.toString());
+  return await res.json();
+}
+
+async function initIndex(){
+  try{
+    const d=await api({index:1});
+    if(!d.ok) return;
+    const fill=(sel,arr)=>{arr.forEach(o=>{const op=document.createElement("option");op.value=o.name;op.textContent=o.name+"（"+o.n+"）";sel.appendChild(op);});};
+    fill($("course"),d.courses||[]); fill($("cls"),d.classes||[]); fill($("unit"),d.units||[]);
+    if(d.n) $("msg").textContent="後端目前有 "+d.n+" 筆紀錄。輸入通行碼後按讀取。";
+  }catch(e){ /* 沒網路或後端未部署時保持安靜，示範資料仍可用 */ }
+}
+
+async function loadData(){
+  const pin=$("pin").value.trim();
+  if(!pin){ setMsg("請先輸入教師通行碼。",true); return; }
+  $("loadBtn").disabled=true; setMsg("讀取中…");
+  try{
+    const d=await api({list:1,pin:pin,course:$("course").value,cls:$("cls").value,unit:$("unit").value,days:$("days").value});
+    if(!d.ok){
+      setMsg(d.err==="pin"?"通行碼不對。若你剛改過 Code.gs 的通行碼，記得要重新部署（管理部署作業→鉛筆→新版本）。":"讀取失敗："+(d.err||"未知錯誤"),true);
+      $("loadBtn").disabled=false; return;
+    }
+    DEMO=false; ROWS=d.rows||[];
+    if(!ROWS.length){ setMsg("這個條件下沒有資料。試試放寬時間範圍，或確認學生有按下「送出給老師」。",true); $("report").classList.add("hide"); }
+    else { setMsg("讀到 "+ROWS.length+" 筆。"); render(); }
+  }catch(e){ setMsg("連不上後端。請確認網路，以及 Apps Script 是否已部署新版本。",true); }
+  $("loadBtn").disabled=false;
+}
+
+function loadDemo(){
+  DEMO=true;
+  const units=["排球墊球","樂樂棒球","體適能分站"];
+  const mk=(code,unit,dpos,dneg,dfat,dtra,paired)=>({
+    t:"2026-07-13 10:0"+(code%10),course:"適應體育班",cls:"",unit:unit,code:String(code),paired:paired,
+    pre:{pos:2,tra:2,neg:1,fat:1},post:{pos:2+dpos,tra:2+dtra,neg:1+dneg,fat:1+dfat},
+    d:{pos:dpos,tra:dtra,neg:dneg,fat:dfat}
+  });
+  ROWS=[
+    mk(2341,units[0], 1.3,-0.7, 1.0, 0.7,true),
+    mk(2352,units[0], 1.0,-0.3, 1.3, 0.3,true),
+    mk(2363,units[0],-0.7, 1.0, 0.3,-0.7,true),
+    mk(2374,units[0], 0.0, 0.0, 0.0, 0.0,true),
+    mk(2385,units[0], 0.7,-0.3, 0.7, 0.3,true),
+    mk(2396,units[0],-1.0, 1.3, 0.7,-1.0,true),
+    mk(2307,units[0], 0.3, 0.0, 1.0, 0.0,true),
+    mk(2318,units[0], 0.0,-0.3, 0.0, 0.3,true),
+    mk(2329,units[1], 1.7,-1.0, 1.3, 1.0,true),
+    mk(2330,units[1], 0.7,-0.7, 1.0, 0.7,true),
+    mk(2341,units[1],-0.3, 0.7, 0.3,-0.3,true),
+    mk(2352,units[1], 1.0,-0.3, 1.7, 0.3,true),
+    mk(2363,units[2], 0.3, 0.0, 1.3, 0.0,true),
+    mk(2374,units[2],-0.7, 0.7, 0.0,-0.7,true),
+    mk(2385,units[2], 1.0,-0.7, 1.0, 1.0,true)
+  ];
+  ROWS.push({t:"2026-07-13 10:12",course:"適應體育班",cls:"",unit:units[0],code:"2400",paired:false,
+    pre:{pos:null,tra:null,neg:null,fat:null},post:{pos:2.7,tra:2.3,neg:0.7,fat:2.0},d:{pos:null,tra:null,neg:null,fat:null}});
+  setMsg("這是示範資料（15 位配對成功、1 位只有課後），用來說明這一頁怎麼讀。按「讀取資料」才會抓真實資料。");
+  render();
+}
+
+function setMsg(t,err){ const m=$("msg"); m.textContent=t; m.className="msg"+(err?" err":""); }
+
+function render(){
+  $("report").classList.remove("hide");
+  $("csvBtn").disabled=false;
+  const paired=ROWS.filter(r=>r.paired);
+  const flags=ROWS.map(flagOf);
+  const nFrus=flags.filter(f=>f.k==="frus").length;
+  const nIdle=flags.filter(f=>f.k==="idle").length;
+  const nGood=flags.filter(f=>f.k==="good").length;
+
+  // 一句話總結
+  let h="";
+  if(!paired.length){ h="這批資料沒有課前紀錄，只能看課後的絕對分數，看不出變化。"; }
+  else{
+    const mPos=avg(paired.map(r=>r.d.pos));
+    h= mPos>=0.3 ? "整體而言，這節課讓學生的<span class='ok'>感受往上走</span>（起勁想動平均 "+fmt(mPos)+"）。"
+      : mPos<=-0.3 ? "整體而言，這節課讓學生的<span class='hi'>感受往下走</span>（起勁想動平均 "+fmt(mPos)+"）。"
+      : "整體而言，這節課的感受變化不大（起勁想動平均 "+fmt(mPos)+"）。";
+    if(nFrus) h+=" 有 <span class='hi'>"+nFrus+" 位</span>出現挫折訊號，";
+    else h+=" 沒有人出現挫折訊號，";
+    h+= nIdle? "另有 "+nIdle+" 位幾乎沒有變化，可能沒有真的參與進來。" : "也沒有人完全沒有反應。";
+  }
+  $("headline").innerHTML=h;
+  $("stats").innerHTML=
+    stat(ROWS.length,"總筆數")+stat(paired.length,"課前課後配對")+
+    stat(nGood,"感受變好")+stat(nFrus,"需要關心")+stat(nIdle,"幾乎沒動");
+
+  // 四向度平均變化
+  $("bars").innerHTML=SUBS.map(s=>{
+    const v=avg(paired.map(r=>r.d[s.k]));
+    const w=Math.min(Math.abs(v)/2,1)*50;
+    const left=v>=0?50:50-w;
+    return '<div class="bar"><div class="bl"><span>'+s.zh+'<span style="color:var(--sub);font-size:.8rem">（'+s.sci+'）</span></span>'
+      +'<span class="v" style="color:'+s.color+'">'+fmt(v)+'</span></div>'
+      +'<div class="track"><div class="zero"></div><div class="fill" style="left:'+left+'%;width:'+w+'%;background:'+s.color+'"></div></div>'
+      +'<div class="scale"><span>-2</span><span>0</span><span>+2</span></div></div>';
+  }).join("");
+
+  drawQuad(paired);
+  renderTable();
+  renderUnits();
+}
+function stat(v,l){ return '<div><b>'+v+'</b>'+l+'</div>'; }
+function avg(a){ const v=a.filter(x=>x!=null); return v.length? v.reduce((s,x)=>s+x,0)/v.length : 0; }
+
+function drawQuad(rows){
+  const W=460,H=380,P=44, cx=(W+P)/2, cy=H/2;
+  const sx=v=>cx+(v/2)*((W-P*1.5)/2), sy=v=>cy-(v/2)*((H-P*1.5)/2);
+  let s='';
+  s+='<rect x="'+P+'" y="10" width="'+(W-P-10)+'" height="'+(H-P-10)+'" fill="#fafbfb" stroke="#e2e8e6"/>';
+  s+='<rect x="'+cx+'" y="'+cy+'" width="'+(W-10-cx)+'" height="'+(H-P-cy)+'" fill="#f0f7f4"/>';
+  s+='<rect x="'+P+'" y="10" width="'+(cx-P)+'" height="'+(cy-10)+'" fill="#fdf3f0"/>';
+  s+='<text x="'+(W-16)+'" y="'+(H-P-16)+'" text-anchor="end" font-size="11" fill="#2f8f6f">這節課接住了他</text>';
+  s+='<text x="'+(P+8)+'" y="26" font-size="11" fill="#c05c4a">要找他聊聊</text>';
+  s+='<line x1="'+P+'" y1="'+cy+'" x2="'+(W-10)+'" y2="'+cy+'" stroke="#c8d2cf" stroke-width="1.5"/>';
+  s+='<line x1="'+cx+'" y1="10" x2="'+cx+'" y2="'+(H-P)+'" stroke="#c8d2cf" stroke-width="1.5"/>';
+  s+='<text x="'+(W-10)+'" y="'+(cy+16)+'" text-anchor="end" font-size="11" fill="#5a6a64">起勁想動 +2</text>';
+  s+='<text x="'+P+'" y="'+(cy+16)+'" font-size="11" fill="#5a6a64">-2</text>';
+  s+='<text x="'+(cx+6)+'" y="20" font-size="11" fill="#5a6a64">難受挫折 +2</text>';
+  s+='<text x="'+(cx+6)+'" y="'+(H-P-4)+'" font-size="11" fill="#5a6a64">-2</text>';
+  rows.forEach(r=>{
+    const f=flagOf(r);
+    const col=f.k==="frus"?"#c05c4a":f.k==="idle"?"#b08341":f.k==="good"?"#2f8f6f":"#7f8f8a";
+    const x=sx(r.d.pos), y=sy(r.d.neg);
+    s+='<circle cx="'+x+'" cy="'+y+'" r="7" fill="'+col+'" fill-opacity=".75" stroke="#fff" stroke-width="1.5"><title>'+esc(r.code)+"　起勁想動 "+fmt(r.d.pos)+"　難受挫折 "+fmt(r.d.neg)+'</title></circle>';
+    if(f.k==="frus"||f.k==="idle") s+='<text x="'+x+'" y="'+(y-11)+'" text-anchor="middle" font-size="10" fill="'+col+'" font-weight="700">'+esc(r.code)+'</text>';
+  });
+  $("quad").innerHTML=s;
+}
+
+function renderTable(){
+  const rows=ROWS.slice().sort((a,b)=>{
+    const k=SORT.key, dir=SORT.asc?1:-1;
+    if(k==="flag") return (flagOf(a).rank-flagOf(b).rank)*dir;
+    if(k==="code"||k==="unit"||k==="t") return String(a[k]||"").localeCompare(String(b[k]||""))*dir;
+    const av=a.d[k], bv=b.d[k];
+    if(av==null) return 1; if(bv==null) return -1;
+    return (av-bv)*dir;
+  });
+  $("tbody").innerHTML=rows.map(r=>{
+    const f=flagOf(r);
+    const cell=k=>{const v=r.d[k];return '<td class="num '+(v>0?"up":v<0?"down":"")+'">'+(v==null?"—":fmt(v))+'</td>';};
+    return '<tr class="'+(f.k==="frus"?"flag-frus":f.k==="idle"?"flag-idle":"")+'">'
+      +'<td><span class="pill '+f.cls+'">'+f.label+'</span></td>'
+      +'<td>'+esc(r.code)+'</td><td class="mobhide">'+esc(r.unit)+'</td>'
+      +cell("pos")+cell("neg")
+      +'<td class="num mobhide">'+(r.d.fat==null?"—":fmt(r.d.fat))+'</td>'
+      +'<td class="num mobhide">'+(r.d.tra==null?"—":fmt(r.d.tra))+'</td>'
+      +'<td class="mobhide" style="color:var(--sub);font-size:.82rem">'+esc(r.t)+'</td></tr>';
+  }).join("");
+}
+function sortBy(k){ SORT.asc = SORT.key===k ? !SORT.asc : true; SORT.key=k; renderTable(); }
+
+function renderUnits(){
+  const units=[...new Set(ROWS.map(r=>r.unit).filter(Boolean))];
+  if(units.length<2){ $("unitCard").classList.add("hide"); return; }
+  $("unitCard").classList.remove("hide");
+  $("unitBody").innerHTML=units.map(u=>{
+    const rs=ROWS.filter(r=>r.unit===u), p=rs.filter(r=>r.paired);
+    const care=rs.filter(r=>["frus","idle"].includes(flagOf(r).k)).length;
+    const c=(k,col)=>'<td class="num" style="color:'+col+'">'+fmt(avg(p.map(r=>r.d[k])))+'</td>';
+    return '<tr><td>'+esc(u)+'</td><td class="num">'+rs.length+'</td>'
+      +c("pos","var(--pos)")+c("neg","var(--neg)")+c("fat","var(--fat)")
+      +'<td class="num">'+(care?'<b style="color:var(--neg)">'+care+'</b>':"0")+'</td></tr>';
+  }).join("");
+}
+
+function exportCsv(){
+  const head=["時間","課程","班級","單元","代碼","狀態","變化_起勁想動","變化_難受挫折","變化_累了沒力","變化_放鬆安穩",
+    "課後_起勁想動","課後_難受挫折","課後_累了沒力","課後_放鬆安穩"];
+  const lines=[head.join(",")].concat(ROWS.map(r=>{
+    const f=flagOf(r), q=s=>'"'+String(s==null?"":s).replace(/"/g,'""')+'"';
+    return [r.t,r.course,r.cls,r.unit,r.code,f.label,
+      r.d.pos,r.d.neg,r.d.fat,r.d.tra,r.post.pos,r.post.neg,r.post.fat,r.post.tra].map(q).join(",");
+  }));
+  const blob=new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="課堂感受_"+(DEMO?"示範資料":"匯出")+"_"+new Date().toISOString().slice(0,10)+".csv";
+  a.click();
+}
+
+initIndex();
+</script>
+</body>
+</html>
